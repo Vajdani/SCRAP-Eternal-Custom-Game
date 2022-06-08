@@ -1,0 +1,68 @@
+{
+	"toolList":
+	[
+		{
+			"uuid": "8378e3ed-ded9-4a64-9887-76c3b295bc86",
+			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+			"script": { 
+				"file": "$CONTENT_DATA/Scripts/tools/wpn_supershotgun.lua", 
+				"class": "SSG" 
+			}
+		},
+		{
+			"uuid": "465b2e4e-e9ff-42bc-aab1-f256663d1c31",
+			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+			"script": { 
+				"file": "$CONTENT_DATA/Scripts/tools/wpn_ballista.lua", 
+				"class": "Ballista" 
+			}
+		},
+		{
+			"uuid": "b17f2fa7-1f04-40b5-8f9d-65a40bbf45c0",
+			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+			"script": { 
+				"file": "$CONTENT_DATA/Scripts/tools/wpn_plasmarifle.lua", 
+				"class": "PRifle" 
+			}
+		},
+		{
+			"uuid": "25417b29-546d-4a9d-9766-f6e0d3b82f0f",
+			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+			"script": { 
+				"file": "$CONTENT_DATA/Scripts/tools/wpn_rocketlauncher.lua", 
+				"class": "RLauncher" 
+			}
+		},
+		{
+			"uuid": "2cc2e981-4261-443b-b925-051ea94707ab",
+			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+			"script": { 
+				"file": "$CONTENT_DATA/Scripts/tools/wpn_bigfuckinggun.lua", 
+				"class": "BFG" 
+			}
+		},
+		{
+			"uuid": "30baecf1-d083-4785-932c-4f2272494b5a",
+			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+			"script": { 
+				"file": "$CONTENT_DATA/Scripts/tools/wpn_unmaykr.lua", 
+				"class": "Unmaykr"
+			}
+		},
+		{
+			"uuid": "469ddbcd-eda9-4c78-b620-4270b7a36abf",
+			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_sledgehammer_preview.rend",
+			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+			"script": { 
+				"file": "$CONTENT_DATA/Scripts/tools/prp_berserk.lua", 
+				"class": "Berserk"
+			}
+		}
+	]
+}

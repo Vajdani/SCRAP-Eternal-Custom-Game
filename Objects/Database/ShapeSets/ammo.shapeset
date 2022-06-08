@@ -1,0 +1,214 @@
+{
+	"partList": [
+		{
+            "uuid": "37051f7f-1661-4bd7-9f24-d61bd602616d",
+            "name": "se_ammo_plasma",
+            "renderable": {
+                "lodList": [
+                    {
+                        "maxViewDistance": 1500,
+                        "mesh": "$SURVIVAL_DATA/Objects/Mesh/consumable/obj_consumable_chemical.fbx",
+                        "subMeshMap": {
+							"chemicalconsumable": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_dif.tga",
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_nor.tga"
+								]
+							},
+							"glass": {
+								"material": "Glass",
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/fullblue.png",
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_nor.tga"
+								]
+							}
+						}
+                    }
+                ]
+            },
+            "color": "495975",
+            "box": {
+                "x": 2,
+                "y": 2,
+                "z": 2
+            },
+            "itemStack": {},
+            "rotationSet": "PropY",
+            "sticky": "-Y+Y",
+            "physicsMaterial": "Fruit",
+            "ratings": {
+                "density": 2,
+                "durability": 2,
+                "friction": 4,
+                "buoyancy": 7
+            },
+            "flammable": true,
+            "consumable": true,
+            "stackSize": 20,
+            "restrictions": {
+                "erasable": true
+            }
+        },
+        {
+            "uuid": "72db5fe7-cda0-45a6-a175-3a46ba0cd150",
+            "name": "se_ammo_argent",
+            "renderable": {
+                "lodList": [
+                    {
+                        "maxViewDistance": 1500,
+                        "mesh": "$SURVIVAL_DATA/Objects/Mesh/consumable/obj_consumable_chemical.fbx",
+                        "subMeshMap": {
+							"chemicalconsumable": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_dif.tga",
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_nor.tga"
+								]
+							},
+							"glass": {
+								"material": "Glass",
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/fullgreen.png",
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/consumable/Obj_consumable_chemical_nor.tga"
+								]
+							}
+						}
+                    }
+                ]
+            },
+            "color": "495975",
+            "box": {
+                "x": 2,
+                "y": 2,
+                "z": 2
+            },
+            "itemStack": {},
+            "rotationSet": "PropY",
+            "sticky": "-Y+Y",
+            "physicsMaterial": "Fruit",
+            "ratings": {
+                "density": 2,
+                "durability": 2,
+                "friction": 4,
+                "buoyancy": 7
+            },
+            "flammable": true,
+            "consumable": true,
+            "stackSize": 20,
+            "restrictions": {
+                "erasable": true
+            }
+        },
+        {
+			"uuid": "42cae6ca-b5fb-4869-8000-260d63eb1d2c",
+			"name": "se_ammo_shells",
+			"renderable": {
+                "lodList": [
+                    {
+                        "mesh": "$CONTENT_DATA/Objects/Mesh/se_ammo_shells.fbx",
+                        "subMeshMap": {
+                            "base": {
+                                "textureList": [
+                                    "$CONTENT_DATA/Objects/Textures/gray.png",
+                                    "$GAME_DATA/Textures/transparent.tga",
+                                    "$GAME_DATA/Textures/nonor_nor.tga"
+                                ],
+                                "material": "DifAsgNor"
+                            },
+                            "shellBase": {			
+                                "textureList": [
+                                    "$CONTENT_DATA/Objects/Textures/red.png",
+                                    "$GAME_DATA/Textures/transparent.tga",
+                                    "$GAME_DATA/Textures/nonor_nor.tga"
+                                ],
+                                "material": "DifAsgNor"
+                            },
+                            "shellTop": {			
+                                "textureList": [
+                                    "$CONTENT_DATA/Objects/Textures/yellow.png",
+                                    "$GAME_DATA/Textures/transparent.tga",
+                                    "$GAME_DATA/Textures/nonor_nor.tga"
+                                ],
+                                "material": "DifAsgNor"
+                            }	
+                        },
+                        "maxViewDistance": 1000.0
+                    }
+                ]
+            },
+			"color": "505c30",
+			"box": {
+				"x": 1,
+				"y": 2,
+				"z": 1
+			},
+			"itemStack": {},
+			"rotationSet": "PropZ",
+			"sticky": "+X-X+Y-Y-Z",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"density": 2,
+				"durability": 2,
+				"friction": 4,
+				"buoyancy": 3
+			},
+			"flammable": true,
+			"consumable": true,
+			"stackSize": 24
+		},
+        {
+			"uuid": "af1f3a89-7428-42af-9382-79337f60c25b",
+			"name": "se_ammo_rockets",
+			"renderable": {
+                "lodList": [
+                    {
+                        "mesh": "$CONTENT_DATA/Objects/Mesh/se_ammo_rocket.fbx",
+                        "subMeshMap": {
+                            "base": {
+                                "textureList": [
+                                    "$CONTENT_DATA/Objects/Textures/gray.png",
+                                    "$GAME_DATA/Textures/transparent.tga",
+                                    "$GAME_DATA/Textures/nonor_nor.tga"
+                                ],
+                                "material": "DifAsgNor"
+                            },
+                            "fins": {			
+                                "textureList": [
+                                    "$CONTENT_DATA/Objects/Textures/red.png",
+                                    "$GAME_DATA/Textures/transparent.tga",
+                                    "$GAME_DATA/Textures/nonor_nor.tga"
+                                ],
+                                "material": "DifAsgNor"
+                            }	
+                        },
+                        "maxViewDistance": 1000.0
+                    }
+                ]
+            },
+			"color": "505c30",
+			"box": {
+				"x": 1,
+				"y": 1,
+				"z": 2
+			},
+			"itemStack": {},
+			"rotationSet": "PropZ",
+			"sticky": "-Z",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"density": 4,
+				"durability": 2,
+				"friction": 4,
+				"buoyancy": 3
+			},
+			"flammable": false,
+			"consumable": true,
+			"stackSize": 12
+		}
+    ]
+}

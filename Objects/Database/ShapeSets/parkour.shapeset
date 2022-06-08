@@ -1,0 +1,394 @@
+{
+	"partList": [
+		{
+			"uuid": "450639d7-5a77-4900-8c49-a61314bc589b",
+			"name": "trn_boostpad",
+			"renderable": {
+				"lodList": [
+					{
+						"mesh": "$CONTENT_DATA/Objects/Mesh/trn_boostpad.fbx",
+						"subMeshMap": {
+							"Material": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+									
+								]
+							},
+							"submesh1": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_dif.tga",
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_nor.tga"
+									
+								]
+							},
+							"submesh2": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_dif.tga",
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_nor.tga"
+									
+								]
+							},
+							"submesh3": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_dif.tga",
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_nor.tga"
+									
+								]
+							},
+							"submesh4": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_dif.tga",
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_thruster_05_nor.tga"
+									
+								]
+							}
+						}
+					}
+				]
+			},
+			"color": "525252",
+			"box": {
+				"x": 4,
+				"y": 4,
+				"z": 1
+				//"col": "$CONTENT_DATA/Objects/Mesh/trn_boostpad.fbx"
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/interactables/trn_boostpad.lua",
+				"classname": "BoostPad",
+				"data": {}
+			},
+			"rotationSet": "PropZ",
+			"sticky": "-Z",
+			"physicsMaterial": "Mechanical",
+			"ratings": {
+				"density": 6,
+				"durability": 10,
+				"friction": 8,
+				"buoyancy": 1
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": true,
+				"liftable": true,
+				"paintable": true,
+				"usable": false
+			},
+			"showInInventory": true
+		},
+		{
+			"uuid": "539e2ec8-cc49-484c-9d88-6e1cc6bbddc4",
+			"name": "trn_monkeybar",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshMap": {
+							"rod_base": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+								]
+							},
+							"rod_glow": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/green2.png",
+									"$CONTENT_DATA/Objects/Textures/fullblue.png",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+								]
+							},
+							"rod_grips": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/lightergray.png",
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+								]
+							}
+						},
+						"mesh": "$CONTENT_DATA/Objects/Mesh/trn_monkeybar.fbx"
+					}
+				]
+			},
+			"color": "ffcc4d",
+			"hull": {
+				"x": 1,
+				"y": 1,
+				"z": 1,
+				"col": "$CONTENT_DATA/Objects/Mesh/trn_monkeybar.fbx"
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/interactables/trn_monkeybar.lua",
+				"classname": "MonkeyBar",
+				"data": {}
+			},
+			"rotationSet": "PropZ",
+			"sticky": "-Z",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"density": 6,
+				"durability": 10,
+				"friction": 8,
+				"buoyancy": 1
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": true,
+				"liftable": true,
+				"paintable": true,
+				"usable": false
+			},
+			"showInInventory": true
+		},
+		{
+			"uuid": "1c16ae84-26e6-4bf5-b4be-dc45448e0b89",
+			"name": "trn_wallclimb_1",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$SURVIVAL_DATA/Objects/Textures/blocks/blk_scrapstone_dif.tga",
+									"$SURVIVAL_DATA/Objects/Textures/blocks/blk_scrapstone_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/blocks/blk_scrapstone_nor.tga"
+								],
+								"material": "DifAsgNor"
+							}
+						],
+						"mesh": "$CONTENT_DATA/Objects/Mesh/trn_wallclimb_1.fbx"
+					}
+				]
+			},
+			"color": "d1ce94",
+			"hull": {
+				"x": 1,
+				"y": 7,
+				"z": 16,
+				"col": "$CONTENT_DATA/Objects/Mesh/trn_wallclimb_1.fbx"
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/interactables/trn_wallclimb.lua",
+				"classname": "WallClimb",
+				"data": {
+					"size": { 
+						"x": 0.25,
+						"y": 1,
+						"z": 1.8
+					},
+					"offset": {
+						"x": 0.25,
+						"y": 0,
+						"z": 0
+					}
+				}
+			},
+			"rotationSet": "PropZ",
+			"sticky": "-X+Y-Y+Z-Z",
+			"physicsMaterial": "Rock",
+			"ratings": {
+				"density": 6,
+				"durability": 10,
+				"friction": 8,
+				"buoyancy": 1
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": true,
+				"liftable": true,
+				"paintable": true,
+				"usable": false
+			},
+			"showInInventory": true
+		},
+		{
+			"uuid": "3bbe152e-3658-442d-95c7-35e17d48affb",
+			"name": "trn_wallclimb_2",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$SURVIVAL_DATA/Objects/Textures/blocks/blk_scrapstone_dif.tga",
+									"$SURVIVAL_DATA/Objects/Textures/blocks/blk_scrapstone_asg.tga",
+									"$SURVIVAL_DATA/Objects/Textures/blocks/blk_scrapstone_nor.tga"
+								],
+								"material": "DifAsgNor"
+							}
+						],
+						"mesh": "$CONTENT_DATA/Objects/Mesh/trn_wallclimb_2.fbx"
+					}
+				]
+			},
+			"color": "d1ce94",
+			"cylinder": { 
+				"diameter": 13, 
+				"depth": 16, 
+				"margin": 0, 
+				"axis": "Z" 
+			
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/interactables/trn_wallclimb.lua",
+				"classname": "WallClimb",
+				"data": {
+					"size": { 
+						"x": 1.8,
+						"y": 1.8,
+						"z": 1.95
+					},
+					"offset": {
+						"x": 0,
+						"y": 0,
+						"z": 0
+					}
+				}
+			},
+			"rotationSet": "PropZ",
+			"sticky": "-X+Y-Y+Z-Z",
+			"physicsMaterial": "Rock",
+			"ratings": {
+				"density": 6,
+				"durability": 10,
+				"friction": 8,
+				"buoyancy": 1
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": true,
+				"liftable": true,
+				"paintable": true,
+				"usable": false
+			},
+			"showInInventory": true
+		},
+		{
+			"uuid": "f14cc68d-7653-41f5-bf9f-3d87c1a4e71d",
+			"name": "trn_projectileBtn",
+			"renderable": {
+				"lodList": [
+					{
+						"mesh": "$CONTENT_DATA/Objects/Mesh/trn_projectileBtn_pose0.fbx",
+						"pose0": "$CONTENT_DATA/Objects/Mesh/trn_projectileBtn.fbx",
+						"subMeshMap": {
+							"Base": {
+								"material": "DifAsgNor",
+								"textureList": [
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+								]
+							},
+							"Button": {
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/green.png",
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"									
+								],
+								"material" : "PoseAnimDifAsgNor"
+							}
+						}
+					}
+				]
+			},
+			"color": "525252",
+			"box": { 
+				"x": 1,
+				"y": 4,
+				"z": 4
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/interactables/trn_projectileBtn.lua",
+				"classname": "ProjectileBtn",
+				"data": {
+					"outputDuration": 5
+				}
+			},
+			"rotationSet": "PropZ",
+			"sticky": "-X+Y-Y+Z-Z",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"density": 3,
+				"durability": 10,
+				"friction": 5,
+				"buoyancy": 2
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": true,
+				"liftable": true,
+				"paintable": true,
+				"usable": false
+			},
+			"showInInventory": true
+		},
+		{
+			"uuid": "93710416-d976-4702-96ab-d0107fd4abb2",
+			"name": "trn_hookPoint",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/redgreen.png",
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+								],
+								"material": "UVAnimDifAsgNor",
+								"custom": {
+									"uv0": {
+										"u": 0.5,
+										"v": 0
+									}
+								}
+							}
+						],
+						"mesh": "$CONTENT_DATA/Objects/Mesh/trn_hookPoint.fbx"
+					}
+				]
+			},
+			"color": "525252",
+			"box": { 
+				"x": 3,
+				"y": 3,
+				"z": 3
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/trn_hookPoint.lua",
+				"classname": "HookPoint"
+			},
+			"rotationSet": "PropZ",
+			"sticky": "-X+Y-Y+Z-Z",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"density": 3,
+				"durability": 10,
+				"friction": 5,
+				"buoyancy": 2
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": true,
+				"liftable": true,
+				"paintable": true,
+				"usable": false
+			},
+			"showInInventory": true
+		}
+	]
+}

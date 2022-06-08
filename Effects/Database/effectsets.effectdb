@@ -1,7 +1,11 @@
 {
    "effectSetList" : [
       {
-         "path" : "$CONTENT_DATA/Effects/Database/EffectSets/example.effectset",
+         "path" : "$CONTENT_DATA/Effects/Database/EffectSets/harvestable_effects.effectset",
+         "showInEditor" : true
+      },
+      {
+         "path" : "$CONTENT_DATA/Effects/Database/EffectSets/weapon_effects.effectset",
          "showInEditor" : true
       }
    ]

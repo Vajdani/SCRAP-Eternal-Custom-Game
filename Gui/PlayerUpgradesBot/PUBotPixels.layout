@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Widget" skin="PanelEmpty" position="10 15 1900 950" name="BackPanel">
+        <Widget type="Widget" skin="BeaconBG" position="0 0 1900 900">
+            <Widget type="TextBox" skin="TextBox" position="700 0 500 145">
+                <Property key="FontName" value="SM_HeaderLarge_Wide"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="Caption" value="PLAYER UPGRADES"/>
+                <Property key="FontHeight" value="25"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="100 750 400 35">
+                <Property key="Caption" value="DESCRIPTION"/>
+                <Property key="TextAlign" value="Left VCenter"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="100 785 400 100" name="descBox">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="15"/>
+                <Property key="TextAlign" value="Left Top"/>
+                <Property key="TextColour" value="#ff9d00"/>
+            </Widget>
+            <Widget type="Widget" skin="DropDownBackground" position="50 160 500 580" name="runes">
+                <Widget type="Button" skin="BeaconIconColorBorder" position="50 25 100 100" name="rune1">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune1ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="200 25 100 100" name="rune2">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune2ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="350 25 100 100" name="rune3">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune3ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="50 175 100 100" name="rune4">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune4ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="200 175 100 100" name="rune5">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune5ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="350 175 100 100" name="rune6">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune6ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="50 325 100 100" name="rune7">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune7ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="200 325 100 100" name="rune8">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune8ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="350 325 100 100" name="rune9">
+                    <Widget type="ImageBox" skin="ImageBox" position="12 12 76 76" name="rune9ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="TextBox" skin="TextBox" position="150 450 200 35">
+                    <Property key="Caption" value="Equipped runes:"/>
+                    <Property key="FontHeight" value="20"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="75 500 50 50" name="equippedrune1">
+                    <Widget type="ImageBox" skin="ImageBox" position="6 6 38 38" name="equippedrune1ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="225 500 50 50" name="equippedrune2">
+                    <Widget type="ImageBox" skin="ImageBox" position="6 6 38 38" name="equippedrune2ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="BeaconIconColorBorder" position="375 500 50 50" name="equippedrune3">
+                    <Widget type="ImageBox" skin="ImageBox" position="6 6 38 38" name="equippedrune3ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+            </Widget>
+        </Widget>
+    </Widget>
+</MyGUI>

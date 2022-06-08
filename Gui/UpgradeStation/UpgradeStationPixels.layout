@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Widget" skin="PanelEmpty" position="10 15 1900 925" name="BackPanel">
+        <Widget type="Widget" skin="BeaconBG" position="0 0 1900 900">
+            <Widget type="TextBox" skin="TextBox" position="705 0 500 146" name="upgradeS">
+                <Property key="FontName" value="SM_HeaderLarge_Wide"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="Caption" value="UPGRADE STATION"/>
+                <Property key="FontHeight" value="25"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="1400 50 50 50" name="wpPoints">
+                <Property key="TextAlign" value="Center"/>
+                <Property key="TextColour" value="#ff9d00"/>
+                <Property key="FontHeight" value="50"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+            </Widget>
+            <Widget type="ImageBox" skin="ImageBox" position="1450 35 80 80" name="wpPointIcon"/>
+            <Widget type="TextBox" skin="TextBox" position="50 315 400 100" name="wpnTitle">
+                <Property key="TextAlign" value="Center"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="25"/>
+            </Widget>
+            <Widget type="ImageBox" skin="ImageBox" position="85 240 50 50" name="wpn1up1">
+                <Property key="NeedMouse" value="false"/>
+            </Widget>
+            <Widget type="ImageBox" skin="ImageBox" position="145 240 50 50" name="wpn1up2"/>
+            <Widget type="ImageBox" skin="ImageBox" position="415 240 50 50" name="wpn2up2"/>
+            <Widget type="ImageBox" skin="ImageBox" position="355 240 50 50" name="wpn2up1"/>
+            <Widget type="ImageBox" skin="ImageBox" position="685 240 50 50" name="wpn3up2"/>
+            <Widget type="ImageBox" skin="ImageBox" position="895 240 50 50" name="wpn4up1"/>
+            <Widget type="ImageBox" skin="ImageBox" position="1435 240 50 50" name="wpn6up1"/>
+            <Widget type="ImageBox" skin="ImageBox" position="1705 240 50 50" name="wpn7up1"/>
+            <Widget type="ImageBox" skin="ImageBox" position="1165 240 50 50" name="wpn5up1"/>
+            <Widget type="ImageBox" skin="ImageBox" position="625 240 50 50" name="wpn3up1"/>
+            <Widget type="ImageBox" skin="ImageBox" position="955 240 50 50" name="wpn4up2"/>
+            <Widget type="ImageBox" skin="ImageBox" position="1495 240 50 50" name="wpn6up2"/>
+            <Widget type="ImageBox" skin="ImageBox" position="1765 240 50 50" name="wpn7up2"/>
+            <Widget type="TextBox" skin="TextBox" position="575 315 400 100">
+                <Property key="Caption" value="UPGRADES"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="FontHeight" value="25"/>
+                <Property key="Alpha" value="1"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="1100 315 400 100">
+                <Property key="Caption" value="MASTERY"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="Alpha" value="1"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="25"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="50 750 400 35">
+                <Property key="Caption" value="MOD TIPS"/>
+                <Property key="TextAlign" value="Left VCenter"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="25"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="50 785 400 100" name="tipsBox">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="15"/>
+                <Property key="TextAlign" value="Left Top"/>
+                <Property key="TextColour" value="#ff9d00"/>
+            </Widget>
+            <Widget type="ImageBox" skin="ImageBox" position="1100 470 100 100" name="mastIcon"/>
+            <Widget type="TextBox" skin="TextBox" position="1200 470 300 40" name="mastName">
+                <Property key="FontHeight" value="25"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Left VCenter"/>
+                <Property key="TextColour" value="#ff9d00"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="1200 510 300 60" name="mastDesc">
+                <Property key="FontHeight" value="15"/>
+                <Property key="TextAlign" value="Left Top"/>
+                <Property key="FontName" value="InventoryItemDescription"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="1100 590 200 40">
+                <Property key="Caption" value="Mastery Challenge"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="FontHeight" value="25"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="1300 630 200 100" name="mastChallenge">
+                <Property key="TextAlign" value="Left Top"/>
+                <Property key="TextColour" value="#ff9d00"/>
+                <Property key="FontHeight" value="15"/>
+                <Property key="FontName" value="InventoryItemDescription"/>
+            </Widget>
+            <Widget type="ImageBox" skin="ImageBox" position="1100 630 200 100" name="mastChallengeIcon"/>
+            <Widget type="TextBox" skin="TextBox" position="1550 50 50 50" name="mastPoints">
+                <Property key="FontHeight" value="50"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="TextColour" value="#ff9d00"/>
+            </Widget>
+            <Widget type="ImageBox" skin="ImageBox" position="1600 35 80 80" name="mastPointIcon"/>
+            <Widget type="TextBox" skin="TextBox" position="1550 760 150 30">
+                <Property key="Caption" value="AMMO TYPE"/>
+                <Property key="FontHeight" value="25"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="ImageBox" skin="ImageBox" position="1585 800 75 75" name="ammoType"/>
+            <Widget type="TextBox" skin="TextBox" position="1720 760 150 30">
+                <Property key="Caption" value="TIPS"/>
+                <Property key="FontHeight" value="25"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="1720 800 150 75" name="wpTips">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Left Top"/>
+                <Property key="FontHeight" value="15"/>
+                <Property key="TextColour" value="#ff9d00"/>
+            </Widget>
+            <Widget type="Canvas" skin="Canvas" position="1550 315 320 410" name="wpnPreview"/>
+            <Widget type="Button" skin="ActiveButton" position="1100 800 400 45" name="masteryBypass">
+                <Property key="Caption" value="BYPASS THE MASTERY CHALLENGE "/>
+                <Property key="FontHeight" value="25"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="575 470 400 100" name="upgradeBtn1">
+                <Property key="FontHeight" value="20"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="575 570 400 100" name="upgradeBtn2">
+                <Property key="FontHeight" value="20"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="575 670 400 100" name="upgradeBtn3">
+                <Property key="FontHeight" value="20"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="50 470 400 100" name="modBtn1">
+                <Property key="TextAlign" value="Center"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+                <Widget type="ImageBox" skin="ImageBox" position="20 11 78 78" name="mod1ico">
+                    <Property key="NeedMouse" value="false"/>
+                </Widget>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="49 589 399 99" name="modBtn2">
+                <Property key="FontHeight" value="20"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+                <Widget type="ImageBox" skin="ImageBox" position="19 10 77 77" name="mod2ico">
+                    <Property key="NeedMouse" value="false"/>
+                </Widget>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="15 170 250 100" name="wpn1">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="FontHeight" value="20"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="285 170 250 100" name="wpn2">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="555 170 250 100" name="wpn3">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="825 170 250 100" name="wpn4">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="1095 170 250 100" name="wpn5">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="1365 170 250 100" name="wpn6">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+                <Property key="TextAlign" value="Center"/>
+            </Widget>
+            <Widget type="Button" skin="ActiveButton" position="1635 170 250 100" name="wpn7">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="FontHeight" value="20"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="1100 750 100 45">
+                <Property key="Caption" value="PROGRESS:"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="15"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="1200 750 300 45" name="mastProgress">
+                <Property key="FontHeight" value="25"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="575 770 400 115" name="upgradeDesc">
+                <Property key="FontHeight" value="20"/>
+                <Property key="TextAlign" value="Left Top"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+            </Widget>
+            <Widget type="ImageBox" skin="ImageBox" position="1225 240 50 50" name="wpn5up2"/>
+        </Widget>
+    </Widget>
+</MyGUI>

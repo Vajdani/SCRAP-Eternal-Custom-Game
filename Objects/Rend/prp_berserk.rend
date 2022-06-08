@@ -1,0 +1,18 @@
+{
+	"lodList": [
+		{
+			"mesh": "$CONTENT_DATA/Objects/Mesh/prp_sphereHand.dae",
+			"subMeshList": [
+				{
+					"textureList": [
+						"$CONTENT_DATA/Objects/Textures/red.png",
+						"$GAME_DATA/Textures/transparent.tga",
+						"$GAME_DATA/Textures/nonor_nor.tga"
+					],
+					"material": "DifAsgNor"	
+				}
+			],
+			"maxViewDistance": 1000.0
+		}
+	]
+}

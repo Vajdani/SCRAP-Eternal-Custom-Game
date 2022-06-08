@@ -1,0 +1,22 @@
+{
+	"lodList": [
+		{
+			"mesh": "$CONTENT_DATA/Effects/Mesh/prj_shield.fbx",
+			"includes" : [ "POSITION", "UV0", "NORMAL" ],
+			"subMeshMap": {
+				"base": {
+					"textureList": [
+						"$CONTENT_DATA/Objects/Textures/chaingun_shield_projectiles.png"
+					],
+					"material": "Hologram"
+				},
+				"extra": {			
+					"textureList": [
+						"$CONTENT_DATA/Objects/Textures/chaingun_shield_overal_mask.png"
+					],
+					"material": "Hologram"
+				}	
+			}
+		}
+	]
+}

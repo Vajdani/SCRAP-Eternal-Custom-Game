@@ -1,0 +1,26 @@
+{
+	"lodList": [{
+		"mesh": "$CONTENT_DATA/Effects/Mesh/prj_rocket.fbx",
+
+		"subMeshMap": {
+			"base": {
+				"textureList": [
+					"$CONTENT_DATA/Objects/Textures/gray.png",
+					"$GAME_DATA/Textures/transparent.tga",
+					"$GAME_DATA/Textures/nonor_nor.tga"
+				],
+				"material": "DifAsgNor"
+			},
+			"fins": {			
+				"textureList": [
+					"$CONTENT_DATA/Objects/Textures/red.png",
+					"$GAME_DATA/Textures/transparent.tga",
+					"$GAME_DATA/Textures/nonor_nor.tga"
+				],
+				"material": "DifAsgNor"
+			}	
+		},
+		
+		"maxViewDistance": 1000.0
+	}]
+}

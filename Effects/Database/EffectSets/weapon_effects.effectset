@@ -1,0 +1,100 @@
+{
+	"Destroyer Blade":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/prj_destroyer_blade.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+	"Arbalest Dart":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/prj_arbalest.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+	"Rocket":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/prj_rocket.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+	"BFG Ball":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/prj_bfgball.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+	"Energy Shield":
+	{
+		"parameterList":
+		{
+			"minColor":[0.0, 0.0, 1.0, 0.0], 
+			"maxColor":[0.4, 0.4, 1.0, 0.7]
+		},
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/prj_shield.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+				"parameters" : [ "minColor", "maxColor" ]
+			}
+		]
+	},
+	"BloodPunch":
+	{
+		"parameterList":
+		{
+			"Material": 1,
+			"Velocity_max_50": 10.0,
+			"Size": 0.005
+		},
+		"effectList":
+		[
+			{
+				"type": "audio",
+				"name": "Weapon - Hit",
+				"parameters":
+				[
+					"Material",
+					"Velocity_max_50",
+					"Size"
+				],
+				"delay": 0.0
+			},
+			{
+				"type": "audio",
+				"name": "WeldTool - Weld",
+				"parameters":
+				[],
+				"delay": 0.0
+			},
+			{
+				"type": "audio",
+				"name": "Retrobass",
+				"parameters":
+				[],
+				"delay": 0.0
+			}
+		]
+	}
+}

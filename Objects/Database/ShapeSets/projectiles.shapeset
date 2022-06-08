@@ -1,0 +1,148 @@
+{
+	"partList": [
+		{
+			"uuid": "c951da10-4f23-4321-84e9-1dd77d2a2d58",
+			"name": "prj_grenade",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/gray.png", //prj_grenade_dif.png
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+									
+								],
+								"material": "DifAsgNor"
+							}
+						],
+						"mesh": "$CONTENT_DATA/Objects/Mesh/prj_icebomb.fbx" //prj_grenade.fbx
+					}
+				]
+			},
+			"color": "ffffff",
+			"sphere": {
+				"diameter": 2
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/projectiles/prj_grenade.lua",
+				"classname": "Grenade",
+				"data": {}
+			},
+			"rotationSet": "PropY",
+			"sticky": "-X+X-Y+Y-Z",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"density": 1,
+				"durability": 10,
+				"friction": 10,
+				"buoyancy": 5
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": false,
+				"liftable": false,
+				"paintable": false,
+				"usable": false
+			},
+			"showInInventory": false
+		},
+		{
+			"uuid": "239765a7-217d-4c52-8b32-a8fdd984080b",
+			"name": "prj_icebomb",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/prj_icebomb_dif.png",
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+									
+								],
+								"material": "DifAsgNor"
+							}
+						],
+						"mesh": "$CONTENT_DATA/Objects/Mesh/prj_icebomb.fbx"
+					}
+				]
+			},
+			"color": "ffffff",
+			"sphere": {
+				"diameter": 2
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/projectiles/prj_icebomb.lua",
+				"classname": "IceBomb",
+				"data": {}
+			},
+			"rotationSet": "PropY",
+			"sticky": "-X+X-Y+Y-Z",
+			"physicsMaterial": "Glass",
+			"ratings": {
+				"density": 1,
+				"durability": 10,
+				"friction": 10,
+				"buoyancy": 5
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": false,
+				"liftable": false,
+				"paintable": false,
+				"usable": false
+			},
+			"showInInventory": false
+		},
+		{
+			"uuid": "117929a6-1394-421f-91ff-cf89d1e20c4f",
+			"name": "prj_ImplosionBomb",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$CONTENT_DATA/Objects/Textures/green.png", //prj_grenade_dif.png
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+									
+								],
+								"material": "DifAsgNor"
+							}
+						],
+						"mesh": "$CONTENT_DATA/Objects/Mesh/prj_icebomb.fbx" //prj_grenade.fbx
+					}
+				]
+			},
+			"color": "ffffff",
+			"sphere": {
+				"diameter": 2
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/projectiles/prj_ImplosionBomb.lua",
+				"classname": "ImploBomb",
+				"data": {}
+			},
+			"rotationSet": "PropY",
+			"sticky": "-X+X-Y+Y-Z",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"density": 1,
+				"durability": 10,
+				"friction": 10,
+				"buoyancy": 5
+			},
+			"flammable": false,
+			"restrictions": {
+				"erasable": false,
+				"liftable": false,
+				"paintable": false,
+				"usable": false
+			},
+			"showInInventory": false
+		}
+	]
+}

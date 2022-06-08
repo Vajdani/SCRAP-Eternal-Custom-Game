@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Widget" skin="PanelEmpty" position="10 15 1900 950" name="BackPanel">
+        <Widget type="Widget" skin="BeaconBG" position="1 0 1900 900">
+            <Widget type="TextBox" skin="TextBox" position="700 0 500 145">
+                <Property key="FontName" value="SM_HeaderLarge_Wide"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="Caption" value="MOD BOT"/>
+                <Property key="FontHeight" value="25"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="50 750 400 35">
+                <Property key="Caption" value="USAGE"/>
+                <Property key="TextAlign" value="Left VCenter"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position="50 785 400 100" name="tipsBox">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="15"/>
+                <Property key="TextAlign" value="Left Top"/>
+                <Property key="TextColour" value="#ff9d00"/>
+                <Property key="Caption" value="Click on a gun, then select one of the mods by\nclicking on its button and press your jump key\nto unlock it."/>
+            </Widget>
+            <Widget type="Widget" skin="DropDownBackground" position="10 240 605 500" name="left">
+                <Widget type="Button" skin="ButtonUpSkin" position="282 5 40 40" name="cycleUp"/>
+                <Widget type="Button" skin="ButtonDownSkin" position="282 450 40 40" name="cycleDown"/>
+                <Widget type="Canvas" skin="BeaconIconColorBorder" position="45 72 54 54">
+                    <Widget type="TextBox" skin="TextBox" position="2 2 50 50" name="wpn1index">
+                        <Property key="FontHeight" value="25"/>
+                        <Property key="FontName" value="InventoryItemTitle"/>
+                        <Property key="TextAlign" value="Center"/>
+                        <Property key="TextColour" value="#ff9d00"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Canvas" skin="BeaconIconColorBorder" position="45 172 54 54">
+                    <Widget type="TextBox" skin="TextBox" position="2 2 50 50" name="wpn2index">
+                        <Property key="FontHeight" value="25"/>
+                        <Property key="FontName" value="InventoryItemTitle"/>
+                        <Property key="TextAlign" value="Center"/>
+                        <Property key="TextColour" value="#ff9d00"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Canvas" skin="BeaconIconColorBorder" position="45 272 54 54">
+                    <Widget type="TextBox" skin="TextBox" position="2 2 50 50" name="wpn3index">
+                        <Property key="FontHeight" value="25"/>
+                        <Property key="FontName" value="InventoryItemTitle"/>
+                        <Property key="TextAlign" value="Center"/>
+                        <Property key="TextColour" value="#ff9d00"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Canvas" skin="BeaconIconColorBorder" position="45 372 54 54">
+                    <Widget type="TextBox" skin="TextBox" position="2 2 50 50" name="wpn4index">
+                        <Property key="FontHeight" value="25"/>
+                        <Property key="FontName" value="InventoryItemTitle"/>
+                        <Property key="TextAlign" value="Center"/>
+                        <Property key="TextColour" value="#ff9d00"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position="102 48 400 100" name="wpnBtn1">
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="FontHeight" value="20"/>
+                    <Widget type="ImageBox" skin="ImageBox" position="25 20 60 60" name="wpn1ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position="102 148 400 100" name="wpnBtn2">
+                    <Property key="FontHeight" value="20"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Widget type="ImageBox" skin="ImageBox" position="25 20 60 60" name="wpn2ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position="102 248 400 100" name="wpnBtn3">
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="FontHeight" value="20"/>
+                    <Widget type="ImageBox" skin="ImageBox" position="25 20 60 60" name="wpn3ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position="102 348 400 100" name="wpnBtn4">
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="FontHeight" value="20"/>
+                    <Widget type="ImageBox" skin="ImageBox" position="25 20 60 60" name="wpn4ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+            </Widget>
+            <Widget type="Widget" skin="DropDownBackground" position="625 240 650 650" name="middle">
+                <Widget type="Button" skin="ActiveButton" position="25 15 600 100" name="mod1Purchase">
+                    <Property key="FontHeight" value="35"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="Caption" value="mod1"/>
+                    <Widget type="ImageBox" skin="ImageBox" position="20 11 78 78" name="mod1ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position="25 115 600 100" name="mod2Purchase">
+                    <Property key="FontHeight" value="35"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="Caption" value="mod2"/>
+                    <Widget type="ImageBox" skin="ImageBox" position="20 11 78 78" name="mod2ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="ImageBox" skin="ImageBox" position="25 290 600 335" name="modVid"/>
+            </Widget>
+            <Widget type="Widget" skin="DropDownBackground" position="1285 240 600 350" name="right">
+                <Widget type="TextBox" skin="TextBox" position="25 15 550 100">
+                    <Property key="Caption" value="MOD INFO"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontHeight" value="25"/>
+                </Widget>
+                <Widget type="TextBox" skin="TextBox" position="25 115 550 215" name="modInfo">
+                    <Property key="FontHeight" value="25"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Left Top"/>
+                </Widget>
+            </Widget>
+        </Widget>
+    </Widget>
+</MyGUI>

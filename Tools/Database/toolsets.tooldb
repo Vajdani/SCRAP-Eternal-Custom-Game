@@ -1,3 +1,6 @@
 {
-   "toolSetList" : [ "$CONTENT_DATA/Tools/Database/ToolSets/example.toolset" ]
+   "toolSetList" : [
+      "$CONTENT_DATA/Tools/Database/ToolSets/survival_tools.toolset",
+      "$CONTENT_DATA/Tools/Database/ToolSets/doom_tools.toolset"
+   ]
 }

@@ -1,0 +1,200 @@
+{
+	"partList": [
+		{
+			"uuid": "b0c7522f-c358-4b51-8776-e4f9b4a769a8",
+			"name": "SEUpgradeStation",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_dif.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_asg.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_nor.tga"
+								],
+								"material": "DifAsgNor"
+							},
+							{
+								"textureList": [
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_screen_dif.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_screen_asg.tga",
+									""
+								],
+								"material": "DifAsg"
+							}
+						],
+						"mesh": "$CHALLENGE_DATA/Objects/Mesh/interactive/obj_interactive_mapinspector.fbx"
+					}
+				]
+			},
+			"color": "9f2600",
+			"hull": {
+				"x": 4,
+				"y": 8,
+				"z": 4,
+				"col": "$CHALLENGE_DATA/Objects/Collision/obj_challenge_interactive_mapinspector.obj"
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/interactables/int_upgradeStation.lua",
+				"classname": "UpgradeStation",
+				"data": {}
+			},
+			"rotationSet": "PropY",
+			"sticky": "-Y",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"friction": 4
+			},
+			"density": 1250.0,
+			"qualityLevel": 0
+		},
+		{
+			"uuid": "e3f9e166-8f3c-4474-9f44-2e2f16ba3ed7",
+			"name": "SEModBot",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_dif.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_asg.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_nor.tga"
+								],
+								"material": "DifAsgNor"
+							},
+							{
+								"textureList": [
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_screen_dif.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_screen_asg.tga",
+									""
+								],
+								"material": "DifAsg"
+							}
+						],
+						"mesh": "$CHALLENGE_DATA/Objects/Mesh/interactive/obj_interactive_mapinspector.fbx"
+					}
+				]
+			},
+			"color": "9f2600",
+			"hull": {
+				"x": 4,
+				"y": 8,
+				"z": 4,
+				"col": "$CHALLENGE_DATA/Objects/Collision/obj_challenge_interactive_mapinspector.obj"
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/interactables/int_modBot.lua",
+				"classname": "ModBot",
+				"data": {}
+			},
+			"rotationSet": "PropY",
+			"sticky": "-Y",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"friction": 4
+			},
+			"density": 1250.0,
+			"qualityLevel": 0
+		},
+        {
+			"uuid": "587a25d7-6d80-4cba-88c1-f52e5366899f",
+			"name": "inputDetector",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/transparent.tga",
+									"$GAME_DATA/Textures/nonor_nor.tga"
+								],
+								"material": "DifAsgNor"
+							}
+						],
+						"mesh": "$CONTENT_DATA/Objects/Mesh/cube.fbx"
+					}
+				]
+			},
+			"color": "ffffff",
+			"box": {
+				"x": 1,
+				"y": 1,
+				"z": 1
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/inputDetector.lua",
+				"classname": "Basic",
+				"data": {}
+			},
+			"rotationSet": "PropY",
+			"sticky": "-X+X-Y+Y-Z",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"density": 1,
+				"durability": 10,
+				"friction": 1,
+				"buoyancy": 1
+			},
+			"flammable": false,
+			"restrictions": {
+				"liftable": true,
+				"erasable": true,
+				"paintable": false,
+				"usable": false
+			},
+			"showInInventory": true
+		},
+        {
+			"uuid": "4cd44146-fcb2-44a6-9ed1-98ee879448c1",
+			"name": "SEPlayerUpgradesBot",
+			"renderable": {
+				"lodList": [
+					{
+						"subMeshList": [
+							{
+								"textureList": [
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_dif.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_asg.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_nor.tga"
+								],
+								"material": "DifAsgNor"
+							},
+							{
+								"textureList": [
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_screen_dif.tga",
+									"$CHALLENGE_DATA/Objects/Textures/interactive/obj_interactive_mapinspector_screen_asg.tga",
+									""
+								],
+								"material": "DifAsg"
+							}
+						],
+						"mesh": "$CHALLENGE_DATA/Objects/Mesh/interactive/obj_interactive_mapinspector.fbx"
+					}
+				]
+			},
+			"color": "9f2600",
+			"hull": {
+				"x": 4,
+				"y": 8,
+				"z": 4,
+				"col": "$CHALLENGE_DATA/Objects/Collision/obj_challenge_interactive_mapinspector.obj"
+			},
+			"scripted": {
+				"filename": "$CONTENT_DATA/Scripts/interactables/int_playerUpgradesBot.lua",
+				"classname": "PUBot",
+				"data": {}
+			},
+			"rotationSet": "PropY",
+			"sticky": "-Y",
+			"physicsMaterial": "Metal",
+			"ratings": {
+				"friction": 4
+			},
+			"density": 1250.0,
+			"qualityLevel": 0
+		}
+	]
+}

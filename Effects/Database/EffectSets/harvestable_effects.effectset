@@ -1,0 +1,46 @@
+{
+    "drop_hp":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/drop_hp.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+    "drop_armour":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/drop_armour.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+    "drop_ammo":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/drop_ammo.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+    "drop_hammer":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/drop_hammer.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	}
+}

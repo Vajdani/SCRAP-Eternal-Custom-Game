@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Widget" skin="PanelEmpty" position_real="0.00520833 0.0138889 0.989583 0.87963" name="BackPanel">
+        <Widget type="Widget" skin="BeaconBG" position_real="0.000526316 0 1 0.947368">
+            <Widget type="TextBox" skin="TextBox" position_real="0.368421 0 0.263158 0.161111">
+                <Property key="FontName" value="SM_HeaderLarge_Wide"/>
+                <Property key="TextAlign" value="Center"/>
+                <Property key="Caption" value="MOD BOT"/>
+                <Property key="FontHeight" value="25"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position_real="0.0263158 0.833333 0.210526 0.0388889">
+                <Property key="Caption" value="USAGE"/>
+                <Property key="TextAlign" value="Left VCenter"/>
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="20"/>
+            </Widget>
+            <Widget type="TextBox" skin="TextBox" position_real="0.0263158 0.872222 0.210526 0.111111" name="tipsBox">
+                <Property key="FontName" value="InventoryItemTitle"/>
+                <Property key="FontHeight" value="15"/>
+                <Property key="TextAlign" value="Left Top"/>
+                <Property key="TextColour" value="#ff9d00"/>
+                <Property key="Caption" value="Click on a gun, then select one of the mods by\nclicking on its button\nand press your jump key\nto unlock it."/>
+            </Widget>
+            <Widget type="Widget" skin="DropDownBackground" position_real="0.00526316 0.266667 0.318421 0.555556" name="left">
+                <Widget type="Button" skin="ButtonUpSkin" position_real="0.466116 0.01 0.0661157 0.08" name="cycleUp"/>
+                <Widget type="Button" skin="ButtonDownSkin" position_real="0.466116 0.9 0.0661157 0.08" name="cycleDown"/>
+                <Widget type="Canvas" skin="BeaconIconColorBorder" position_real="0.0743802 0.144 0.0892562 0.108">
+                    <Widget type="TextBox" skin="TextBox" position_real="0.037037 0.037037 0.925926 0.925926" name="wpn1index">
+                        <Property key="FontHeight" value="25"/>
+                        <Property key="FontName" value="InventoryItemTitle"/>
+                        <Property key="TextAlign" value="Center"/>
+                        <Property key="TextColour" value="#ff9d00"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Canvas" skin="BeaconIconColorBorder" position_real="0.0743802 0.344 0.0892562 0.108">
+                    <Widget type="TextBox" skin="TextBox" position_real="0.037037 0.037037 0.925926 0.925926" name="wpn2index">
+                        <Property key="FontHeight" value="25"/>
+                        <Property key="FontName" value="InventoryItemTitle"/>
+                        <Property key="TextAlign" value="Center"/>
+                        <Property key="TextColour" value="#ff9d00"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Canvas" skin="BeaconIconColorBorder" position_real="0.0743802 0.544 0.0892562 0.108">
+                    <Widget type="TextBox" skin="TextBox" position_real="0.037037 0.037037 0.925926 0.925926" name="wpn3index">
+                        <Property key="FontHeight" value="25"/>
+                        <Property key="FontName" value="InventoryItemTitle"/>
+                        <Property key="TextAlign" value="Center"/>
+                        <Property key="TextColour" value="#ff9d00"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Canvas" skin="BeaconIconColorBorder" position_real="0.0743802 0.744 0.0892562 0.108">
+                    <Widget type="TextBox" skin="TextBox" position_real="0.037037 0.037037 0.925926 0.925926" name="wpn4index">
+                        <Property key="FontHeight" value="25"/>
+                        <Property key="FontName" value="InventoryItemTitle"/>
+                        <Property key="TextAlign" value="Center"/>
+                        <Property key="TextColour" value="#ff9d00"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position_real="0.168595 0.096 0.661157 0.2" name="wpnBtn1">
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="FontHeight" value="20"/>
+                    <Widget type="ImageBox" skin="ImageBox" position_real="0.0625 0.2 0.15 0.6" name="wpn1ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position_real="0.168595 0.296 0.661157 0.2" name="wpnBtn2">
+                    <Property key="FontHeight" value="20"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Widget type="ImageBox" skin="ImageBox" position_real="0.0625 0.2 0.15 0.6" name="wpn2ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position_real="0.168595 0.496 0.661157 0.2" name="wpnBtn3">
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="FontHeight" value="20"/>
+                    <Widget type="ImageBox" skin="ImageBox" position_real="0.0625 0.2 0.15 0.6" name="wpn3ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position_real="0.168595 0.696 0.661157 0.2" name="wpnBtn4">
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="FontHeight" value="20"/>
+                    <Widget type="ImageBox" skin="ImageBox" position_real="0.0625 0.2 0.15 0.6" name="wpn4ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+            </Widget>
+            <Widget type="Widget" skin="DropDownBackground" position_real="0.328947 0.266667 0.342105 0.722222" name="middle">
+                <Widget type="Button" skin="ActiveButton" position_real="0.0384615 0.0230769 0.923077 0.153846" name="mod1Purchase">
+                    <Property key="FontHeight" value="35"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="Caption" value="mod1"/>
+                    <Widget type="ImageBox" skin="ImageBox" position_real="0.0333333 0.11 0.13 0.78" name="mod1ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="Button" skin="ActiveButton" position_real="0.0384615 0.176923 0.923077 0.153846" name="mod2Purchase">
+                    <Property key="FontHeight" value="35"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="Caption" value="mod2"/>
+                    <Widget type="ImageBox" skin="ImageBox" position_real="0.0333333 0.11 0.13 0.78" name="mod2ico">
+                        <Property key="NeedMouse" value="false"/>
+                    </Widget>
+                </Widget>
+                <Widget type="ImageBox" skin="ImageBox" position_real="0.0384615 0.446154 0.923077 0.515385" name="modVid"/>
+            </Widget>
+            <Widget type="Widget" skin="DropDownBackground" position_real="0.676316 0.266667 0.315789 0.388889" name="right">
+                <Widget type="TextBox" skin="TextBox" position_real="0.0416667 0.0428571 0.916667 0.285714">
+                    <Property key="Caption" value="MOD INFO"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Center"/>
+                    <Property key="FontHeight" value="25"/>
+                </Widget>
+                <Widget type="TextBox" skin="TextBox" position_real="0.0416667 0.328571 0.916667 0.614286" name="modInfo">
+                    <Property key="FontHeight" value="25"/>
+                    <Property key="FontName" value="InventoryItemTitle"/>
+                    <Property key="TextAlign" value="Left Top"/>
+                </Widget>
+            </Widget>
+        </Widget>
+    </Widget>
+</MyGUI>

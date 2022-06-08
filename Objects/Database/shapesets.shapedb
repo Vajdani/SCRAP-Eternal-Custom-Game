@@ -1,3 +1,10 @@
 {
-   "shapeSetList" : [ "$CONTENT_DATA/Objects/Database/ShapeSets/example.shapeset" ]
+   "shapeSetList" : [
+      "$CONTENT_DATA/Objects/Database/ShapeSets/ammo.shapeset",
+      "$CONTENT_DATA/Objects/Database/ShapeSets/interactables.shapeset",
+      "$CONTENT_DATA/Objects/Database/ShapeSets/parkour.shapeset",
+      "$CONTENT_DATA/Objects/Database/ShapeSets/projectiles.shapeset",
+      "$SURVIVAL_DATA/Objects/Database/ShapeSets/robotparts.json",
+      "$SURVIVAL_DATA/Objects/Database/ShapeSets/blocks.json"
+   ]
 }

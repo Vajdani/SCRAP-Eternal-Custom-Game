@@ -1,1 +1,31 @@
-{}
+{
+	//weapons
+	"8378e3ed-ded9-4a64-9887-76c3b295bc86": {
+		"description": "A powerful double barreled shotgun that consumes 2 shells on every shot.",
+		"title": "Super Shotgun"
+	},
+	"465b2e4e-e9ff-42bc-aab1-f256663d1c31": {
+		"description": "",
+		"title": "Ballista"
+	},
+	"b17f2fa7-1f04-40b5-8f9d-65a40bbf45c0": {
+		"description": "Fires plasma rounds continuously.",
+		"title": "Plasma Rifle"
+	},
+	"25417b29-546d-4a9d-9766-f6e0d3b82f0f": {
+		"description": "Fires rockets that explode on impact, causing heavy damage.",
+		"title": "Rocket Launcher"
+	},
+	"2cc2e981-4261-443b-b925-051ea94707ab": {
+		"description": "Fires a green ball projectile that fries every enemy until it explodes.",
+		"title": "BFG-9000"
+	},
+	"30baecf1-d083-4785-932c-4f2272494b5a": {
+		"description": "Fires 5 projectiles, each of them 5 degrees apart. It's destructive potential is staggering.",
+		"title": "Unmaykr"
+	},
+    "fc1acd1b-611b-44b0-bff7-4b71509abe4c": {
+		"description": "Spud Gun with single potato shot.",
+		"title": "Spud Gun"
+	}
+}
