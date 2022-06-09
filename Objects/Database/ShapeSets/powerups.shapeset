@@ -1,0 +1,142 @@
+{
+	"partList": [
+        {
+			"uuid": "9b89e4b2-b3b2-4031-8d20-a2e3f48d3a1e",
+			"name": "prp_berserk",
+			"renderable": "$CONTENT_DATA/Objects/Rend/prp_berserk.rend",
+			"color": "ccffcc",
+			"hull": {
+				"x": 2,
+				"y": 2,
+				"z": 2,
+				"col": "$CONTENT_DATA/Objects/Mesh/prp_sphere.fbx"
+			},
+			"rotationSet": "PropY",
+			"sticky": "-Y",
+			"physicsMaterial": "Fruit",
+			"ratings": {
+				"density": 2,
+				"durability": 1,
+				"friction": 4,
+				"buoyancy": 7
+			},
+			"flammable": true,
+			"consumable": true,
+			"stackSize": 5,
+			"restrictions": {
+				"erasable": true
+			},
+			"edible": {
+				"hpGain": 100,
+				"foodGain": 100,
+				"waterGain": 100,
+				"berserk": true
+			},
+			"autoTool": "2bff990a-0e74-43c7-b7dc-889b3a086fa3"
+		},
+		{
+			"uuid": "31e9b738-8825-4d2d-9ae6-325587d1d102",
+			"name": "prp_haste",
+			"renderable": "$CONTENT_DATA/Objects/Rend/prp_haste.rend",
+			"color": "ccffcc",
+			"hull": {
+				"x": 2,
+				"y": 2,
+				"z": 2,
+				"col": "$CONTENT_DATA/Objects/Mesh/prp_sphere.fbx"
+			},
+			"rotationSet": "PropY",
+			"sticky": "-Y",
+			"physicsMaterial": "Fruit",
+			"ratings": {
+				"density": 2,
+				"durability": 1,
+				"friction": 4,
+				"buoyancy": 7
+			},
+			"flammable": true,
+			"consumable": true,
+			"stackSize": 5,
+			"restrictions": {
+				"erasable": true
+			},
+			"edible": {
+				"hpGain": 100,
+				"foodGain": 100,
+				"waterGain": 100,
+				"spdMult": true
+			},
+			"autoTool": "2bff990a-0e74-43c7-b7dc-889b3a086fa3"
+		},
+		{
+			"uuid": "c6111b61-9618-412f-bcbf-12a9df4cc5bd",
+			"name": "prp_quad",
+			"renderable": "$CONTENT_DATA/Objects/Rend/prp_quad.rend",
+			"color": "ccffcc",
+			"hull": {
+				"x": 2,
+				"y": 2,
+				"z": 2,
+				"col": "$CONTENT_DATA/Objects/Mesh/prp_sphere.fbx"
+			},
+			"rotationSet": "PropY",
+			"sticky": "-Y",
+			"physicsMaterial": "Fruit",
+			"ratings": {
+				"density": 2,
+				"durability": 1,
+				"friction": 4,
+				"buoyancy": 7
+			},
+			"flammable": true,
+			"consumable": true,
+			"stackSize": 5,
+			"restrictions": {
+				"erasable": true
+			},
+			"edible": {
+				"hpGain": 100,
+				"foodGain": 100,
+				"waterGain": 100,
+				"dmgMult": true
+			},
+			"autoTool": "2bff990a-0e74-43c7-b7dc-889b3a086fa3"
+		},
+		{
+			"uuid": "f1c3aea1-c4ff-4364-9558-85b16d8a3a26",
+			"name": "prp_all",
+			"renderable": "$CONTENT_DATA/Objects/Rend/prp_quad.rend",
+			"color": "ccffcc",
+			"hull": {
+				"x": 2,
+				"y": 2,
+				"z": 2,
+				"col": "$CONTENT_DATA/Objects/Mesh/prp_sphere.fbx"
+			},
+			"rotationSet": "PropY",
+			"sticky": "-Y",
+			"physicsMaterial": "Fruit",
+			"ratings": {
+				"density": 2,
+				"durability": 1,
+				"friction": 4,
+				"buoyancy": 7
+			},
+			"flammable": true,
+			"consumable": true,
+			"stackSize": 5,
+			"restrictions": {
+				"erasable": true
+			},
+			"edible": {
+				"hpGain": 100,
+				"foodGain": 100,
+				"waterGain": 100,
+				"dmgMult": true,
+				"spdMult": true,
+				"berserk": true
+			},
+			"autoTool": "2bff990a-0e74-43c7-b7dc-889b3a086fa3"
+		}
+    ]
+}

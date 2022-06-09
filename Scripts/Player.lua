@@ -1036,40 +1036,6 @@ function Player:sv_reduceRecharge( args )
 	self.sv.flame.rechargeMax = (args.equipment == "flame" and self.sv.flame.rechargeMax * args.reduction > 0.1) and self.sv.flame.rechargeMax * args.reduction or self.sv.flame.rechargeMax
 end
 
-function Player:client_onFixedUpdate( dt )
-	local playerChar = self.player:getCharacter()
-	if playerChar == nil then return end
-
-	local lookDir = playerChar:getDirection()
-	local playerVel = playerChar:getVelocity()
-	local playerPos = playerChar:getWorldPosition()
-	local onGround = se.player.isOnGround(self.player)
-	local launcherPos = playerChar:getTpBonePos( "jnt_spine2" ) + playerChar:getTpBoneRot( "jnt_spine2" ) * sm.vec3.new(0.5,0,0.3) + lookDir / 2
-	local publicData = self.player:getClientPublicData()
-	local inputs = publicData.input
-	local currentMoveDir, moveDirs = se.player.getMoveDir( self.player, publicData )
-
-	if self.cl.flameThrowerEffect == nil or not sm.exists(self.cl.flameThrowerEffect) then
-		self.cl.flameThrowerEffect = sm.effect.createEffect( "Fire - vertical" )
-	end
-
-	if self.cl.chainsaw.sound == nil or not sm.exists(self.cl.chainsaw.sound) then
-		self.cl.chainsaw.sound = sm.effect.createEffect( "GasEngine - Level 3", playerChar )
-	end
-
-	if self.cl.bloodPunchSound == nil or not sm.exists(self.cl.bloodPunchSound) then
-		self.cl.bloodPunchSound = sm.effect.createEffect( "BloodPunch", playerChar )
-	end
-
-	if self.cl.powerup.colour ~= nil then
-		sm.particle.createParticle( "paint_smoke", playerChar:getTpBonePos( "jnt_spine2" ), sm.quat.identity(), self.cl.powerup.colour )
-	end
-
-	if self.player ~= sm.localPlayer.getPlayer() then return end
-
-end
-
-
 function Player.server_onRefresh( self )
 	self:sv_init()
 end
@@ -1447,40 +1413,46 @@ function Player.server_onFixedUpdate( self, dt )
 		end
 	end
 
+	local prevPlayerData = data.playerData
+	local displayTxt = (data.playerData.damageMultiplier > 1 or data.playerData.speedMultiplier > 1 or data.playerData.berserk) and "#ffffffPowerup cooldowns:" or ""
 
-	local displayTxt = ""
-	if data.playerData.damageMultiplier > 1 or data.playerData.speedMultiplier > 1 or data.playerData.berserk then
-		displayTxt = "#ffffffPowerup cooldowns:"
-
-		if data.playerData.damageMultiplier > 1 then
-			self.sv.dmgMultCD = self.sv.dmgMultCD - dt
-			displayTxt = displayTxt.." #6049c7DAMAGE: #ff9d00"..tostring(("%.0f"):format(self.sv.dmgMultCD))
-			if self.sv.dmgMultCD <= 0 then
-				self.sv.dmgMultCD = 30
-				data.playerData.damageMultiplier = 1
-			end
+	if data.playerData.damageMultiplier > 1 then
+		self.sv.dmgMultCD = self.sv.dmgMultCD - dt
+		displayTxt = displayTxt.." #6049c7DAMAGE: #ff9d00"..tostring(("%.0f"):format(self.sv.dmgMultCD))
+		if self.sv.dmgMultCD <= 0 then
+			self.sv.dmgMultCD = 30
+			data.playerData.damageMultiplier = 1
+			self.network:sendToClient(self.player, "cl_disablePrp", "damageMultiplier")
 		end
+	end
 
-		if data.playerData.speedMultiplier > 1 then
-			self.sv.spdMultCD = self.sv.spdMultCD - dt
-			playerChar:setMovementSpeedFraction(data.playerData.speedMultiplier)
-			displayTxt = displayTxt.." #fff200SPEED: #ff9d00"..tostring(("%.0f"):format(self.sv.spdMultCD))
-			if self.sv.spdMultCD <= 0 then
-				self.sv.spdMultCD = 30
-				data.playerData.speedMultiplier = 1
-				self.network:sendToServer("sv_resetMoveSpeed")
-			end
+	if data.playerData.speedMultiplier > 1 then
+		self.sv.spdMultCD = self.sv.spdMultCD - dt
+		playerChar.movementSpeedFraction = data.playerData.speedMultiplier
+		displayTxt = displayTxt.." #fff200SPEED: #ff9d00"..tostring(("%.0f"):format(self.sv.spdMultCD))
+		if self.sv.spdMultCD <= 0 then
+			self.sv.spdMultCD = 30
+			data.playerData.speedMultiplier = 1
+			self:sv_resetMoveSpeed()
+			self.network:sendToClient(self.player, "cl_disablePrp", "speedMultiplier")
 		end
+	end
 
-		if data.playerData.berserk then
-			self.sv.berserkCD = self.sv.berserkCD - dt
-			--sm.tool.forceTool( sm.uuid.new("469ddbcd-eda9-4c78-b620-4270b7a36abf") )
-			displayTxt = displayTxt.." #ff1100BERSERK: #ff9d00"..tostring(("%.0f"):format(self.sv.berserkCD))
-			if self.sv.berserkCD <= 0 then
-				self.sv.berserkCD = 30
-				data.playerData.berserk = false
-			end
+	if data.playerData.berserk then
+		self.sv.berserkCD = self.sv.berserkCD - dt
+		--sm.tool.forceTool( sm.uuid.new("469ddbcd-eda9-4c78-b620-4270b7a36abf") )
+		displayTxt = displayTxt.." #ff1100BERSERK: #ff9d00"..tostring(("%.0f"):format(self.sv.berserkCD))
+		if self.sv.berserkCD <= 0 then
+			self.sv.berserkCD = 30
+			data.playerData.berserk = false
+			self.network:sendToClient(self.player, "cl_disablePrp", "berserk")
 		end
+	end
+
+	--print(playerChar:getMovementSpeedFraction())
+	if prevPlayerData ~= data.playerData then
+		self.sv.public.data = data
+		self.player:setPublicData( self.sv.public )
 	end
 
 	if data.currentWpnData.mod == "Energy Shield" and data.currentWpnData.using then
@@ -1600,22 +1572,20 @@ function Player.sv_e_respawn( self ) end
 function Player.sv_e_debug( self, params ) end
 
 function Player.sv_e_eat( self, edibleParams )
-	local data = self.player:getPublicData().data
-
 	if edibleParams.dmgMult then
-		data.playerData.damageMultiplier = 4
+		self.sv.public.data.playerData.damageMultiplier = 4
 		self.sv.dmgMultCD = 30
 		self.sv.currentPowerupColor = sm.color.new("#6049c7")
 	end
 
 	if edibleParams.spdMult then
-		data.playerData.speedMultiplier = 2
+		self.sv.public.data.playerData.speedMultiplier = 2
 		self.sv.spdMultCD = 30
 		self.sv.currentPowerupColor = sm.color.new("#fff200")
 	end
 
 	if edibleParams.berserk then
-		data.playerData.berserk = true
+		self.sv.public.data.playerData.berserk = true
 		self.sv.berserkCD = 30
 		self.sv.currentPowerupColor = sm.color.new("#ff1100")
 	end
@@ -1623,6 +1593,9 @@ function Player.sv_e_eat( self, edibleParams )
 	if edibleParams.dmgMult and edibleParams.spdMult and edibleParams.berserk then
 		self.sv.currentPowerupColor = sm.color.new("#DF7F00")
 	end
+
+	self.network:sendToClient(self.player, "cl_e_eat", edibleParams)
+	self.player:setPublicData( self.sv.public )
 end
 
 function Player.sv_e_feed( self, params ) end
@@ -1798,6 +1771,11 @@ function Player.client_onCreate( self )
 			weaponMod = {
 
 			},
+			powerup = {
+				speedMultiplier = { current = 1, active = 2, default = 1 },
+				damageMultiplier = { current = 1, active = 4, default = 1 },
+				berserk = { current = false, active = true, default = false }
+			},
 			input = {
 				[sm.interactable.actions.forward] = false,
                 [sm.interactable.actions.backward] = false,
@@ -1812,6 +1790,8 @@ function Player.client_onCreate( self )
 			}
 		}
 	)
+
+	self.cl.public = self.player:getClientPublicData()
 end
 
 function Player.client_onRefresh( self )
@@ -1877,6 +1857,39 @@ function Player.client_onUpdate( self, dt )
 			}
 		end
 	end
+end
+
+function Player:client_onFixedUpdate( dt )
+	local playerChar = self.player:getCharacter()
+	if playerChar == nil then return end
+
+	if self.cl.flameThrowerEffect == nil or not sm.exists(self.cl.flameThrowerEffect) then
+		self.cl.flameThrowerEffect = sm.effect.createEffect( "Fire - vertical" )
+	end
+
+	if self.cl.chainsaw.sound == nil or not sm.exists(self.cl.chainsaw.sound) then
+		self.cl.chainsaw.sound = sm.effect.createEffect( "GasEngine - Level 3", playerChar )
+	end
+
+	if self.cl.bloodPunchSound == nil or not sm.exists(self.cl.bloodPunchSound) then
+		self.cl.bloodPunchSound = sm.effect.createEffect( "BloodPunch", playerChar )
+	end
+
+	if self.cl.powerup.colour ~= nil then
+		sm.particle.createParticle( "paint_smoke", playerChar:getTpBonePos( "jnt_spine2" ), sm.quat.identity(), self.cl.powerup.colour )
+	end
+
+
+	if self.player ~= sm.localPlayer.getPlayer() then return end
+	local lookDir = playerChar:getDirection()
+	local playerVel = playerChar:getVelocity()
+	local playerPos = playerChar:getWorldPosition()
+	local onGround = se.player.isOnGround(self.player)
+	local launcherPos = playerChar:getTpBonePos( "jnt_spine2" ) + playerChar:getTpBoneRot( "jnt_spine2" ) * sm.vec3.new(0.5,0,0.3) + lookDir / 2
+
+	self.cl.public = self.player:getClientPublicData()
+	local inputs = self.cl.public.input
+	local currentMoveDir, moveDirs = se.player.getMoveDir( self.player, self.cl.public )
 end
 
 function Player:client_onClientDataUpdate( data, channel )
@@ -1987,4 +2000,18 @@ end
 function Player:cl_chainsawEffect()
 	self.cl.chainsaw.counter = 2
 	self.cl.chainsaw.sound:start()
+end
+
+function Player:cl_e_eat( params )
+	self.cl.public.powerup.damageMultiplier.current = params.dmgMult ~= nil and self.cl.public.powerup.damageMultiplier.active or self.cl.public.powerup.damageMultiplier.default
+	self.cl.public.powerup.speedMultiplier.current = params.spdMult ~= nil and self.cl.public.powerup.speedMultiplier.active or self.cl.public.powerup.speedMultiplier.default
+	self.cl.public.powerup.berserk.current = params.berserk ~= nil and self.cl.public.powerup.berserk.active or self.cl.public.powerup.berserk.default
+
+	self.player:setClientPublicData( self.cl.public )
+end
+
+function Player:cl_disablePrp( index )
+	print(self.cl.public.powerup[index], index)
+	self.cl.public.powerup[index].current = self.cl.public.powerup[index].default
+	self.player:setClientPublicData( self.cl.public )
 end

@@ -1,6 +1,7 @@
 dofile "$GAME_DATA/Scripts/game/AnimationUtil.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 dofile "$SURVIVAL_DATA/Scripts/game/survival_shapes.lua"
+dofile "$CONTENT_DATA/Scripts/se_items.lua"
 
 Eat = class()
 Eat.emptyTpRenderables = {}
@@ -203,6 +204,7 @@ function Eat.client_onUpdate( self, dt )
 	end
 
 	-- Update the equipped item for the clients that do not own the tool
+	print(self.activeItem)
 	if not self.tool:isLocal() and self.activeItem ~= self.desiredActiveItem and self.tool:isEquipped() then
 		self.activeItem = self.desiredActiveItem
 		self:cl_updateActiveFood()

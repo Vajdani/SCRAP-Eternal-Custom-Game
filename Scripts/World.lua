@@ -64,34 +64,39 @@ function World:sv_handleBBalls( tick )
 end
 
 function World:sv_addBBall( args )
-    --[[local projectile = BBall()
-    local sent = args
-    sent.tick = sm.game.getServerTick()
-    projectile:sv_onCreate( sent )
-
-    self.network:sendToClients("cl_addProjectile", { projectile = projectile, sent = sent })
-    self.sv.projectiles[#self.sv.projectiles+1] = projectile]]
-
     local projectile = {
         pos = args.pos,
         dir = args.dir,
         spawnTick = sm.game.getServerTick(),
-        maxLifeTime = 10000000, --7.5 * 40,
+        maxLifeTime = 7.5 * 40,
         owner = args.owner,
-        damageFrequency = 10000000, --40 / 4,
+        damageFrequency = 40 / 4,
         damage = 25,
-        speed = 0,
+        speed = 0.35,
         damageCounter = Timer(),
         trigger = sm.areaTrigger.createSphere( 50, args.pos, sm.quat.identity(), sm.areaTrigger.filter.character )
     }
 
     projectile.damageCounter:start(projectile.damageFrequency)
+
     self.sv.projectiles.bballs[#self.sv.projectiles.bballs+1] = projectile
     --sm.storage.save( projectileSaveKey, self.sv.projectiles )
 
     local sent = args
     sent.speed = projectile.speed
     self.network:sendToClients("cl_addBBall", sent)
+
+    --[[sm.scriptableObject.createScriptableObject(
+        sm.uuid.new("5b4592b8-89a4-49a1-8558-2ac9f603c219"),
+        {
+            pos = args.pos,
+            dir = args.dir,
+            spawnTick = sm.game.getServerTick(),
+            maxLifeTime = 7.5 * 40,
+            owner = args.owner
+        },
+        args.owner:getCharacter():getWorld()
+    )]]
 end
 
 

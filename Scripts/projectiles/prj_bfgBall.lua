@@ -1,123 +1,119 @@
-BBall = class()
-
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
 
-BBall.damageFrequency = 40 / 10
+BBall = class()
+BBall.damageFrequency = 4
 BBall.damage = 25
 BBall.speed = 0.35
 
-function BBall.sv_onCreate( self, args )
+function BBall:server_onCreate()
     self.sv = {}
-    self.sv.pos = args.pos
-    self.sv.dir = args.dir
-    self.sv.spawnTick = args.tick
-    self.sv.maxLifeTime = args.maxLifeTime
-    self.sv.owner = args.owner
     self.sv.damageCounter = Timer()
     self.sv.damageCounter:start(self.damageFrequency)
-
-    self.network:sendToClients("cl_onCreate", args)
+    self.network:setClientData( { params = self.params, units = {} } )
 end
 
-function BBall.sv_onFixedUpdate( self, dt )
-    self.sv.pos = self.sv.pos + self.sv.dir * self.speed
-
-    local reachableUnits = {}
+function BBall:server_onFixedUpdate(dt)
     self.sv.damageCounter:tick()
-    if self.sv.damageCounter:done() then
-        self.sv.damageCounter:start(self.damageFrequency)
-        for k, unit in pairs(sm.unit.getAllUnits()) do
+    self.params.pos = self.params.pos + self.params.dir * self.speed
+
+    local hit, result = sm.physics.raycast( self.params.pos, self.params.pos + self.params.dir * self.speed )
+    if hit or sm.game.getServerTick() - self.params.spawnTick == self.params.maxLifeTime then
+        self.scriptableObject:destroy()
+    else
+        local reachableUnits = {}
+
+        for _, unit in ipairs(sm.unit.getAllUnits()) do
             local unitPos = unit.character.worldPosition
+            local hit, result = sm.physics.raycast(self.params.pos, unitPos)
 
-            local hit, result = sm.physics.raycast(self.sv.pos, unitPos)
             if hit and result:getCharacter() == unit:getCharacter() then
-                sm.event.sendToUnit(unit, "sv_se_takeDamage",
-                    {
-                        damage = self.damage,
-                        impact = unitPos - self.sv.pos,
-                        hitPos = unitPos,
-                        attacker = self.sv.owner
-                    }
-                )
-
-                reachableUnits[#reachableUnits+1] = unit
+                table.insert(reachableUnits, unit)
             end
         end
+
+        if self.sv.damageCounter:done() then
+            self.sv.damageCounter:start(self.damageFrequency)
+            for _, unit in ipairs(reachableUnits) do
+                local unitPos = unit.character.worldPosition
+                sm.event.sendToUnit(
+                    unit,
+                    "sv_se_takeDamage",
+                    {
+                        damage = self.damage,
+                        impact = unitPos - self.params.pos,
+                        hitPos = unitPos,
+                        attacker = self.params.attacker
+                    }
+                )
+            end
+        end
+
+        self.network:setClientData({ params = self.params, units = reachableUnits })
     end
-
-    local sent = copyTable(self.sv)
-    sent.units = reachableUnits
-    self.network:sendToClients("cl_onFixedUpdate", sent)
 end
-
-function BBall.sv_onDestroy( self )
-    sm.effect.playEffect("PropaneTank - ExplosionSmall", self.sv.pos)
-    self.network:sendToClients("cl_onDestroy")
-end
-
-
 
 --Client
-function BBall.cl_onCreate( self, args )
+function BBall:client_onCreate()
     self.cl = {}
-    self.cl.pos = args.pos
-    self.cl.dir = args.dir
     self.cl.effect = sm.effect.createEffect("BFG Ball")
     self.cl.effect:setPosition(self.cl.pos)
-
     self.cl.beams = {}
 end
 
-function BBall.cl_onFixedUpdate( self, args )
-    self.cl.pos = args.pos
-    self.cl.dir = args.dir
-    self.cl.effect:setPosition(self.cl.pos)
+function BBall:client_onClientDataUpdate(data, channel)
+    self.params = data.params
+    self.cl.units = data.units
+end
 
-    local unitCount = #args.units
-    local beamCount = #self.cl.beams
-    if unitCount > beamCount then
-        for i = 1, unitCount - beamCount do
-            local effect = sm.effect.createEffect("ShapeRenderable")
-            effect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
-            effect:setParameter("color", sm.color.new(0, 1, 0, 1))
-            self.cl.beams[#self.cl.beams+1] = { unit = args.units[beamCount + i], effect = effect }
-        end
-    elseif unitCount < beamCount then
-        for i = 1, beamCount - unitCount do
-            local index = beamCount - 1
-            self.cl.beams[index].effect:stop()
-            self.cl.beams[index].effect = nil
-        end
+function BBall:client_onFixedUpdate()
+    if not self.params or #self.params == 0 then
+        return
     end
 
-    for k, beam in pairs(self.cl.beams) do
+    print(self.params)
+    self.cl.effect:setPosition(self.params.pos)
+    local deltaUnitBeam = #self.cl.units - #self.cl.beams
+
+    -- Only runs if #unity > #beams
+    for i = 1, deltaUnitBeam do
+        local effect = sm.effect.createEffect("ShapeRenderable")
+        effect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
+        effect:setParameter("color", sm.color.new(0, 1, 0, 1))
+        table.insert(self.cl.beams, { unit = self.cl.units[#self.cl.beams + 1], effect = effect })
+    end
+
+    -- Only runs if #units < #beams
+    for i = 1, -deltaUnitBeam do
+        local beam = table.remove(self.cl.beams)
+        beam:destroy()
+    end
+
+    for _, beam in pairs(self.cl.beams) do
         local char = beam.unit:getCharacter()
 
-        if char then
-            local charPos = char:getWorldPosition()
-            local delta = (self.cl.pos - charPos)
-            local rot = sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta)
-            local distance = sm.vec3.new(0.05, 0.05, delta:length())
-
-            if beam.effect then
-                beam.effect:setPosition(charPos + delta * 0.5)
-                beam.effect:setScale(distance)
-                beam.effect:setRotation(rot)
-
-                if not beam.effect:isPlaying() then
-                    beam.effect:start()
-                end
-            end
+        if not (char and beam.effect) then
+            goto continue
         end
+
+        local charPos = char:getWorldPosition()
+        local delta = self.cl.pos - charPos
+        beam.effect:setPosition((charPos + self.cl.pos) / 2)
+        beam.effect:setScale(sm.vec3.new(0.05, 0.05, delta:length()))
+        beam.effect:setRotation(sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta))
+
+        if not beam.effect:isPlaying() then
+            beam.effect:start()
+        end
+
+        ::continue::
     end
 end
 
-function BBall.cl_onDestroy( self )
+function BBall:client_onDestroy()
     for k, beam in pairs(self.cl.beams) do
-        beam.effect:stop()
-        beam.effect = nil
+        beam.effect:destroy()
     end
 
-    self.cl.effect:stop()
-    self.cl.effect = nil
+    self.cl.effect:destroy()
+    sm.effect.playEffect("PropaneTank - ExplosionSmall", self.params.pos)
 end

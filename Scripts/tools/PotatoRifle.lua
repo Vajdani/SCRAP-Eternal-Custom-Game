@@ -38,6 +38,14 @@ function PotatoRifle:client_onClientDataUpdate( data, channel )
 	if not self.tool:isLocal() then return end
 	self.cl.allData = data.data
 	self.cl.weaponData = self.cl.allData.weaponData.hcannon
+
+	if self.cl.weaponData.mod1.owned then
+		self.cl.currentWeaponMod = mod_prec
+	elseif self.cl.weaponData.mod2.owned then
+		self.cl.currentWeaponMod = mod_missile
+	else
+		self.cl.currentWeaponMod = "poor"
+	end
 end
 
 function PotatoRifle.client_onCreate( self )
@@ -57,22 +65,12 @@ function PotatoRifle.client_onCreate( self )
 	self.cl.weaponData = nil
 
 	self.cl.damage = 20
-	self.cl.dmgMult = 1
-	self.cl.spdMult = 1
 	self.cl.ammoCost = 1
 	self.cl.fireCounter = 0
 	self.cl.isFiring = false
 	self.cl.usingMod = false
 
 	--Mod switch
-	--if self.cl.weaponData.mod1.owned then
-		self.cl.currentWeaponMod = mod_prec
-	--elseif self.cl.weaponData.mod2.owned then
-		--self.cl.currentWeaponMod = mod_missile
-	--else
-		--self.cl.currentWeaponMod = "poor"
-	--end
-
 	self.cl.modSwitchCount = 0
 	self.cl.afterModCD= false
 	self.cl.afterModCDCount = 1
@@ -214,38 +212,8 @@ function PotatoRifle.loadAnimations( self )
 end
 
 --SE
-function PotatoRifle:client_onToggle()
-	self.network:sendToServer("sv_stuf", sm.camera.getPosition() )
+function PotatoRifle:server_onFixedUpdate()
 
-	return true
-end
-
-function PotatoRifle:sv_stuf(pos)
-	--[[local hit, result = sm.physics.raycast( pos + self.cl.lookDir, pos + self.cl.lookDir + se.vec3.num(25) * self.cl.lookDir )
-	print(hit, result)
-
-	local capsules = {
-		[tostring(unit_totebot_green)] = sm.uuid.new("34d22fc5-0a45-4d71-9aaf-64df1355c272"),
-		[tostring(unit_haybot)] = sm.uuid.new("da993c70-ba90-4748-8a22-6246bad32930"),
-		[tostring(unit_tapebot)] = sm.uuid.new("4c5c3ffd-9aaf-4ded-a7c5-452d239cac32"),
-		[tostring(unit_tapebot_red)] = sm.uuid.new("50f624e6-7e33-4118-8252-2219e73e9af1"),
-		[tostring(unit_farmbot)] = sm.uuid.new("9c1f1f76-7391-4661-ae32-e96250030229"),
-		[tostring(unit_worm)] = sm.uuid.new("7735cab3-56d7-4d52-b615-090d021e8fdc"),
-		[tostring(unit_woc)] = sm.uuid.new("12cc6e9a-6d66-4a9a-bb59-b13a50373fd8")
-	}
-
-	if hit then
-		local char = result:getCharacter()
-		if char ~= nil then
-			local charUUID = char:getCharacterType()
-			if charUUID ~= unit_mechanic then
-				local charPos = char:getWorldPosition()
-
-				char:getUnit():destroy()
-				sm.shape.createPart( capsules[tostring(charUUID)], charPos + sm.vec3.new(0,0,5), sm.quat.identity(), true, true )
-			end
-		end
-	end]]
 end
 
 function PotatoRifle.client_onFixedUpdate( self, dt )
@@ -255,8 +223,6 @@ function PotatoRifle.client_onFixedUpdate( self, dt )
 
 	local playerData = self.cl.allData.playerData
 
-	self.cl.dmgMult = playerData.damageMultiplier
-	self.cl.spdMult = playerData.speedMultiplier
 	self.cl.mmOP = playerData.mmOP
 
 	--upgrades
@@ -281,8 +247,9 @@ function PotatoRifle.client_onFixedUpdate( self, dt )
 	self.cl.damage = self.cl.usingMod and self.cl.currentWeaponMod == mod_prec and 168 or 20
 
 	--powerup
-	self.cl.damage = self.cl.damage * self.cl.dmgMult
-	local increase = dt * self.cl.spdMult
+	local powerupData = self.tool:getOwner():getClientPublicData().powerup
+	self.cl.damage = self.cl.damage * powerupData.damageMultiplier.current
+	local increase = dt * powerupData.speedMultiplier.current
 
 	if self.cl.afterModCD then
 		self.cl.afterModCDCount = self.cl.afterModCDCount + increase*1.75
@@ -518,7 +485,7 @@ function PotatoRifle.client_onUpdate( self, dt )
 	self.cl.lookDir = self.cl.playerChar:getDirection()
 
 	local missileInc = self.cl.mmOP and dt * 2 or dt
-	local increase = dt * self.cl.spdMult
+	local increase = dt * self.tool:getOwner():getClientPublicData().powerup.speedMultiplier.current
 	local fpsAdjust = dt * 50
 
 	for tablePos, missile in pairs(self.cl.missiles) do

@@ -255,7 +255,7 @@ function BaseCharacter.client_onUpdate( self, deltaTime )
 
 
 	local totalMovementSpeedFraction = self.cl.waterMovementSpeedFraction
-	self.character.movementSpeedFraction = totalMovementSpeedFraction
+	--self.character.movementSpeedFraction = totalMovementSpeedFraction
 
 	if not self.graphicsLoaded then
 		return
