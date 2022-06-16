@@ -26,55 +26,58 @@ sm.tool.preloadRenderables( renderables )
 sm.tool.preloadRenderables( renderablesTp )
 sm.tool.preloadRenderables( renderablesFp )
 
+function RLauncher:server_onCreate()
+	self.sv = {}
+	self.sv.detRockets = self.storage:load() or {}
+	self.network:setClientData( self.sv.detRockets )
+end
+
 function RLauncher.client_onCreate( self )
 	self.shootEffect = sm.effect.createEffect( "SpudgunBasic - BasicMuzzel" )
 	self.shootEffectFP = sm.effect.createEffect( "SpudgunBasic - FPBasicMuzzel" )
 
     --SE
-
+	if not self.tool:isLocal() then return end
     --General stuff
-	self.player = sm.localPlayer.getPlayer()
-	self.playerChar = self.player:getCharacter()
+	self.cl = {}
 
-	self.data = sm.playerInfo[self.player:getId()].weaponData.rocket
+	self.cl.player = sm.localPlayer.getPlayer()
 
-	self.dmgMult = 1
-	self.spdMult = 1
-	self.isFiring = false
-	self.usingMod = false
-	self.rockets = {}
+	self.cl.allData = self.cl.player:getClientPublicData().data
+	self.cl.weaponData = self.cl.allData.weaponData.rocket
+
+	self.cl.dmgMult = 1
+	self.cl.spdMult = 1
+	self.cl.usingMod = false
 
 	--Mod switch
-	if self.data.mod1.owned then
-		self.currentWeaponMod = mod_lock
-	elseif self.data.mod2.owned then
-		self.currentWeaponMod = mod_detonate
+	if self.cl.weaponData.mod1.owned then
+		self.cl.currentWeaponMod = mod_lock
+	elseif self.cl.weaponData.mod2.owned then
+		self.cl.currentWeaponMod = mod_detonate
 	else
-		self.currentWeaponMod = "poor"
+		self.cl.currentWeaponMod = "poor"
 	end
 
-	self.modSwitchCount = 0
-	self.afterModCD = false
-	self.afterModCDCount = 1
+	self.cl.modSwitchCount = 0
+	self.cl.afterModCD = false
+	self.cl.afterModCDCount = 1
 
 	--mod_lock
-	self.loadedRockets = 0
-	self.loadedRocketsMax = 3
-	self.rocketLoadCount = 0
-	self.rocketLoadMax = 1
-	self.lockCD = false
-	self.lockCDCount = 0
-	self.lockCDMax = 1.5
-	self.fireRockets = false
-	self.fireRocketCount = 0
-	self.rocketTarget = nil
-	self.fireType = { count = 0, current = "Burst", types = { "Burst", "Blast" } }
+	self.cl.loadedRockets = 0
+	self.cl.loadedRocketsMax = 3
+	self.cl.rocketLoadCount = 0
+	self.cl.rocketLoadMax = 1
+	self.cl.lockCD = false
+	self.cl.lockCDCount = 0
+	self.cl.lockCDMax = 1.5
+	self.cl.fireRockets = false
+	self.cl.fireRocketCount = 0
+	self.cl.rocketTarget = nil
+	self.cl.fireType = { count = 0, current = "Burst", types = { "Burst", "Blast" } }
 
 	--mod_detonate
-	self.proxFlare = false
-	self.staggerBlast = false
-	self.detonate = false
-
+	self.cl.detRockets = {}
 end
 
 function RLauncher.client_onRefresh( self )
@@ -193,296 +196,228 @@ end
 
 --SE
 function RLauncher:client_onFixedUpdate( dt )
-	local playerData = sm.playerInfo[self.player:getId()].playerData
-	self.data = sm.playerInfo[self.player:getId()].weaponData.rocket
-	self.dmgMult = playerData.damageMultiplier > 1 and playerData.damageMultiplier / 2 or playerData.damageMultiplier
-	self.spdMult = playerData.speedMultiplier
+	if not self.tool:isLocal() or self.cl.allData == nil or not self.tool:isEquipped() then return end
+
+	local playerData = self.cl.allData.playerData
+	self.cl.dmgMult = playerData.damageMultiplier > 1 and playerData.damageMultiplier / 2 or playerData.damageMultiplier
+	self.cl.spdMult = playerData.speedMultiplier
+
+	local lookDir = self.tool:getOwner().character:getDirection()
 
 	--fuck off
 	if self.fireCooldownTimer == nil then
 		self.fireCooldownTimer = 0
 	end
 
-	if self.currentWeaponMod == "poor" then
-		if self.data.mod1.owned then
-			self.currentWeaponMod = mod_detonate
-		elseif self.data.mod2.owned then
-			self.currentWeaponMod = mod_lock
+	if self.cl.currentWeaponMod == "poor" then
+		if self.cl.weaponData.mod1.owned then
+			self.cl.currentWeaponMod = mod_detonate
+		elseif self.cl.weaponData.mod2.owned then
+			self.cl.currentWeaponMod = mod_lock
 		end
 
 		--checks if youre still poor, and if you are, it returns so that it doesnt calculate all the shit below this
-		if self.currentWeaponMod == "poor" then
+		if self.cl.currentWeaponMod == "poor" then
 			return
 		end
 	end
 
 	--upgrades
-	self.proxFlare = self.data.mod1.up1.owned and true or false
-	self.staggerBlast = self.data.mod1.up2.owned and true or false
-	self.lockCDMax = self.data.mod2.up1.owned and 1 or 1.5
-	self.rocketLoadMax = self.data.mod2.up2.owned and 0.5 or 1
+	self.cl.lockCDMax = self.cl.weaponData.mod2.up1.owned and 1 or 1.5
+	self.cl.rocketLoadMax = self.cl.weaponData.mod2.up2.owned and 0.5 or 1
 	--this will definitely be balanced, yes
-	self.loadedRocketsMax = self.data.mod2.mastery.owned and 5 or 3
+	self.cl.loadedRocketsMax = self.cl.weaponData.mod2.mastery.owned and 5 or 3
 	--also reduce the load max to make it even more balanced
-	self.rocketLoadMax = self.data.mod2.mastery.owned and self.rocketLoadMax * 0.33 or self.rocketLoadMax
+	self.cl.rocketLoadMax = self.cl.weaponData.mod2.mastery.owned and self.cl.rocketLoadMax * 0.33 or self.cl.rocketLoadMax
 
 	--powerup
-	local increase = dt * self.spdMult
+	local increase = dt * self.cl.spdMult
 
     --Mod switch cooldown
-	if self.afterModCD then
-		self.afterModCDCount = self.afterModCDCount + increase*1.75
+	if self.cl.afterModCD then
+		self.cl.afterModCDCount = self.cl.afterModCDCount + increase*1.75
 
-		if self.afterModCDCount >= 1 then
-			self.afterModCDCount = 1
-			self.afterModCD = false
+		if self.cl.afterModCDCount >= 1 then
+			self.cl.afterModCDCount = 1
+			self.cl.afterModCD = false
 		end
 	end
 
 	--mod_lock
-	if self.lockCD then
-		self.lockCDCount = self.lockCDCount + dt
-		if self.lockCDCount >= self.lockCDMax then
-			self.lockCDCount = 0
-			self.lockCD = false
+	if self.cl.lockCD then
+		self.cl.lockCDCount = self.cl.lockCDCount + dt
+		if self.cl.lockCDCount >= self.cl.lockCDMax then
+			self.cl.lockCDCount = 0
+			self.cl.lockCD = false
 		end
 	end
 
-	if self.fireRockets and self.loadedRockets > 0 then
-		if self.fireType.current == self.fireType.types[1] then
-			self.fireRocketCount = self.fireRocketCount + increase
+	if self.cl.fireRockets and self.cl.loadedRockets > 0 then
+		if self.cl.fireType.current == self.cl.fireType.types[1] then
+			self.cl.fireRocketCount = self.cl.fireRocketCount + increase
 
-			if self.fireRocketCount >= 0.25 then
-				self.loadedRockets = self.loadedRockets - 1
-				self.fireRocketCount = 0
+			if self.cl.fireRocketCount >= 0.25 then
+				self.cl.loadedRockets = self.cl.loadedRockets - 1
+				self.cl.fireRocketCount = 0
 				sm.audio.play( "Retrofmblip" )
-				--self.network:sendToServer("sv_shootRocket", { pos = self:calculateFirePosition() + self.lookDir, tracking = true, target = self.rocketTarget, dir = self.lookDir })
 				if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), se_ammo_rocket, 1 ) then
-					self:cl_shootRocket({ pos = self:calculateFirePosition() + self.lookDir, dir = self.lookDir, tracking = true, target = self.rocketTarget, type = "lock" })
+					self.network:sendToServer("sv_shootRocket",
+						{
+							pos = self:calculateFirePosition() + lookDir,
+							dir = sm.localPlayer.getDirection(),
+							owner = sm.localPlayer.getPlayer(),
+							tracking = true,
+							target = self.cl.rocketTarget,
+							type = "lock"
+						}
+					)
 				end
+
+				self:onShoot( lookDir )
+				self.network:sendToServer( "sv_n_onShoot", lookDir )
+				setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
 			end
 		else
-			for i = 1, self.loadedRockets do
-				local dir = self.lookDir:rotate( math.rad(math.random(-5,5)), sm.camera.getUp() )
+			for i = 1, self.cl.loadedRockets do
+				local dir = lookDir:rotate( math.rad(math.random(-5,5)), sm.camera.getUp() )
 				dir = dir:rotate( math.rad(math.random(-4,4)), sm.camera.getRight() )
 
-				self:cl_shootRocket({ pos = self:calculateFirePosition() + self.lookDir, dir = dir, tracking = true, target = self.rocketTarget, type = "lock" })
-				self.loadedRockets = self.loadedRockets - 1
+				self.network:sendToServer("sv_shootRocket",
+					{
+						pos = self:calculateFirePosition() + lookDir,
+						dir = sm.localPlayer.getDirection(),
+						owner = sm.localPlayer.getPlayer(),
+						tracking = true,
+						target = self.cl.rocketTarget,
+						type = "lock"
+					}
+				)
+				self.cl.loadedRockets = self.cl.loadedRockets - 1
 			end
+
+			self:onShoot( lookDir )
+			self.network:sendToServer( "sv_n_onShoot", lookDir )
+			setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
 		end
 
-		if self.loadedRockets == 0 then
-			self.lockCD = true
-			self.rocketTarget = nil
-			self.fireRockets = false
+		if self.cl.loadedRockets == 0 then
+			self.cl.lockCD = true
+			self.cl.rocketTarget = nil
+			self.cl.fireRockets = false
 		end
 	end
 
-	if self.currentWeaponMod == mod_lock and self.usingMod and not self.lockCD then
-		if self.rocketTarget == nil then
-			local hit, result = sm.localPlayer.getRaycast( 100 )
+	if self.cl.currentWeaponMod == mod_lock and self.cl.usingMod and not self.cl.lockCD then
+		local hit, result = sm.localPlayer.getRaycast( 100 )
+		if self.cl.rocketTarget == nil then
 			if result.type == "character" then
-				self.rocketTarget = result:getCharacter()
+				self.cl.rocketTarget = result:getCharacter()
 			end
-		elseif sm.exists(self.rocketTarget) then
-			local hit, result = sm.localPlayer.getRaycast( 100 )
-			if (result.type ~= "character" or result:getCharacter() ~= self.rocketTarget) and self.loadedRockets < self.loadedRocketsMax and not self.fireRockets then
-				self.rocketTarget = nil
-				self.loadedRockets = 0
-				self.rocketLoadCount = 0
-			elseif not self.fireRockets then
-				if self.loadedRockets < self.loadedRocketsMax and self.rocketLoadCount < self.rocketLoadMax then
-					self.rocketLoadCount = self.rocketLoadCount + dt
-				--elseif self.loadedRockets == self.loadedRocketsMax then
-				--	self.fireRockets = true
+		elseif sm.exists(self.cl.rocketTarget) then
+			if (result.type ~= "character" or result:getCharacter() ~= self.cl.rocketTarget) and self.cl.loadedRockets < self.cl.loadedRocketsMax and not self.cl.fireRockets then
+				self.cl.rocketTarget = nil
+				self.cl.loadedRockets = 0
+				self.cl.rocketLoadCount = 0
+			elseif not self.cl.fireRockets then
+				if self.cl.loadedRockets < self.cl.loadedRocketsMax and self.cl.rocketLoadCount < self.cl.rocketLoadMax then
+					self.cl.rocketLoadCount = self.cl.rocketLoadCount + dt
+				--elseif self.cl.loadedRockets == self.cl.loadedRocketsMax then
+				--	self.cl.fireRockets = true
 				end
 
-				if self.rocketLoadCount >= self.rocketLoadMax then
+				if self.cl.rocketLoadCount >= self.cl.rocketLoadMax then
 					sm.audio.play( "Blueprint - Open" )
-					self.loadedRockets = self.loadedRockets + 1
-					self.rocketLoadCount = 0
+					self.cl.loadedRockets = self.cl.loadedRockets + 1
+					self.cl.rocketLoadCount = 0
 				end
 			end
-		elseif not sm.exists(self.rocketTarget) and self.rocketTarget ~= nil then
-			self.rocketTarget = nil
-			self.loadedRockets = 0
-			self.rocketLoadCount = 0
+		elseif not sm.exists(self.cl.rocketTarget) and self.cl.rocketTarget ~= nil then
+			self.cl.rocketTarget = nil
+			self.cl.loadedRockets = 0
+			self.cl.rocketLoadCount = 0
 		end
 	end
 end
 
 function RLauncher.client_onReload( self )
-	if self.data.mod1.owned and self.data.mod2.owned then
-		self.modSwitchCount = self.modSwitchCount + 1
-		if self.modSwitchCount % 2 == 0 then
-			self.currentWeaponMod = mod_lock
+	if self.cl.weaponData.mod1.owned and self.cl.weaponData.mod2.owned then
+		self.cl.modSwitchCount = self.cl.modSwitchCount + 1
+		if self.cl.modSwitchCount % 2 == 0 then
+			self.cl.currentWeaponMod = mod_lock
 		else
-			self.currentWeaponMod = mod_detonate
+			self.cl.currentWeaponMod = mod_detonate
 		end
-		self.afterModCDCount = 0
-		self.afterModCD = true
-		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.currentWeaponMod, 2.5)
+		self.cl.afterModCDCount = 0
+		self.cl.afterModCD = true
+		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
 		sm.audio.play("PaintTool - ColorPick")
-	elseif self.data.mod1.owned or self.data.mod2.owned or self.currentWeaponMod == "poor" then
+	elseif self.cl.weaponData.mod1.owned or self.cl.weaponData.mod2.owned or self.cl.currentWeaponMod == "poor" then
 		sm.audio.play("Button off")
 	end
 
 	return true
 end
 
-function RLauncher:client_onToggle()
-	if self.fireRockets then return end
+--[[function RLauncher:client_onToggle()
+	if self.cl.fireRockets then return end
 
-	self.fireType.count = self.fireType.count + 1
-	self.fireType.current = self.fireType.count%2 == 0 and self.fireType.types[1] or self.fireType.types[2]
-	sm.gui.displayAlertText("Current fire mode: #ff9d00"..self.fireType.current, 2.5)
+	self.cl.fireType.count = self.cl.fireType.count + 1
+	self.cl.fireType.current = self.cl.fireType.count%2 == 0 and self.cl.fireType.types[1] or self.cl.fireType.types[2]
+	sm.gui.displayAlertText("Current fire mode: #ff9d00"..self.cl.fireType.current, 2.5)
 	sm.audio.play("PaintTool - ColorPick")
 
 	return true
+end]]
+
+function RLauncher:client_onClientDataUpdate( data, channel )
+	if not self.tool:isLocal() then return end
+
+	self.cl.detRockets = data
 end
 
 function RLauncher:sv_saveCurrentWpnData( data )
-	sm.event.sendToPlayer( self.player, "sv_saveWPData", data )
+	sm.event.sendToPlayer( self.cl.player, "sv_saveWPData", data )
 end
 
-function RLauncher:cl_shootRocket( args )
-	local rocket = {}
-
-	if args.type == "lock" then
-		rocket = {effect = sm.effect.createEffect("Rocket"), thrust = sm.effect.createEffect("Thruster - Level 5"), pos = args.pos, dir = args.dir, tracking = args.tracking, target = args.target, lifeTime = 0}
-	else
-		rocket = {effect = sm.effect.createEffect("Rocket"), thrust = sm.effect.createEffect("Thruster - Level 5"), flare = sm.effect.createEffect("EpicLoot - GlowItem"), detonated = false, pos = args.pos, dir = args.dir, tracking = args.tracking, target = args.target, lifeTime = 0}
-	end
-
-	rocket.effect:setPosition( args.pos )
-	rocket.effect:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 1, 0 ), args.dir ) )
-	rocket.effect:start()
-
-	rocket.thrust:setPosition( args.pos )
-	rocket.thrust:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 0, -1 ), args.dir ) )
-	rocket.thrust:start()
-
-	table.insert(self.rockets, rocket)
-	self.network:sendToServer("sv_shootRocket")
-
-	self:onShoot( self.lookDir )
-	self.network:sendToServer( "sv_n_onShoot", self.lookDir )
-	setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
-end
-
-function RLauncher:sv_shootRocket()
+function RLauncher:sv_shootRocket( args )
+	local player = self.tool:getOwner()
 	sm.container.beginTransaction()
-	sm.container.spend( self.player:getInventory(), se_ammo_rocket, 1, 1 )
+	sm.container.spend( player:getInventory(), se_ammo_rocket, 1, true )
 	sm.container.endTransaction()
-end
 
-function RLauncher:sv_rocketExplode( args )
-	if args.type == "big" then
-		sm.physics.explode( args.pos, 8 * self.dmgMult, 5, 7, 20, "PropaneTank - ExplosionBig" )
-	elseif args.type == "small" then
-		sm.physics.explode( args.pos, 4 * self.dmgMult, 2.5, 3.5, 10, "PropaneTank - ExplosionSmall" )
-	else
-		sm.physics.explode( args.pos, 5 * self.dmgMult, 3.5, 4, 15, "PropaneTank - ExplosionSmall" )
+	args.spawnTick = sm.game.getServerTick()
+	local playerPublic = player:getPublicData().data
+	args.flare = playerPublic.weaponData.rocket.mod1.up1.owned
+	args.falter = playerPublic.weaponData.rocket.mod1.up2.owned
+	local rocket = sm.scriptableObject.createScriptableObject(
+		proj_rocket_sob,
+		args,
+		args.owner:getCharacter():getWorld()
+	)
+
+	if args.type == "detonate" then
+		self.sv.detRockets[#self.sv.detRockets+1] = rocket
+		self.storage:save( self.sv.detRockets )
+		self.network:setClientData( self.sv.detRockets )
 	end
 end
 
-function RLauncher:server_onFixedUpdate( dt )
-	enemies = sm.unit.getAllUnits()
+function RLauncher:sv_detonateRockets()
+	for k, rocket in pairs(self.sv.detRockets) do
+		if sm.exists(rocket) then
+			sm.event.sendToScriptableObject(rocket, "sv_onDetonate")
+		end
+	end
+
+	self.sv.detRockets = {}
+	self.storage:save( self.sv.detRockets )
+	self.network:setClientData( self.sv.detRockets )
 end
 --SE
 
 function RLauncher.client_onUpdate( self, dt )
 	--SE
-	self.playerChar = self.player:getCharacter()
-	self.lookDir = sm.localPlayer.getDirection()
-	self.playerPos = self.playerChar:getWorldPosition()
-
-	local increase = dt * self.spdMult
-	local fpsAdjust = dt * 50
-
-	--check for flare
-	if #enemies > 0 then
-		for tablePos, rocket in pairs(self.rockets) do
-			if rocket.flare then
-				local minDistance = (enemies[1]:getCharacter():getWorldPosition() - rocket.pos):length()
-				for pos, unit in pairs(enemies) do
-					local distance = (unit:getCharacter():getWorldPosition() - rocket.pos):length()
-					if minDistance > distance then
-						minDistance = distance
-					end
-				end
-
-				if minDistance <= 5 and not rocket.flare:isPlaying() then
-					rocket.flare:start()
-				elseif minDistance > 5 and rocket.flare:isPlaying() then
-					rocket.flare:stop()
-				end
-			end
-		end
-	end
-
-	--check for det
-	if self.detonate then
-		for tablePos, rocket in pairs(self.rockets) do
-			if rocket.flare then
-				local type = self.data.mod1.mastery.owned and rocket.flare:isPlaying() and "big" or "lame normal one smh"
-				self.network:sendToServer( "sv_rocketExplode", { pos = rocket.pos, type = type } )
-				rocket.detonated = true
-			end
-		end
-		self.detonate = false
-	end
-
-	--main
-	for tablePos, rocket in pairs(self.rockets) do
-		local hit, result = sm.physics.raycast( rocket.pos, rocket.pos + rocket.dir * 0.5 * fpsAdjust)
-
-		if hit or rocket.lifeTime >= 15 or rocket.detonated then
-			rocket.effect:stop()
-			rocket.thrust:stop()
-			if rocket.flare then
-				rocket.flare:stop()
-			end
-
-			if not rocket.detonated then
-				local type = rocket.target and rocket.target ~= nil and "small" or "L + ratio"
-				self.network:sendToServer( "sv_rocketExplode", { pos = rocket.pos, type = type } )
-			end
-			table.remove(self.rockets,tablePos)
-		else
-			if rocket.lifeTime > 0.5 then
-				if rocket.tracking and sm.exists(rocket.target) then
-					local targetPos = rocket.target:getWorldPosition()
-					local targetDir = targetPos + (rocket.target:getVelocity() / 2) - rocket.pos
-
-					--[[local rot = rocket.dir:cross( targetDir )
-					rocket.dir = sm.vec3.rotate(rocket.dir, math.rad(rot.y * turnSpeed * fpsAdjust), se.vec3.right())
-					rocket.dir = sm.vec3.rotate(rocket.dir, math.rad(rot.z * turnSpeed * fpsAdjust ), se.vec3.up())]]
-
-					--rocket.dir = sm.vec3.lerp( rocket.dir, targetDir, dt )
-
-					local rot = sm.vec3.getRotation( rocket.dir, rocket.target:getWorldPosition() - rocket.pos )
-					local newRot = rot * rocket.dir
-					rocket.dir = rocket.dir * 0.8 + newRot * 0.3
-
-					rocket.effect:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 1, 0 ), rocket.dir ) )
-					rocket.thrust:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 0, -1 ), rocket.dir ) )
-				elseif rocket.target ~= nil then
-					rocket.target = nil
-				end
-			end
-
-			local newPos = rocket.pos + rocketVel * rocket.dir * fpsAdjust
-			rocket.lifeTime = rocket.lifeTime + dt
-			rocket.pos = newPos
-
-			rocket.effect:setPosition( newPos )
-			rocket.thrust:setPosition( newPos )
-			if rocket.flare then
-				rocket.flare:setPosition( newPos )
-			end
-		end
-	end
+	local increase = dt * self.cl.spdMult
 	--SE
 
 	-- First person animation
@@ -704,8 +639,8 @@ end
 
 function RLauncher.client_onEquip( self, animate )
     --SE
-    if self.currentWeaponMod ~= "poor" then
-        sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.currentWeaponMod, 2.5)
+    if self.cl.currentWeaponMod ~= "poor" then
+        sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
     end
     --SE
 
@@ -935,12 +870,32 @@ function RLauncher.cl_onPrimaryUse( self, state )
 			dir = sm.noise.gunSpread( dir, spreadDeg )
 
 			local owner = self.tool:getOwner()
-			if owner and self.currentWeaponMod == mod_lock and self.loadedRockets == 0 or self.currentWeaponMod == "poor" then
-				self:cl_shootRocket({ pos = firePos + self.lookDir, dir = self.lookDir, tracking = false, target = nil, type = "lock" })
-			elseif owner and self.currentWeaponMod == mod_lock and self.loadedRockets > 0 and self.usingMod then
-				self.fireRockets = true
-			elseif owner and self.currentWeaponMod == mod_detonate then
-				self:cl_shootRocket({ pos = firePos + self.lookDir, dir = self.lookDir, tracking = false, target = nil, type = "detonate" })
+			if owner then
+				if self.cl.currentWeaponMod == mod_lock and self.cl.loadedRockets == 0 or self.cl.currentWeaponMod == "poor" then
+					self.network:sendToServer("sv_shootRocket",
+						{
+							pos = firePos,
+							dir = sm.localPlayer.getDirection(),
+							owner = sm.localPlayer.getPlayer(),
+							tracking = false,
+							target = nil,
+							type = "lock"
+						}
+					)
+				elseif self.cl.currentWeaponMod == mod_lock and self.cl.loadedRockets > 0 and self.cl.usingMod then
+					self.cl.fireRockets = true
+				elseif self.cl.currentWeaponMod == mod_detonate then
+					self.network:sendToServer("sv_shootRocket",
+						{
+							pos = firePos,
+							dir = sm.localPlayer.getDirection(),
+							owner = sm.localPlayer.getPlayer(),
+							tracking = false,
+							target = nil,
+							type = "detonate"
+						}
+					)
+				end
 			end
 
 			-- Timers
@@ -948,7 +903,7 @@ function RLauncher.cl_onPrimaryUse( self, state )
 			self.spreadCooldownTimer = math.min( self.spreadCooldownTimer + fireMode.spreadIncrement, fireMode.spreadCooldown )
 			self.sprintCooldownTimer = self.sprintCooldown
 
-			if not self.fireRockets then
+			if not self.cl.fireRockets then
 				self:onShoot( dir )
 				self.network:sendToServer( "sv_n_onShoot", dir )
 				setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
@@ -962,30 +917,23 @@ function RLauncher.cl_onPrimaryUse( self, state )
 end
 
 function RLauncher.cl_onSecondaryUse( self, state )
-	if state == sm.tool.interactState.start and not self.usingMod --[[self.aiming]] then
+	if state == sm.tool.interactState.start and not self.cl.usingMod then
 		--SE
-		self.usingMod = true
+		self.cl.usingMod = true
 		--SE
 	end
 
-	if self.usingMod --[[self.aiming]] and (state == sm.tool.interactState.stop or state == sm.tool.interactState.null) then
+	if self.cl.usingMod and (state == sm.tool.interactState.stop or state == sm.tool.interactState.null) then
 		--SE
-		self.usingMod = false
+		self.cl.usingMod = false
 
-		if self.loadedRockets > 0 and not self.fireRockets then
-			self.fireRockets = true
+		if self.cl.loadedRockets > 0 and not self.cl.fireRockets then
+			self.cl.fireRockets = true
 		end
 
-		if self.currentWeaponMod == mod_detonate then
-			local detRockets = 0
-			for pos, rocket in pairs (self.rockets) do
-				if rocket.flare then
-					detRockets = detRockets + 1
-				end
-			end
-			
-			if detRockets > 0 then
-				self.detonate = true
+		if self.cl.currentWeaponMod == mod_detonate then
+			if #self.cl.detRockets > 0 then
+				self.network:sendToServer("sv_detonateRockets")
 				sm.audio.play( "Retrofmblip" )
 			else
 				sm.audio.play("Lever off")
@@ -998,19 +946,19 @@ end
 function RLauncher.client_onEquippedUpdate( self, primaryState, secondaryState )
     --SE
 	local data = {
-		mod = self.currentWeaponMod,
-		using = self.usingMod,
+		mod = self.cl.currentWeaponMod,
+		using = self.cl.usingMod,
 		ammo = 0,
 		recharge = 0
 	}
 	self.network:sendToServer( "sv_saveCurrentWpnData", data )
 
-    if self.afterModCD then
-		sm.gui.setProgressFraction(self.afterModCDCount/1)
+    if self.cl.afterModCD then
+		sm.gui.setProgressFraction(self.cl.afterModCDCount/1)
 	end
 
-	if self.currentWeaponMod == mod_lock and self.usingMod and not self.afterModCD or self.currentWeaponMod == mod_lock and self.loadedRockets > 0 then
-		sm.gui.setProgressFraction(self.loadedRockets/self.loadedRocketsMax)
+	if self.cl.currentWeaponMod == mod_lock and self.cl.usingMod and not self.cl.afterModCD or self.cl.currentWeaponMod == mod_lock and self.cl.loadedRockets > 0 then
+		sm.gui.setProgressFraction(self.cl.loadedRockets/self.cl.loadedRocketsMax)
 	end
     --SE
 

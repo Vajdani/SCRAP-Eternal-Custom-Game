@@ -4,8 +4,8 @@
 			"uuid": "00000000-0000-0000-0000-000000000000",
 			"renderables":
 			[
-				"$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Characters/Char_Male/Anims/char_male_fp.rend",
-				"$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Characters/Char_Male/Anims/char_male_tp.rend",
+				"$CONTENT_DATA/Characters/Char_Male/Anims/char_male_fp.rend",
+				"$CONTENT_DATA/Characters/Char_Male/Anims/char_male_tp.rend",
 
 				"$GAME_DATA/Character/Char_Male/Animations/char_male_tp_swim.rend",
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_head.rend",

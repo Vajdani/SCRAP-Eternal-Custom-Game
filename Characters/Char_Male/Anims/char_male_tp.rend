@@ -83,9 +83,9 @@
 			{ "name" : "ko_idle", 						"file" : "$GAME_DATA/Character/Char_Male/Animations/Thirdperson/Locomotion/Ko/ani_char_male_lom_ko_idle.dae", "looping": true },
 		
 			// SE
-			{ "name" : "punch", 						"file" : "$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Characters/Char_Male/Anims/bloodpunch/bloodpunch.dae", "looping" : false },
-			{ "name" : "parry", 						"file" : "$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Characters/Char_Male/Anims/parry/parry.dae", "looping" : false },
-			{ "name" : "normalPunch", 					"file" : "$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Characters/Char_Male/Anims/parry/parry.dae", "looping" : false }
+			{ "name" : "punch", 						"file" : "$CONTENT_DATA/Characters/Char_Male/Anims/bloodpunch/bloodpunch.dae", "looping" : false },
+			{ "name" : "parry", 						"file" : "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parry.dae", "looping" : false },
+			{ "name" : "normalPunch", 					"file" : "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parry.dae", "looping" : false }
 		],
 		"maxViewDistance": 1000.0
 	}]

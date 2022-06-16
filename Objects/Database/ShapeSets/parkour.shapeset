@@ -124,11 +124,10 @@
 				]
 			},
 			"color": "ffcc4d",
-			"hull": {
+			"box": {
 				"x": 1,
 				"y": 1,
-				"z": 1,
-				"col": "$CONTENT_DATA/Objects/Mesh/trn_monkeybar.fbx"
+				"z": 1
 			},
 			"scripted": {
 				"filename": "$CONTENT_DATA/Scripts/interactables/trn_monkeybar.lua",

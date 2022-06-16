@@ -3,8 +3,14 @@
 		{
 			"filename": "$CONTENT_DATA/Scripts/projectiles/prj_bfgBall.lua",
 			"classname": "BBall",
-			"name": "prj_bfgBall_sob",
+			"name": "proj_bfgBall_sob",
 			"uuid": "5b4592b8-89a4-49a1-8558-2ac9f603c219"
+		},
+		{
+			"filename": "$CONTENT_DATA/Scripts/projectiles/prj_rocket.lua",
+			"classname": "Rocket",
+			"name": "proj_rocket_sob",
+			"uuid": "59b7e8a7-e633-4d8d-8873-4bd7ce021be4"
 		}
 	]
 }

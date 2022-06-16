@@ -77,6 +77,11 @@ proj_health = sm.uuid.new("fea0e388-8a29-44f1-aee3-f9110780ee82")
 proj_armour = sm.uuid.new("59648271-ad12-475d-b72d-456d2cb7aa52")
 proj_ammo = sm.uuid.new("56c3d9b5-7736-4c64-8714-7a64dd7911cc")
 
+--scripted projectiles
+--= sm.uuid.new("")
+proj_bfgBall_sob = sm.uuid.new("5b4592b8-89a4-49a1-8558-2ac9f603c219")
+proj_rocket_sob = sm.uuid.new("59b7e8a7-e633-4d8d-8873-4bd7ce021be4")
+
 g_customProjs = {
     bfg = {
         

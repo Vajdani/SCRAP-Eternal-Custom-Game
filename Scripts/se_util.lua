@@ -93,12 +93,11 @@ end
 se.physics.explode = function( position, level, destructionRadius, impulseRadius, magnitude, effect, ignoreShape, attacker, falter )
     local attackerCharId = attacker:getCharacter():getId()
 
-    local explodeTrigger = sm.areaTrigger.createSphere( destructionRadius, position, sm.quat.identity(), sm.areaTrigger.filter.character )
-    for v, unit in pairs(explodeTrigger:getContents()) do
-        local unitChar = unit:getCharacter()
-        if unitChar:getId() ~= attackerCharId then
-            local unitPos = unitChar:getWorldPosition()
-            sm.event.sendToUnit(unit, "sv_se_onExplosion",
+    local explodeContacts = sm.physics.getSphereContacts( position, destructionRadius )
+    for v, char in pairs(explodeContacts.characters) do
+        if char:getId() ~= attackerCharId then
+            local unitPos = char:getWorldPosition()
+            sm.event.sendToUnit(char:getUnit(), "sv_se_onExplosion",
                 {
                     damage = level * 2,
                     impact = position - unitPos,
@@ -109,18 +108,16 @@ se.physics.explode = function( position, level, destructionRadius, impulseRadius
             )
         end
     end
-    sm.areaTrigger.destroy( explodeTrigger )
 
 
-    local impulseTrigger = sm.areaTrigger.createSphere( impulseRadius, position, sm.quat.identity(), sm.areaTrigger.filter.character + sm.areaTrigger.filter.dynamicBody )
-    for v, obj in pairs(impulseTrigger:getContents()) do
+    local impulseContacts = sm.physics.getSphereContacts( position, impulseRadius )
+    for v, obj in pairs( addTables({ impulseContacts.characters, impulseContacts.bodies }) ) do
         sm.physics.applyImpulse(
             obj,
-            (obj:getWorldPosition() - position):length() * magnitude,
+            (obj:getWorldPosition() - position):normalize() * magnitude * obj:getMass(),
             true
         )
     end
-    sm.areaTrigger.destroy( impulseTrigger )
 
     sm.effect.playEffect(effect, position)
 end
@@ -188,6 +185,17 @@ function copyTable( table )
     local returned = {}
     for v, k in pairs(table) do
         returned[v] = k
+    end
+
+    return returned
+end
+
+function addTables( tables )
+    local returned = {}
+    for k, table in pairs(tables) do
+        for key, value in pairs(table) do
+            returned[key] = value
+        end
     end
 
     return returned

@@ -220,6 +220,10 @@ function TotebotGreenUnit:sv_se_takeDamage( args )
 	self:sv_takeDamage( args.damage, args.impact, args.hitPos, nil, args.attacker )
 end
 
+function TotebotGreenUnit:sv_se_onExplosion( args )
+	self:sv_se_takeDamage( args )
+end
+
 function TotebotGreenUnit.server_onFixedUpdate( self, dt )
 	
 	-- Temporary units are destroyed at dawn

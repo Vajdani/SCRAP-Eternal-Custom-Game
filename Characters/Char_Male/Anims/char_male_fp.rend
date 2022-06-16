@@ -150,9 +150,9 @@
 
 
 			// SE
-			{ "name" : "punch", 								"file" : "$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Characters/Char_Male/Anims/bloodpunch/bloodpunchFP.dae", "looping" : false },
-			{ "name" : "parry", 								"file" : "$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Characters/Char_Male/Anims/parry/parryFP.dae", "looping" : false },
-			{ "name" : "normalPunch", 							"file" : "$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Characters/Char_Male/Anims/parry/parryFP.dae", "looping" : false }
+			{ "name" : "punch", 								"file" : "$CONTENT_DATA/Characters/Char_Male/Anims/bloodpunch/bloodpunchFP.dae", "looping" : false },
+			{ "name" : "parry", 								"file" : "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parryFP.dae", "looping" : false },
+			{ "name" : "normalPunch", 							"file" : "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parryFP.dae", "looping" : false }
 		],
 		"maxViewDistance": 1000.0
 	}]

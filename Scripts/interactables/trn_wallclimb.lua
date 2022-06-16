@@ -22,15 +22,19 @@ end
 
 function WallClimb:sv_toggleClimbOn(trigger, result)
     for _, character in ipairs(result) do
-        self.network:sendToClient(character:getPlayer(), "cl_toggleClimb", true)
-        self:sv_toggleClimb(character, true, 1)
+        if sm.exists(character) and character:isPlayer() then
+            self.network:sendToClient(character:getPlayer(), "cl_toggleClimb", true)
+            self:sv_toggleClimb(character, true, 1)
+        end
     end
 end
 
 function WallClimb:sv_toggleClimbOff(trigger, result)
     for _, character in ipairs(result) do
-        self.network:sendToClient(character:getPlayer(), "cl_toggleClimb", false)
-        self:sv_toggleClimb(character, false, 1);
+        if sm.exists(character) and character:isPlayer() then
+            self.network:sendToClient(character:getPlayer(), "cl_toggleClimb", false)
+            self:sv_toggleClimb(character, false, 1)
+        end
     end
 end
 
@@ -38,6 +42,8 @@ function WallClimb:sv_toggleClimb(character, climbing, speed)
     character:setDiving(climbing)
     character:setSwimming(climbing)
     character:setMovementSpeedFraction(speed)
+
+    character:getPlayer():getPublicData().data.playerData.isOnWall = climbing
 end
 
 function WallClimb:sv_dismountWall(character)
@@ -55,7 +61,7 @@ function WallClimb:client_onDestroy()
     self:cl_toggleClimb(false)
 end
 
-function WallClimb:client_onAction(controllerAction, state)
+--[[function WallClimb:client_onAction(controllerAction, state)
     local consumeAction = false
 
     if state and (controllerAction == sm.interactable.actions.jump and self.isOnWall) then
@@ -65,17 +71,17 @@ function WallClimb:client_onAction(controllerAction, state)
     end
 
     return consumeAction
-end
+end]]
 
 function WallClimb:cl_toggleClimb(isOnWall)
     local character = sm.localPlayer.getPlayer().character
     self.isOnWall = isOnWall
 
     if isOnWall then
-        character:setLockingInteractable(self.interactable)
+        --character:setLockingInteractable(self.interactable)
         sm.audio.play("WeldTool - Sparks")
         sm.particle.createParticle("construct_welding", character:getWorldPosition(), sm.quat.identity())
     else
-		character:setLockingInteractable(nil)
+		--character:setLockingInteractable(nil)
     end
 end

@@ -32,6 +32,18 @@
 			}
 		]
 	},
+	"Rocket Flair":
+	{
+		"effectList":
+		[
+			{
+				"type": "particle",
+				"name": "p_lootbox_projectile_glowitem_epic",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+				"delay": 0.0
+			}
+		]
+	},
 	"BFG Ball":
 	{
 		"effectList":

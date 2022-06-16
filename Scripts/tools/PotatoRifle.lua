@@ -31,21 +31,6 @@ function PotatoRifle:server_onCreate()
 	self.sv = {}
 	self.sv.player = self.tool:getOwner()
 	self.sv.data = self.sv.player:getPublicData()
-	self.network:setClientData( self.sv.data )
-end
-
-function PotatoRifle:client_onClientDataUpdate( data, channel )
-	if not self.tool:isLocal() then return end
-	self.cl.allData = data.data
-	self.cl.weaponData = self.cl.allData.weaponData.hcannon
-
-	if self.cl.weaponData.mod1.owned then
-		self.cl.currentWeaponMod = mod_prec
-	elseif self.cl.weaponData.mod2.owned then
-		self.cl.currentWeaponMod = mod_missile
-	else
-		self.cl.currentWeaponMod = "poor"
-	end
 end
 
 function PotatoRifle.client_onCreate( self )
@@ -61,8 +46,8 @@ function PotatoRifle.client_onCreate( self )
 	self.cl.lookDir = sm.vec3.zero()
 	self.cl.playerChar = self.cl.player:getCharacter()
 
-	self.cl.allData = nil
-	self.cl.weaponData = nil
+	self.cl.allData = self.cl.player:getClientPublicData().data
+	self.cl.weaponData = self.cl.allData.weaponData.hcannon
 
 	self.cl.damage = 20
 	self.cl.ammoCost = 1
@@ -71,8 +56,16 @@ function PotatoRifle.client_onCreate( self )
 	self.cl.usingMod = false
 
 	--Mod switch
+	if self.cl.weaponData.mod1.owned then
+		self.cl.currentWeaponMod = mod_prec
+	elseif self.cl.weaponData.mod2.owned then
+		self.cl.currentWeaponMod = mod_missile
+	else
+		self.cl.currentWeaponMod = "poor"
+	end
+
 	self.cl.modSwitchCount = 0
-	self.cl.afterModCD= false
+	self.cl.afterModCD = false
 	self.cl.afterModCDCount = 1
 
 	--mod_prec
@@ -220,9 +213,8 @@ function PotatoRifle.client_onFixedUpdate( self, dt )
 	if not self.tool:isLocal() or self.cl.allData == nil then return end
 
 	self.cl.playerChar = self.cl.player:getCharacter()
-
 	local playerData = self.cl.allData.playerData
-
+	self.cl.weaponData = self.cl.allData.weaponData.hcannon
 	self.cl.mmOP = playerData.mmOP
 
 	--upgrades

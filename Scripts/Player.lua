@@ -380,7 +380,8 @@ function Player:sv_createNewWPData()
 			gkState = false,
 			meathookAttached = false,
 			hammerCharge = 0,
-			mmOP = false
+			mmOP = false,
+			isOnWall = false
 		},
 		suitData = {
 			statUpgrades = {
@@ -1473,7 +1474,6 @@ function Player.server_onFixedUpdate( self, dt )
 	self.sv.statsTimer:tick()
 	if self.sv.statsTimer:done() then
 		self.sv.statsTimer:start( 40 )
-
 		self.network:setClientData( sentData )
 	end
 end
@@ -1632,20 +1632,36 @@ function Player.client_onReload( self ) end
 function Player.server_onShapeRemoved( self, removedShapes ) end
 
 function Player:sv_e_onJump( state )
-	--Double Jump
 	local onGround = se.player.isOnGround( self.player )
 	local playerChar = self.player.character
 
-	if state == sm.tool.interactState.start and not self.sv.public.data.playerData.meathookAttached and not self.sv.gliding then
-		if onGround then
-			--print("Jump performed")
-			self.sv.jumpCount = 1
-			self.sv.jumpChargeCheck = 0
-		elseif not onGround and self.sv.jumpCount > 0  then
-			--print("Double jump performed")
-			self.sv.jumpCount = self.sv.jumpCount - 2
-			sm.physics.applyImpulse( playerChar, se.vec3.redirectVel( "z", 750, playerChar ) )
-			self:sv_playSound("WeldTool - Weld")
+	--Wall dismount
+	if self.sv.public.data.playerData.isOnWall then
+		playerChar:setDiving(false)
+		playerChar:setSwimming(false)
+		playerChar:setMovementSpeedFraction(1)
+
+		sm.physics.applyImpulse(playerChar, playerChar:getDirection() * 1750, true)
+		return
+	end
+
+	--Double Jump
+	if state == sm.tool.interactState.start then
+		if not self.sv.public.data.playerData.meathookAttached then
+			if not self.sv.gliding then
+				if onGround then
+					--print("Jump performed")
+					self.sv.jumpCount = 1
+					self.sv.jumpChargeCheck = 0
+				elseif not onGround and self.sv.jumpCount > 0  then
+					--print("Double jump performed")
+					self.sv.jumpCount = self.sv.jumpCount - 2
+					sm.physics.applyImpulse( playerChar, se.vec3.redirectVel( "z", 750, playerChar ) )
+					self:sv_playSound("WeldTool - Weld")
+				end
+			end
+		else
+
 		end
 	end
 end
@@ -1681,7 +1697,7 @@ function Player:sv_e_onCamIn( state )
 
 	self.sv.public.data.suitData.launcher.flamethrower.charges = 0
 	self.sv.flame.active = true
-	self.sv.flame.trigger = sm.areaTrigger.createBox( sm.vec3.num(2), self.player.character.worldPosition, sm.quat.identity(), sm.areaTrigger.filter.character )
+	self.sv.flame.trigger = sm.areaTrigger.createBox( se.vec3.num(2), self.player.character.worldPosition, sm.quat.identity(), sm.areaTrigger.filter.character )
 	self.network:sendToClients("cl_flameEffect", true)
 end
 
@@ -1768,6 +1784,7 @@ function Player.client_onCreate( self )
 
 	self.player:setClientPublicData(
 		{
+			data = {},
 			weaponMod = {
 
 			},
@@ -1897,6 +1914,9 @@ function Player:client_onClientDataUpdate( data, channel )
 
 	if sm.localPlayer.getPlayer() ~= self.player then return end
 
+	self.cl.public.data = data.public.data
+	self.player:setClientPublicData( self.cl.public )
+
 	self.cl.powerup.text = data.displayTxt
 	if self.cl.powerup.text ~= nil and self.cl.powerup.text ~= "" then
 		self:cl_displayMsg( { msg = self.cl.powerup.text, dur = 1 } )
@@ -2011,7 +2031,7 @@ function Player:cl_e_eat( params )
 end
 
 function Player:cl_disablePrp( index )
-	print(self.cl.public.powerup[index], index)
 	self.cl.public.powerup[index].current = self.cl.public.powerup[index].default
 	self.player:setClientPublicData( self.cl.public )
+	print(self.cl.public.powerup[index], index)
 end

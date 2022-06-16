@@ -22,6 +22,16 @@ sm.tool.preloadRenderables( renderablesFp )
 function BFG.client_onCreate( self )
 	self.shootEffect = sm.effect.createEffect( "SpudgunBasic - BasicMuzzel" )
 	self.shootEffectFP = sm.effect.createEffect( "SpudgunBasic - FPBasicMuzzel" )
+
+	--self.chargeEffect = sm.effect.createEffect( "BFG Charge" )
+
+	if not self.tool:isLocal() then return end
+
+	self.shootDelay = {
+		timer = Timer(),
+		active = false
+	}
+	self.shootDelay.timer:start( 20 )
 end
 
 function BFG.client_onRefresh( self )
@@ -157,7 +167,48 @@ function BFG:sv_shootBall( args )
 	sm.container.spend( args.owner:getInventory(), se_ammo_argent, 30, true )
 	sm.container.endTransaction()
 
-	sm.event.sendToWorld( args.owner.character:getWorld(), "sv_addBBall", args )
+	args.spawnTick = sm.game.getServerTick()
+	sm.scriptableObject.createScriptableObject(
+		proj_bfgBall_sob,
+		args,
+		args.owner:getCharacter():getWorld()
+	)
+end
+
+function BFG.client_onFixedUpdate( self, dt )
+	if not self.tool:isLocal() then return end
+
+	if self.shootDelay.active then
+		self.shootDelay.timer:tick()
+		if self.shootDelay.timer:done() then
+			self.shootDelay.timer:start(20)
+			self.shootDelay.active = false
+
+			local dir = sm.localPlayer.getDirection()
+			local player = sm.localPlayer.getPlayer()
+			self.network:sendToServer("sv_shootBall",
+				{
+					pos = player.character.worldPosition + camPosDifference + dir,
+					dir = dir,
+					owner = player
+				}
+			)
+
+			local fireMode = self.aiming and self.aimFireMode or self.normalFireMode
+
+			-- Timers
+			self.fireCooldownTimer = fireMode.fireCooldown
+			self.spreadCooldownTimer = math.min( self.spreadCooldownTimer + fireMode.spreadIncrement, fireMode.spreadCooldown )
+			self.sprintCooldownTimer = self.sprintCooldown
+
+			-- Send TP shoot over network and dircly to self
+			self:onShoot( dir )
+			self.network:sendToServer( "sv_n_onShoot", dir )
+
+			-- Play FP shoot animation
+			setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
+		end
+	end
 end
 --SE
 
@@ -544,7 +595,7 @@ function BFG.calculateFpMuzzlePos( self )
 end
 
 function BFG.cl_onPrimaryUse( self, state )
-	if self.tool:getOwner().character == nil then
+	if self.tool:getOwner().character == nil or self.shootDelay.active then
 		return
 	end
 
@@ -593,26 +644,8 @@ function BFG.cl_onPrimaryUse( self, state )
 
 			local owner = self.tool:getOwner()
 			if owner then
-				self.network:sendToServer("sv_shootBall",
-					{
-						pos = firePos,
-						dir = sm.localPlayer.getDirection(),
-						owner = sm.localPlayer.getPlayer()
-					}
-				)
+				self.shootDelay.active = true
 			end
-
-			-- Timers
-			self.fireCooldownTimer = fireMode.fireCooldown
-			self.spreadCooldownTimer = math.min( self.spreadCooldownTimer + fireMode.spreadIncrement, fireMode.spreadCooldown )
-			self.sprintCooldownTimer = self.sprintCooldown
-
-			-- Send TP shoot over network and dircly to self
-			self:onShoot( dir )
-			self.network:sendToServer( "sv_n_onShoot", dir )
-
-			-- Play FP shoot animation
-			setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
 		else
 			local fireMode = self.aiming and self.aimFireMode or self.normalFireMode
 			self.fireCooldownTimer = fireMode.fireCooldown

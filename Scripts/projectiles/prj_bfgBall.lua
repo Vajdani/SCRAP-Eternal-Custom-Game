@@ -3,109 +3,108 @@ dofile "$CONTENT_DATA/Scripts/se_util.lua"
 BBall = class()
 BBall.damageFrequency = 4
 BBall.damage = 25
-BBall.speed = 0.35
+BBall.speed = 0.2
+BBall.maxLifeTime = 7.5 * 40
 
 function BBall:server_onCreate()
+    local args = self.params
     self.sv = {}
+    self.sv.pos = args.pos
+    self.sv.dir = args.dir
+    self.sv.owner = args.owner
     self.sv.damageCounter = Timer()
     self.sv.damageCounter:start(self.damageFrequency)
-    self.network:setClientData( { params = self.params, units = {} } )
+    self.sv.trigger = sm.areaTrigger.createSphere( 50, args.pos, sm.quat.identity(), sm.areaTrigger.filter.character )
 end
 
 function BBall:server_onFixedUpdate(dt)
-    self.sv.damageCounter:tick()
-    self.params.pos = self.params.pos + self.params.dir * self.speed
+    if not sm.exists(self.scriptableObject) then return end
 
-    local hit, result = sm.physics.raycast( self.params.pos, self.params.pos + self.params.dir * self.speed )
-    if hit or sm.game.getServerTick() - self.params.spawnTick == self.params.maxLifeTime then
+    local tick = sm.game.getServerTick()
+    self.sv.pos = self.sv.pos + self.sv.dir * self.speed
+    self.sv.trigger:setWorldPosition(self.sv.pos)
+    local hit, result = sm.physics.raycast( self.sv.pos, self.sv.pos + self.sv.dir * self.speed )
+
+    if hit or tick - self.params.spawnTick == self.maxLifeTime then
+        sm.effect.playEffect("PropaneTank - ExplosionSmall", self.sv.pos)
         self.scriptableObject:destroy()
     else
-        local reachableUnits = {}
-
-        for _, unit in ipairs(sm.unit.getAllUnits()) do
-            local unitPos = unit.character.worldPosition
-            local hit, result = sm.physics.raycast(self.params.pos, unitPos)
-
-            if hit and result:getCharacter() == unit:getCharacter() then
-                table.insert(reachableUnits, unit)
-            end
-        end
-
+        self.sv.damageCounter:tick()
         if self.sv.damageCounter:done() then
             self.sv.damageCounter:start(self.damageFrequency)
-            for _, unit in ipairs(reachableUnits) do
-                local unitPos = unit.character.worldPosition
-                sm.event.sendToUnit(
-                    unit,
-                    "sv_se_takeDamage",
-                    {
-                        damage = self.damage,
-                        impact = unitPos - self.params.pos,
-                        hitPos = unitPos,
-                        attacker = self.params.attacker
-                    }
-                )
+            for k, char in pairs(self.sv.trigger:getContents()) do
+                if sm.exists(char) and not char:isPlayer() and sm.exists(char:getUnit()) then
+                    local charPos = char.worldPosition
+                    local hit, result = sm.physics.raycast(self.sv.pos, charPos, sm.areaTrigger.filter.character)
+                    if hit and result:getCharacter() == char then
+                        sm.event.sendToUnit(char:getUnit(), "sv_se_takeDamage",
+                            {
+                                damage = self.damage,
+                                impact = charPos - self.sv.pos,
+                                hitPos = charPos,
+                                attacker = self.sv.owner
+                            }
+                        )
+                    end
+                end
             end
         end
-
-        self.network:setClientData({ params = self.params, units = reachableUnits })
     end
 end
 
 --Client
 function BBall:client_onCreate()
     self.cl = {}
+    self.cl.pos = self.params.pos
+    self.cl.dir = self.params.dir
     self.cl.effect = sm.effect.createEffect("BFG Ball")
-    self.cl.effect:setPosition(self.cl.pos)
+    self.cl.trigger = sm.areaTrigger.createSphere( 50, self.params.pos, sm.quat.identity(), sm.areaTrigger.filter.character )
     self.cl.beams = {}
+
+    self.cl.effect:setPosition(self.cl.pos)
+    self.cl.effect:start()
 end
 
-function BBall:client_onClientDataUpdate(data, channel)
-    self.params = data.params
-    self.cl.units = data.units
-end
+function BBall:client_onUpdate( dt )
+    if self.cl == nil or not sm.exists(self.scriptableObject) then return end
 
-function BBall:client_onFixedUpdate()
-    if not self.params or #self.params == 0 then
-        return
-    end
+    self.cl.pos = self.cl.pos + self.cl.dir * self.speed * ( dt / (1/40) )
+    self.cl.effect:setPosition(self.cl.pos)
+    self.cl.trigger:setWorldPosition(self.cl.pos)
 
-    print(self.params)
-    self.cl.effect:setPosition(self.params.pos)
-    local deltaUnitBeam = #self.cl.units - #self.cl.beams
-
-    -- Only runs if #unity > #beams
-    for i = 1, deltaUnitBeam do
-        local effect = sm.effect.createEffect("ShapeRenderable")
-        effect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
-        effect:setParameter("color", sm.color.new(0, 1, 0, 1))
-        table.insert(self.cl.beams, { unit = self.cl.units[#self.cl.beams + 1], effect = effect })
-    end
-
-    -- Only runs if #units < #beams
-    for i = 1, -deltaUnitBeam do
-        local beam = table.remove(self.cl.beams)
-        beam:destroy()
-    end
-
-    for _, beam in pairs(self.cl.beams) do
-        local char = beam.unit:getCharacter()
-
-        if not (char and beam.effect) then
-            goto continue
+    local triggerContents = self.cl.trigger:getContents()
+    for k, char in pairs(triggerContents) do
+        if sm.exists(char) and not char:isPlayer() and self.cl.beams[k] == nil then
+            local effect = sm.effect.createEffect("ShapeRenderable")
+            effect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
+            effect:setParameter("color", sm.color.new(0, 1, 0, 1))
+            self.cl.beams[k] = { char = char, effect = effect }
         end
+    end
 
-        local charPos = char:getWorldPosition()
-        local delta = self.cl.pos - charPos
-        beam.effect:setPosition((charPos + self.cl.pos) / 2)
-        beam.effect:setScale(sm.vec3.new(0.05, 0.05, delta:length()))
-        beam.effect:setRotation(sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta))
+    for k, beam in pairs(self.cl.beams) do
+        if sm.exists(beam.char) then
+            local hit, result = sm.physics.raycast(self.cl.pos, beam.char:getWorldPosition(), sm.areaTrigger.filter.character)
+            if isAnyOf(beam.char, triggerContents) and hit and result:getCharacter() == beam.char then
+                local charPos = beam.char:getWorldPosition()
+                local delta = (self.cl.pos - charPos)
+                local rot = sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta)
+                local distance = sm.vec3.new(0.05, 0.05, delta:length())
 
-        if not beam.effect:isPlaying() then
-            beam.effect:start()
+                beam.effect:setPosition(charPos + delta * 0.5)
+                beam.effect:setScale(distance)
+                beam.effect:setRotation(rot)
+
+                if not beam.effect:isPlaying() then
+                    beam.effect:start()
+                end
+            else
+                beam.effect:stop()
+            end
+        else
+            beam.effect:stop()
+            self.cl.beams[k] = nil
         end
-
-        ::continue::
     end
 end
 
@@ -115,5 +114,4 @@ function BBall:client_onDestroy()
     end
 
     self.cl.effect:destroy()
-    sm.effect.playEffect("PropaneTank - ExplosionSmall", self.params.pos)
 end
