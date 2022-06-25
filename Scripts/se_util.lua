@@ -1,3 +1,5 @@
+dofile "$CONTENT_DATA/Scripts/se_items.lua"
+
 --constants
 freezeColour = sm.color.new("#0c97c9")
 camPosDifference = sm.vec3.new(0,0,0.575)
@@ -5,6 +7,270 @@ up = sm.vec3.new(0,0,1)
 bloodFueledSpeedFraction = 1.5
 airControlSpeed = 20
 projectileSaveKey = "DOOM_Projectiles"
+grenades = {
+	{ throwable = prj_grenade, name = "Frag Grenade" },
+	{ throwable = prj_icebomb, name = "Ice Bomb" },
+	{ throwable = prj_imploGrenade, name = "Implosion Bomb" }
+}
+dashImpulse = sm.vec3.new(2500, 2500, 0)
+gkMinSpeed = 2
+gkDistanceDivider = 2
+bloodFueledDuration = 5 * 40
+gkAnims = {
+	--front
+	{
+		[tostring(unit_totebot_green)] = {
+			normal = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}--[[,
+				{
+					name = "kick",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}]]
+			},
+			chainsaw = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}
+			}
+		},
+		[tostring(unit_haybot)] = {
+
+		},
+		[tostring(unit_tapebot)] = {
+
+		},
+		[tostring(unit_farmbot)] = {
+
+		}
+	},
+	--back
+	{
+		[tostring(unit_totebot_green)] = {
+			normal = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}--[[,
+				{
+					name = "kick",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}]]
+			},
+			chainsaw = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}
+			}
+		},
+		[tostring(unit_haybot)] = {
+
+		},
+		[tostring(unit_tapebot)] = {
+
+		},
+		[tostring(unit_farmbot)] = {
+
+		}
+	},
+	--left
+	{
+		[tostring(unit_totebot_green)] = {
+			normal = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}--[[,
+				{
+					name = "kick",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}]]
+			},
+			chainsaw = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}
+			}
+		},
+		[tostring(unit_haybot)] = {
+
+		},
+		[tostring(unit_tapebot)] = {
+
+		},
+		[tostring(unit_farmbot)] = {
+
+		}
+	},
+	--right
+	{
+		[tostring(unit_totebot_green)] = {
+			normal = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}--[[,
+				{
+					name = "kick",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}]]
+			},
+			chainsaw = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}
+			}
+		},
+		[tostring(unit_haybot)] = {
+
+		},
+		[tostring(unit_tapebot)] = {
+
+		},
+		[tostring(unit_farmbot)] = {
+
+		}
+	},
+	--up
+	{
+		[tostring(unit_totebot_green)] = {
+			normal = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}--[[,
+				{
+					name = "kick",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}]]
+			},
+			chainsaw = {
+				{
+					name = "parry",
+					sound = "Sledgehammer - Swing",
+					endSound = "",
+					effect = "",
+					endEffect = "Sledgehammer - Hit",
+					action = "throw",
+					divide = 2
+				}
+			}
+		},
+		[tostring(unit_haybot)] = {
+
+		},
+		[tostring(unit_tapebot)] = {
+
+		},
+		[tostring(unit_farmbot)] = {
+
+		}
+	}
+}
+punchDuration = 0.833333
+grenadeThrowCoolDown = 1 * 40
+mmOPDuration = 5 * 40
+defaultPrpDuration = 30 * 40
+rocketExplosionLevels = {
+    big = {
+        level = 30,
+        desRad = 10,
+        impRad = 15,
+        mag = 100,
+        effect = "PropaneTank - ExplosionBig"
+    },
+    small = {
+        level = 10,
+        desRad = 2.5,
+        impRad = 5,
+        mag = 50,
+        effect = "PropaneTank - ExplosionSmall"
+    },
+    normal = {
+        level = 20,
+        desRad = 5,
+        impRad = 10,
+        mag = 75,
+        effect = "PropaneTank - ExplosionSmall"
+    }
+}
+implosionBombImpulse = sm.vec3.one() * 500
 
 --se_util.lua
 se = {}
@@ -12,6 +278,7 @@ se.vec3 = {}
 se.unit = {}
 se.physics = {}
 se.player = {}
+se.unitData = {}
 
 --Vec3
 se.vec3.strip = function( vector, axis )
@@ -91,17 +358,26 @@ end
 
 --Physics
 se.physics.explode = function( position, level, destructionRadius, impulseRadius, magnitude, effect, ignoreShape, attacker, falter )
-    local attackerCharId = attacker:getCharacter():getId()
-
     local explodeContacts = sm.physics.getSphereContacts( position, destructionRadius )
     for v, char in pairs(explodeContacts.characters) do
-        if char:getId() ~= attackerCharId then
-            local unitPos = char:getWorldPosition()
-            sm.event.sendToUnit(char:getUnit(), "sv_se_onExplosion",
+        local charPos = char:getWorldPosition()
+        local unit = char:getUnit()
+        if unit ~= nil then
+            sm.event.sendToUnit(unit, "sv_se_onExplosion",
                 {
                     damage = level * 2,
-                    impact = position - unitPos,
-                    hitPos = unitPos,
+                    impact = position - charPos,
+                    hitPos = charPos,
+                    attacker = attacker,
+                    falter = falter
+                }
+            )
+        else
+            sm.event.sendToPlayer(char:getPlayer(), "sv_se_onExplosion",
+                {
+                    damage = level * 2,
+                    impact = position - charPos,
+                    hitPos = charPos,
                     attacker = attacker,
                     falter = falter
                 }
@@ -109,14 +385,18 @@ se.physics.explode = function( position, level, destructionRadius, impulseRadius
         end
     end
 
-
     local impulseContacts = sm.physics.getSphereContacts( position, impulseRadius )
     for v, obj in pairs( addTables({ impulseContacts.characters, impulseContacts.bodies }) ) do
-        sm.physics.applyImpulse(
-            obj,
-            (obj:getWorldPosition() - position):normalize() * magnitude * obj:getMass(),
-            true
-        )
+        --local adjust = type(obj) == "Character" and obj:getHeight() / 2 or 0
+
+        if type(obj) ~= "Body" or not isAnyOf(obj:getShapes()[1].uuid, { prj_grenade, prj_icebomb, prj_imploGrenade }) then
+            local dir = obj:getWorldPosition() - position
+            sm.physics.applyImpulse(
+                obj,
+                dir:normalize() * magnitude * (impulseRadius - dir:length()),
+                true
+            )
+        end
     end
 
     sm.effect.playEffect(effect, position)
@@ -193,12 +473,28 @@ end
 function addTables( tables )
     local returned = {}
     for k, table in pairs(tables) do
-        for key, value in pairs(table) do
+        for k2, value in pairs(table) do
+            local key = k2
+            local valuesByKey = countValuesByKey(returned, k2)
+            if valuesByKey > 0 then
+                key = type(key) == "number" and key + 1 or key..tostring(valuesByKey + 1)
+            end
             returned[key] = value
         end
     end
 
     return returned
+end
+
+function countValuesByKey( table, key )
+    local count = 0
+    for k, v in pairs(table) do
+        if k == key then
+            count = count + 1
+        end
+    end
+
+    return count
 end
 
 function unlockMsgWrap( msg )

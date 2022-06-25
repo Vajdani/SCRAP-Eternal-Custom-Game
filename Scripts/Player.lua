@@ -2,261 +2,24 @@ Player = class( nil )
 
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
 dofile "$CONTENT_DATA/Scripts/se_items.lua"
-
-local grenades = {
-	{ throwable = prj_grenade, name = "Frag Grenade" },
-	{ throwable = prj_icebomb, name = "Ice Bomb" },
-	{ throwable = prj_imploGrenade, name = "Implosion Bomb" }
-}
-
-local dashDistance = sm.vec3.new(2500, 2500, 0)
-local gkMinSpeed = 2
-local gkDistanceDivider = 2
-
-local gkAnims = {
-	--front
-	{
-		[tostring(unit_totebot_green)] = {
-			normal = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}--[[,
-				{
-					name = "kick",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}]]
-			},
-			chainsaw = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}
-			}
-		},
-		[tostring(unit_haybot)] = {
-
-		},
-		[tostring(unit_tapebot)] = {
-
-		},
-		[tostring(unit_farmbot)] = {
-
-		}
-	},
-	--back
-	{
-		[tostring(unit_totebot_green)] = {
-			normal = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}--[[,
-				{
-					name = "kick",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}]]
-			},
-			chainsaw = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}
-			}
-		},
-		[tostring(unit_haybot)] = {
-
-		},
-		[tostring(unit_tapebot)] = {
-
-		},
-		[tostring(unit_farmbot)] = {
-
-		}
-	},
-	--left
-	{
-		[tostring(unit_totebot_green)] = {
-			normal = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}--[[,
-				{
-					name = "kick",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}]]
-			},
-			chainsaw = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}
-			}
-		},
-		[tostring(unit_haybot)] = {
-
-		},
-		[tostring(unit_tapebot)] = {
-
-		},
-		[tostring(unit_farmbot)] = {
-
-		}
-	},
-	--right
-	{
-		[tostring(unit_totebot_green)] = {
-			normal = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}--[[,
-				{
-					name = "kick",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}]]
-			},
-			chainsaw = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}
-			}
-		},
-		[tostring(unit_haybot)] = {
-
-		},
-		[tostring(unit_tapebot)] = {
-
-		},
-		[tostring(unit_farmbot)] = {
-
-		}
-	},
-	--up
-	{
-		[tostring(unit_totebot_green)] = {
-			normal = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}--[[,
-				{
-					name = "kick",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}]]
-			},
-			chainsaw = {
-				{
-					name = "parry",
-					sound = "Sledgehammer - Swing",
-					endSound = "",
-					effect = "",
-					endEffect = "Sledgehammer - Hit",
-					action = "throw",
-					divide = 2
-				}
-			}
-		},
-		[tostring(unit_haybot)] = {
-
-		},
-		[tostring(unit_tapebot)] = {
-
-		},
-		[tostring(unit_farmbot)] = {
-
-		}
-	}
-}
+dofile "$SURVIVAL_DATA/Scripts/game/util/Timer.lua"
 
 
 function Player.server_onCreate( self )
 	self.sv = {}
 	self:sv_init()
 
-	self.sv.stats = {
-		health = 100, maxhealth = 200,
-		armour = 0, maxarmour = 150
-	}
 	self.sv.statsTimer = Timer()
 	self.sv.statsTimer:start( 40 )
 
-	self.sv.mmOpCD = 5
-	self.sv.dmgMultCD = 30
-	self.sv.spdMultCD = 30
-	self.sv.berserkCD = 30
+	self.sv.mmOpTimer = Timer()
+	self.sv.dmgMultTimer = Timer()
+	self.sv.spdMultTimer = Timer()
+	self.sv.berserkTimer = Timer()
+	self.sv.mmOpTimer:start(mmOPDuration)
+	self.sv.dmgMultTimer:start(defaultPrpDuration)
+	self.sv.spdMultTimer:start(defaultPrpDuration)
+	self.sv.berserkTimer:start(defaultPrpDuration)
 
 	--Glory Kill
 	self.sv.gk = {
@@ -274,10 +37,11 @@ function Player.server_onCreate( self )
 	--General grenade stuff
 	self.sv.generalGrenade = {
 		canThrow = true,
-		throwCD = 1,
+		throwTimer = Timer(),
 		index = 1,
 		current = grenades[1].throwable
 	}
+	self.sv.generalGrenade.throwTimer:start(grenadeThrowCoolDown)
 
 	--Frag
 	self.sv.grenade = {
@@ -319,18 +83,23 @@ function Player.server_onCreate( self )
 	--Runes
 
 	--Blood Fueled
-	self.sv.boost = false
-	self.sv.boostCD = 5
+	self.sv.bloodFueled = false
+	self.sv.bloodFueledTimer = Timer( bloodFueledDuration )
 
 	--Chrono Strike
 	self.sv.gliding = false
 
 	self.sv.punch = false
-	self.sv.punchCD = 0.833333
+	self.sv.punchTimer = Timer()
+	self.sv.punchTimer:start(punchDuration)
 
 	self.player:setPublicData(
 		{
 			data = self:sv_createNewWPData(),
+			stats = {
+				health = 100, maxhealth = 200,
+				armour = 0, maxarmour = 150
+			},
 			input = {
 				[sm.interactable.actions.forward] = false,
 				[sm.interactable.actions.backward] = false,
@@ -348,7 +117,7 @@ function Player.server_onCreate( self )
 
 	self.sv.public = self.player:getPublicData()
 
-	self.network:setClientData( self.sv )
+	self.network:setClientData( self.sv.public )
 end
 
 function Player:sv_createNewWPData()
@@ -988,12 +757,12 @@ function Player:sv_bloodPunch()
 end
 
 function Player:sv_grenadeParry( int )
-	local mult = sm.interactable.getPublicData( int ).multiplier
+	local data = sm.interactable.getPublicData( int )
 	self.player:sendCharacterEvent( "parry" )
 	self:sv_playSound("Sledgehammer - Swing")
 
-	if mult < 2 then
-		sm.interactable.setPublicData( int, { multiplier = mult + 0.25 } )
+	if data.mult < 2 then
+		data.mult = data.mult + 0.25
 		self:sv_playSound("Retrobass")
 	else
 		self:sv_playSound("RaftShark")
@@ -1020,13 +789,13 @@ function Player:sv_throwGrenade( args )
 	local velMult = char:isSprinting() and 1.75 or 1
 	local thrown = sm.shape.createPart(args.uuid, args.pos - sm.vec3.one() / 4, sm.quat.identity(), true, true)
 
-	sm.interactable.setPublicData( thrown:getInteractable(), { player = self.player } )
+	sm.interactable.setPublicData( thrown:getInteractable(), { player = self.player, multiplier = 1 } )
 	sm.physics.applyImpulse(thrown, sm.vec3.new(10, 10, 10) * thrown:getMass() * velMult * char:getDirection() )
 
 	self.sv.generalGrenade.canThrow = false
 	if self.sv.generalGrenade.current == grenades[1].throwable or self.sv.generalGrenade.current == grenades[3].throwable then
 		self.sv.public.data.suitData.launcher.grenade.charges = self.sv.public.data.suitData.launcher.grenade.charges - 1
-	elseif self.sv.generalGrenade.current == grenades[2].throwable then
+	else
 		self.sv.public.data.suitData.launcher.icebomb.charges = 0
 	end
 end
@@ -1054,7 +823,7 @@ function Player:sv_onInteract( args )
 
 	--Glory Kill
 	local hit, result = se.player.getRaycast( self.player, self.sv.gk.range )
-	if hit and result:getCharacter() ~= nil and sm.unitData[result:getCharacter():getId()].data.stats.gkState then
+	if hit and result:getCharacter() ~= nil and se.unitData[result:getCharacter():getId()].data.stats.gkState then
 		self.sv.gk.target = result:getCharacter()
 		self.sv.public.data.playerData.gkState = true
 		sm.localPlayer.setLockedControls( true )
@@ -1089,12 +858,12 @@ function Player:sv_onInteract( args )
 		if shape ~= nil and (result:getShape():getShapeUuid() == prj_grenade or result:getShape():getShapeUuid() == prj_imploGrenade) then
 			local force = 15 * shape:getMass()
 			local impulse = sm.vec3.new( se.vec3.redirectVel( "x", force, shape ).x, se.vec3.redirectVel( "y", force, shape ).y, se.vec3.redirectVel( "z", force, shape ).z )
-			self:sv_applyImpulse( { plych = shape, force = impulse * self.player.character.direction })
+			sm.physics.applyImpulse( shape, impulse * self.player.character.direction, true )
 			self:sv_grenadeParry(shape:getInteractable())
 		end
 	elseif not hit then
 		--Grenade switch
-		self.sv.generalGrenade.index = self.sv.generalGrenade.index < 3 and self.sv.generalGrenade.index + 1 or 1
+		self.sv.generalGrenade.index = self.sv.generalGrenade.index < #grenades and self.sv.generalGrenade.index + 1 or 1
 		local throwable = grenades[self.sv.generalGrenade.index]
 		self.sv.generalGrenade.current = throwable.throwable
 
@@ -1182,9 +951,9 @@ end
 function Player:sv_updateGrenades( dt, data )
 	--Grenade throw cooldown
 	if not self.sv.generalGrenade.canThrow then
-		self.sv.generalGrenade.throwCD = self.sv.generalGrenade.throwCD - dt
-		if self.sv.generalGrenade.throwCD <= 0 then
-			self.sv.generalGrenade.throwCD = 1
+		self.sv.generalGrenade.throwTimer:tick()
+		if self.sv.generalGrenade.throwTimer:done() then
+			self.sv.generalGrenade.throwTimer:reset()
 			self.sv.generalGrenade.canThrow = true
 		end
 	end
@@ -1257,7 +1026,7 @@ function Player:sv_updateGk( dt, data, lookDir, char )
 
 			--Blood Fueled #1
 			if se.player.isEquippedRune( self.player, "Blood Fueled" ) then
-				self.sv.boost = true
+				self.sv.bloodFueled = true
 				char:setMovementSpeedFraction(bloodFueledSpeedFraction)
 			end
 
@@ -1279,13 +1048,12 @@ function Player:sv_updateGk( dt, data, lookDir, char )
 end
 
 function Player:sv_updateRunes( dt, moveDirs, currentMoveDir, pos, char, grounded, vel )
-	--Runes
 	--Blood Fueled #2
-	if self.sv.boost then
-		self.sv.boostCD = self.sv.boostCD - dt
-		if self.sv.boostCD <= 0 then
-			self.sv.boostCD = 5
-			self.sv.boost = false
+	if self.sv.bloodFueled then
+		self.sv.bloodFueledTimer:tick()
+		if self.sv.bloodFueledTimer:done() then
+			self.sv.bloodFueledTimer:reset()
+			self.sv.bloodFueled = false
 			self:sv_resetMoveSpeed()
 		end
 	end
@@ -1297,8 +1065,9 @@ function Player:sv_updateRunes( dt, moveDirs, currentMoveDir, pos, char, grounde
 
 	--Chrono Strike
 	--since you cant slow down time, Ill just make the character glide
-	local mouse1 = self.sv.public.input[sm.interactable.actions.attack]
 	if se.player.isEquippedRune( self.player, "Chrono Strike" ) then
+		local mouse1 = self.sv.public.input[sm.interactable.actions.attack]
+
 		if (self.sv.gliding and not grounded or not sm.physics.raycast(pos, pos - sm.vec3.new(0,0,2.5))) and mouse1 then
 			sm.physics.applyImpulse( char, (vel * -1) * se.vec3.num(20) + sm.vec3.new(75,75,0) * moveDirs[1].dir )
 			self.sv.gliding = true
@@ -1318,15 +1087,13 @@ function Player:sv_changeRune( args )
 		end
 	end
 
-	self.player:setPublicData( self.sv.public )
+	--self.player:setPublicData( self.sv.public )
 	sm.event.sendToInteractable(args.int, "sv_updateEquippedRunes", self.sv.public.data.suitData.runes)
 end
 
 function Player.server_onFixedUpdate( self, dt )
 	local playerChar = self.player:getCharacter()
 	if playerChar == nil then return end
-
-	self.sv.public = self.player:getPublicData()
 
 	local lookDir = playerChar:getDirection()
 	local playerVel = playerChar:getVelocity()
@@ -1348,18 +1115,18 @@ function Player.server_onFixedUpdate( self, dt )
 	self:sv_updateRunes( dt, moveDirs, currentMoveDir, playerPos, playerChar, onGround, playerVel )
 
 	if data.playerData.mmOP then
-		self.sv.mmOpCD = self.sv.mmOpCD - dt
-		if self.sv.mmOpCD <= 0 then
+		self.sv.mmOpTimer:tick()
+		if self.sv.mmOpTimer:done() then
 			data.playerData.mmOP = false
-			self.sv.mmOpCD = 5
+			self.sv.mmOpTimer:reset()
 		end
 	end
 
 	if self.sv.punch then
-		self.sv.punchCD = self.sv.punchCD - dt
-		if self.sv.punchCD <= 0 then
+		self.sv.punchTimer:tick()
+		if self.sv.punchTimer:done() then
 			self.sv.punch = false
-			self.sv.punchCD = 0.833333
+			self.sv.punchTimer:reset()
 		end
 	end
 
@@ -1414,25 +1181,25 @@ function Player.server_onFixedUpdate( self, dt )
 		end
 	end
 
-	local prevPlayerData = data.playerData
+	--local prevPlayerData = data.playerData
 	local displayTxt = (data.playerData.damageMultiplier > 1 or data.playerData.speedMultiplier > 1 or data.playerData.berserk) and "#ffffffPowerup cooldowns:" or ""
 
 	if data.playerData.damageMultiplier > 1 then
-		self.sv.dmgMultCD = self.sv.dmgMultCD - dt
-		displayTxt = displayTxt.." #6049c7DAMAGE: #ff9d00"..tostring(("%.0f"):format(self.sv.dmgMultCD))
-		if self.sv.dmgMultCD <= 0 then
-			self.sv.dmgMultCD = 30
+		self.sv.dmgMultTimer:tick()
+		displayTxt = displayTxt.." #6049c7DAMAGE: #ff9d00"..tostring(("%.0f"):format(self.sv.dmgMultTimer))
+		if self.sv.dmgMultTimer:done() then
+			self.sv.dmgMultTimer:reset()
 			data.playerData.damageMultiplier = 1
 			self.network:sendToClient(self.player, "cl_disablePrp", "damageMultiplier")
 		end
 	end
 
 	if data.playerData.speedMultiplier > 1 then
-		self.sv.spdMultCD = self.sv.spdMultCD - dt
+		self.sv.spdMultTimer:tick()
 		playerChar.movementSpeedFraction = data.playerData.speedMultiplier
-		displayTxt = displayTxt.." #fff200SPEED: #ff9d00"..tostring(("%.0f"):format(self.sv.spdMultCD))
-		if self.sv.spdMultCD <= 0 then
-			self.sv.spdMultCD = 30
+		displayTxt = displayTxt.." #fff200SPEED: #ff9d00"..tostring(("%.0f"):format(self.sv.spdMultTimer))
+		if self.sv.spdMultTimer:done() then
+			self.sv.spdMultTimer:reset()
 			data.playerData.speedMultiplier = 1
 			self:sv_resetMoveSpeed()
 			self.network:sendToClient(self.player, "cl_disablePrp", "speedMultiplier")
@@ -1440,21 +1207,21 @@ function Player.server_onFixedUpdate( self, dt )
 	end
 
 	if data.playerData.berserk then
-		self.sv.berserkCD = self.sv.berserkCD - dt
+		self.sv.berserkTimer:tick()
 		--sm.tool.forceTool( sm.uuid.new("469ddbcd-eda9-4c78-b620-4270b7a36abf") )
-		displayTxt = displayTxt.." #ff1100BERSERK: #ff9d00"..tostring(("%.0f"):format(self.sv.berserkCD))
-		if self.sv.berserkCD <= 0 then
-			self.sv.berserkCD = 30
+		displayTxt = displayTxt.." #ff1100BERSERK: #ff9d00"..tostring(("%.0f"):format(self.sv.berserkTimer))
+		if self.sv.berserkTimer:done() then
+			self.sv.berserkTimer:reset()
 			data.playerData.berserk = false
 			self.network:sendToClient(self.player, "cl_disablePrp", "berserk")
 		end
 	end
 
 	--print(playerChar:getMovementSpeedFraction())
-	if prevPlayerData ~= data.playerData then
+	--[[if prevPlayerData ~= data.playerData then
 		self.sv.public.data = data
 		self.player:setPublicData( self.sv.public )
-	end
+	end]]
 
 	if data.currentWpnData.mod == "Energy Shield" and data.currentWpnData.using then
 		if displayTxt ~= "" then
@@ -1468,12 +1235,12 @@ function Player.server_onFixedUpdate( self, dt )
 		self.sv.currentPowerupColor = nil
 	end
 
-	local sentData = copyTable(self.sv)
+	local sentData = copyTable(self.sv.public)
 	sentData.displayTxt = displayTxt
 
 	self.sv.statsTimer:tick()
 	if self.sv.statsTimer:done() then
-		self.sv.statsTimer:start( 40 )
+		self.sv.statsTimer:reset()
 		self.network:setClientData( sentData )
 	end
 end
@@ -1543,6 +1310,8 @@ function Player:sv_gkSnap( animType )
 	)
 end
 
+
+
 function Player.server_onProjectile( self, hitPos, hitTime, hitVelocity, projectileName, attacker, damage ) end
 
 function Player.server_onMelee( self, hitPos, attacker, damage, power )
@@ -1574,19 +1343,19 @@ function Player.sv_e_debug( self, params ) end
 function Player.sv_e_eat( self, edibleParams )
 	if edibleParams.dmgMult then
 		self.sv.public.data.playerData.damageMultiplier = 4
-		self.sv.dmgMultCD = 30
+		self.sv.dmgMultTimer = 30
 		self.sv.currentPowerupColor = sm.color.new("#6049c7")
 	end
 
 	if edibleParams.spdMult then
 		self.sv.public.data.playerData.speedMultiplier = 2
-		self.sv.spdMultCD = 30
+		self.sv.spdMultTimer = 30
 		self.sv.currentPowerupColor = sm.color.new("#fff200")
 	end
 
 	if edibleParams.berserk then
 		self.sv.public.data.playerData.berserk = true
-		self.sv.berserkCD = 30
+		self.sv.berserkTimer = 30
 		self.sv.currentPowerupColor = sm.color.new("#ff1100")
 	end
 
@@ -1595,7 +1364,7 @@ function Player.sv_e_eat( self, edibleParams )
 	end
 
 	self.network:sendToClient(self.player, "cl_e_eat", edibleParams)
-	self.player:setPublicData( self.sv.public )
+	--self.player:setPublicData( self.sv.public )
 end
 
 function Player.sv_e_feed( self, params ) end
@@ -1632,6 +1401,8 @@ function Player.client_onReload( self ) end
 function Player.server_onShapeRemoved( self, removedShapes ) end
 
 function Player:sv_e_onJump( state )
+	if state ~= sm.tool.interactState.start then return end
+
 	local onGround = se.player.isOnGround( self.player )
 	local playerChar = self.player.character
 
@@ -1646,22 +1417,18 @@ function Player:sv_e_onJump( state )
 	end
 
 	--Double Jump
-	if state == sm.tool.interactState.start then
-		if not self.sv.public.data.playerData.meathookAttached then
-			if not self.sv.gliding then
-				if onGround then
-					--print("Jump performed")
-					self.sv.jumpCount = 1
-					self.sv.jumpChargeCheck = 0
-				elseif not onGround and self.sv.jumpCount > 0  then
-					--print("Double jump performed")
-					self.sv.jumpCount = self.sv.jumpCount - 2
-					sm.physics.applyImpulse( playerChar, se.vec3.redirectVel( "z", 750, playerChar ) )
-					self:sv_playSound("WeldTool - Weld")
-				end
+	if not self.sv.public.data.playerData.meathookAttached then
+		if not self.sv.gliding then
+			if onGround then
+				--print("Jump performed")
+				self.sv.jumpCount = 1
+				self.sv.jumpChargeCheck = 0
+			elseif not onGround and self.sv.jumpCount > 0  then
+				--print("Double jump performed")
+				self.sv.jumpCount = self.sv.jumpCount - 2
+				sm.physics.applyImpulse( playerChar, se.vec3.redirectVel( "z", 750, playerChar ) )
+				self:sv_playSound("WeldTool - Weld")
 			end
-		else
-
 		end
 	end
 end
@@ -1675,7 +1442,7 @@ function Player:sv_e_onCamOut( state )
 
 	if hit and result:getCharacter() ~= nil then
 		local target = result:getCharacter()
-		local unitData = sm.unitData[target:getId()]
+		local unitData = se.unitData[target:getId()]
 		if unitData.cCharge <= self.sv.public.data.suitData.chainsaw.charges then
 			self.sv.gk.target = target
 			unitData.data.stats.cState = true
@@ -1724,7 +1491,7 @@ function Player:sv_e_onMove( args )
 		end
 
 		if self.sv.dash.keys[1] ~= nil and self.sv.dash.keys[1] == self.sv.dash.keys[2] and self.sv.dash.inputCD then
-			sm.physics.applyImpulse( self.player.character, dashDistance * self.sv.dash.dir )
+			sm.physics.applyImpulse( self.player.character, dashImpulse * self.sv.dash.dir )
 			self.sv.dash.canDash = false
 			self.sv.dash.useCD = 0.5
 			self.sv.dash.count = self.sv.dash.count - 1
@@ -1739,6 +1506,10 @@ function Player:sv_e_onMove( args )
 		self.sv.dash.keys = { nil, nil }
 		self.sv.dash.dir = sm.vec3.zero()
 	end
+end
+
+function Player:sv_se_onExplosion(args)
+
 end
 
 
@@ -1904,7 +1675,6 @@ function Player:client_onFixedUpdate( dt )
 	local onGround = se.player.isOnGround(self.player)
 	local launcherPos = playerChar:getTpBonePos( "jnt_spine2" ) + playerChar:getTpBoneRot( "jnt_spine2" ) * sm.vec3.new(0.5,0,0.3) + lookDir / 2
 
-	self.cl.public = self.player:getClientPublicData()
 	local inputs = self.cl.public.input
 	local currentMoveDir, moveDirs = se.player.getMoveDir( self.player, self.cl.public )
 end
@@ -1914,8 +1684,8 @@ function Player:client_onClientDataUpdate( data, channel )
 
 	if sm.localPlayer.getPlayer() ~= self.player then return end
 
-	self.cl.public.data = data.public.data
-	self.player:setClientPublicData( self.cl.public )
+	self.cl.public.data = data.data
+	--self.player:setClientPublicData( self.cl.public )
 
 	self.cl.powerup.text = data.displayTxt
 	if self.cl.powerup.text ~= nil and self.cl.powerup.text ~= "" then
@@ -2027,11 +1797,11 @@ function Player:cl_e_eat( params )
 	self.cl.public.powerup.speedMultiplier.current = params.spdMult ~= nil and self.cl.public.powerup.speedMultiplier.active or self.cl.public.powerup.speedMultiplier.default
 	self.cl.public.powerup.berserk.current = params.berserk ~= nil and self.cl.public.powerup.berserk.active or self.cl.public.powerup.berserk.default
 
-	self.player:setClientPublicData( self.cl.public )
+	--self.player:setClientPublicData( self.cl.public )
 end
 
 function Player:cl_disablePrp( index )
 	self.cl.public.powerup[index].current = self.cl.public.powerup[index].default
-	self.player:setClientPublicData( self.cl.public )
-	print(self.cl.public.powerup[index], index)
+	--self.player:setClientPublicData( self.cl.public )
+	--print(self.cl.public.powerup[index], index)
 end

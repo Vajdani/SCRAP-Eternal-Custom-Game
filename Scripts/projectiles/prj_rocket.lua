@@ -1,32 +1,9 @@
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
 
 Rocket = class()
-Rocket.speed = 0.35
+Rocket.speed = 0.5
 Rocket.maxLifeTime = 15 * 40
 Rocket.turnSpeed = 7.5
-Rocket.explosions = {
-    big = {
-        level = 30,
-        desRad = 20,
-        impRad = 25,
-        mag = 20,
-        effect = "PropaneTank - ExplosionBig"
-    },
-    small = {
-        level = 15,
-        desRad = 10,
-        impRad = 15,
-        mag = 10,
-        effect = "PropaneTank - ExplosionSmall"
-    },
-    normal = {
-        level = 20,
-        desRad = 18,
-        impRad = 20,
-        mag = 15,
-        effect = "PropaneTank - ExplosionSmall"
-    }
-}
 
 function Rocket:server_onCreate()
     self.sv = {}
@@ -43,8 +20,10 @@ function Rocket:server_onFixedUpdate(dt)
     self.sv.pos = self.sv.pos + self.sv.dir * self.speed
     self.sv.trigger:setWorldPosition(self.sv.pos)
     local hit, result = sm.physics.raycast( self.sv.pos, self.sv.pos + self.sv.dir * self.speed )
+    local hitChar = result:getCharacter()
+    local shouldExplode = hit and (hitChar == nil or not hitChar:isPlayer() or hitChar:getPlayer() ~= self.params.owner)
 
-    if hit or tick - self.params.spawnTick == self.maxLifeTime then
+    if shouldExplode or tick - self.params.spawnTick == self.maxLifeTime then
         self:sv_doRocketExplosion()
     elseif self.params.tracking and tick - self.params.spawnTick > 10 then
         if sm.exists(self.params.target) then
@@ -74,7 +53,7 @@ function Rocket:sv_doRocketExplosion( det )
         index = "big"
     end
 
-    local params = self.explosions[index]
+    local params = rocketExplosionLevels[index]
     local rawMult = self.params.owner:getPublicData().data.playerData.damageMultiplier
     se.physics.explode(self.sv.pos, params.level * (rawMult > 1 and rawMult / 2 or rawMult), params.desRad, params.impRad, params.mag, params.effect, nil, self.params.owner, self.params.falter)
     self.scriptableObject:destroy()

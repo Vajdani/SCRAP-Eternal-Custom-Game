@@ -7,23 +7,13 @@ function Grenade:server_onCreate()
 	self.grenadeBody = self.shape:getBody()
 	self.countdownActive = false
 	self.countdown = 2
-	self.multiplier = 1
 
 	local data = sm.interactable.getPublicData( self.interactable )
-	if data ~= nil then
-		self.player = data.player
-	else
+	if data == nil then
 		self:sv_destroy()
+	else
+		self.player = data.player
 	end
-
-	sm.interactable.setPublicData( self.interactable, { player = self.player, multiplier = self.multiplier } )
-
-	--self.trigger = sm.areaTrigger.createAttachedBox( self.interactable, sm.vec3.new(0.5,0.5,0.5), sm.vec3.zero(), sm.quat.identity() )
-end
-
-function Grenade:client_onCreate()
-	self.fireEffect = sm.effect.createEffect("Fire - small01", self.interactable)
-	--self.fireEffect:start()
 end
 
 function Grenade:server_onFixedUpdate( dt )
@@ -31,7 +21,7 @@ function Grenade:server_onFixedUpdate( dt )
 
 	if self.countdownActive then
 		self.countdown = self.countdown - dt
-		if self.countdown <= 0 or self.multiplier > 1 then
+		if self.countdown <= 0 then
 			self:sv_destroy()
 		end
 	end
@@ -42,8 +32,14 @@ function Grenade:server_onCollision( other, pos, velocity, otherVelocity, normal
 end
 
 function Grenade:sv_destroy()
-	se.physics.explode( self.shape:getWorldPosition(), 4 * self.multiplier, 5 * self.multiplier, 5.5 * self.multiplier, 20 * self.multiplier, "PropaneTank - ExplosionSmall", nil, self.player, true )
+	se.physics.explode( self.shape:getWorldPosition(), 30 * self.multiplier, 10 * self.multiplier, 15 * self.multiplier, 50 * self.multiplier, "PropaneTank - ExplosionSmall", nil, self.player, true )
 	print("Grenade", self.grenadeID, "destroyed.")
-	--sm.areaTrigger.destroy( self.trigger )
 	self.shape:destroyPart()
+end
+
+
+
+function Grenade:client_onCreate()
+	self.fireEffect = sm.effect.createEffect("Fire - small01", self.interactable)
+	--self.fireEffect:start()
 end

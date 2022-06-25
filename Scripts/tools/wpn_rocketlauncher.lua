@@ -261,11 +261,13 @@ function RLauncher:client_onFixedUpdate( dt )
 				self.cl.fireRocketCount = 0
 				sm.audio.play( "Retrofmblip" )
 				if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), se_ammo_rocket, 1 ) then
+					local dir = sm.localPlayer.getDirection()
+					local owner = sm.localPlayer.getPlayer()
 					self.network:sendToServer("sv_shootRocket",
 						{
 							pos = self:calculateFirePosition() + lookDir,
-							dir = sm.localPlayer.getDirection(),
-							owner = sm.localPlayer.getPlayer(),
+							dir = dir,
+							owner = owner,
 							tracking = true,
 							target = self.cl.rocketTarget,
 							type = "lock"
@@ -281,12 +283,13 @@ function RLauncher:client_onFixedUpdate( dt )
 			for i = 1, self.cl.loadedRockets do
 				local dir = lookDir:rotate( math.rad(math.random(-5,5)), sm.camera.getUp() )
 				dir = dir:rotate( math.rad(math.random(-4,4)), sm.camera.getRight() )
+				local owner = sm.localPlayer.getPlayer()
 
 				self.network:sendToServer("sv_shootRocket",
 					{
 						pos = self:calculateFirePosition() + lookDir,
-						dir = sm.localPlayer.getDirection(),
-						owner = sm.localPlayer.getPlayer(),
+						dir = dir,
+						owner = owner,
 						tracking = true,
 						target = self.cl.rocketTarget,
 						type = "lock"
