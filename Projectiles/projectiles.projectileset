@@ -1,214 +1,244 @@
 {
-    "projectiles": [
-		{
-			"uuid": "5e41cb04-c26a-4440-94bb-c47c0c687bdd",
-			"name": "PBpotato",
-			"mass": 3.0,
-			"radius": 0.25,
-			"friction": 0.2,
-			"spin": 7.0,
-			"mesh": "$GAME_DATA/Projectiles/Renderables/potato.rend",
-			"effect": "PotatoProjectile - Hit",
-			"audiomass": 250.0,
-			"effectmaterial": "Potato",
-			"ammo": 
-			{ 
-				"uuid": "bfcfac34-db0f-42d6-bd0c-74a7a5c95e82", 
-				"cost": 6
-			},
-			"destruction":
-			{
-				"destructionLevels":
-				[
-					{
-						"qualityLevel": 1,
-						"chance": 1.0
-					}
-				]
-			},
-			"enableImpactEffect": true
-		},
-		{
-			"uuid": "ef1319ec-1d3d-417f-8014-48f16b4e333c",
-			"name": "CSGFries",
-			"mass": 0.75,
-			"radius": 0.0625,
-			"friction": 0.2,
-			"spin": 0.0,
-			"mesh": "$GAME_DATA/Projectiles/Renderables/projectile_fries.rend",
-			"effect": "PotatoProjectile - Hit",
-			"audiomass": 250.0,
-			"effectmaterial": "Potato",
-			"amount": 4,
-			"ammo": 
-			{ 
-				"uuid": "42cae6ca-b5fb-4869-8000-260d63eb1d2c", 
-				"cost": 1
-			},
-			"destruction":
-			{
-				"destructionLevels":
-				[
-					{
-						"qualityLevel": 1,
-						"chance": 1.0
-					}
-				]
-			},
-			"enableImpactEffect": false
-		},
-		{
-			"uuid": "f80ca98f-87f4-4963-a043-e711718bbabe",
-			"name": "SSGFries",
-			"mass": 0.75,
-			"radius": 0.0625,
-			"friction": 0.2,
-			"spin": 0.0,
-			"mesh": "$GAME_DATA/Projectiles/Renderables/projectile_fries.rend",
-			"effect": "PotatoProjectile - Hit",
-			"audiomass": 250.0,
-			"effectmaterial": "Potato",
-			"amount": 6,
-			"ammo": 
-			{ 
-				"uuid": "42cae6ca-b5fb-4869-8000-260d63eb1d2c", 
-				"cost": 2
-			},
-			"destruction":
-			{
-				"destructionLevels":
-				[
-					{
-						"qualityLevel": 1,
-						"chance": 1.0
-					}
-				]
-			},
-			"enableImpactEffect": false
-		},
-		{
-			"uuid": "8d32d7e2-c079-4a03-b6b7-086695413ccd",
-			"name": "ballista",
-			"mass": 5,
-			"radius": 0.25,
-			"friction": 0.2,
-			"spin": 0.0,
-			"mesh": "$CONTENT_DATA/Effects/Rend/prj_arbalest.rend",
-			"effect": "Sledgehammer - Hit",
-			"audiomass": 250.0,
-			"effectmaterial": "Metal",
-			"amount": 1,
-			"ammo": 
-			{ 
-				"uuid": "37051f7f-1661-4bd7-9f24-d61bd602616d", 
-				"cost": 25
-			},
-			"destruction":
-			{
-				"destructionLevels":
-				[
-					{
-						"qualityLevel": 1,
-						"chance": 1.0
-					}
-				]
-			},
-			"enableImpactEffect": false
-		},
-		{
-			"uuid": "23ddb1c6-326d-4515-b083-2d0b8f554f04",
-			"name": "plasma",
-			"mass": 0,
-			"radius": 0.25,
-			"friction": 0.2,
-			"spin": 7.0,
-			"mesh": "$GAME_DATA/Projectiles/Renderables/potato.rend",
-			"effect": "PotatoProjectile - Hit",
-			"audiomass": 250.0,
-			"effectmaterial": "Potato",
-			"ammo": 
-			{ 
-				"uuid": "37051f7f-1661-4bd7-9f24-d61bd602616d", 
-				"cost": 1
-			},
-			"destruction":
-			{
-				"destructionLevels":
-				[
-					{
-						"qualityLevel": 1,
-						"chance": 1.0
-					}
-				]
-			},
-			"enableImpactEffect": true
-		},
-		{
-			"uuid": "5f033768-d419-481b-aeb6-e0038d743fdb",
-			"name": "unmaykRound",
-			"mass": 3.0,
-			"radius": 0.25,
-			"friction": 0.2,
-			"spin": 7.0,
-			"mesh": "$GAME_DATA/Projectiles/Renderables/potato.rend",
-			"effect": "PotatoProjectile - Hit",
-			"audiomass": 250.0,
-			"effectmaterial": "Potato",
-			"ammo": 
-			{ 
-				"uuid": "72db5fe7-cda0-45a6-a175-3a46ba0cd150", 
-				"cost": 1
-			},
-			"destruction":
-			{
-				"destructionLevels":
-				[
-					{
-						"qualityLevel": 1,
-						"chance": 1.0
-					}
-				]
-			},
-			"enableImpactEffect": true
-		},
-		{
-			"uuid": "fea0e388-8a29-44f1-aee3-f9110780ee82",
-			"name": "health",
-			"mass": 0.005,
-			"radius": 0.10,
-			"spin": 3.0,
-			"mesh": "$CONTENT_DATA/Objects/Rend/drop_hp.rend",
-			"effect": "LootProjectile - Hit",
-			"attachedEffect": "LootProjectile - Attached",
-			"enableImpactEffect": false,
-			"onlyHitStatic": true,
-			"color": "ffffff"
-		},
-		{
-			"uuid": "59648271-ad12-475d-b72d-456d2cb7aa52",
-			"name": "armour",
-			"mass": 0.005,
-			"radius": 0.10,
-			"spin": 3.0,
-			"mesh": "$CONTENT_DATA/Objects/Rend/drop_armour.rend",
-			"effect": "LootProjectile - Hit",
-			"attachedEffect": "LootProjectile - Attached",
-			"enableImpactEffect": false,
-			"onlyHitStatic": true,
-			"color": "ffffff"
-		},
-		{
-			"uuid": "56c3d9b5-7736-4c64-8714-7a64dd7911cc",
-			"name": "ammo",
-			"mass": 0.005,
-			"radius": 0.10,
-			"spin": 3.0,
-			"mesh": "$CONTENT_DATA/Objects/Rend/drop_ammo.rend",
-			"effect": "LootProjectile - Hit",
-			"attachedEffect": "LootProjectile - Attached",
-			"enableImpactEffect": false,
-			"onlyHitStatic": true,
-			"color": "ffffff"
-		}
-    ]
+   "projectiles" : [
+      {
+         "ammo" : {
+            "cost" : 6,
+            "uuid" : "bfcfac34-db0f-42d6-bd0c-74a7a5c95e82"
+         },
+         "attachedEffect" : "PotatoProjectile - Hit",
+         "audiomass" : 250.0,
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "PotatoProjectile - Hit",
+         "effectmaterial" : "Potato",
+         "enableGravity" : true,
+         "enableImpactEffect" : true,
+         "friction" : 0.2000000029802322,
+         "mass" : 3.0,
+         "mesh" : "$GAME_DATA/Projectiles/Renderables/potato.rend",
+         "name" : "PBpotato",
+         "radius" : 0.250,
+         "spin" : 7.0,
+         "uuid" : "5e41cb04-c26a-4440-94bb-c47c0c687bdd"
+      },
+      {
+         "ammo" : {
+            "cost" : 1,
+            "uuid" : "42cae6ca-b5fb-4869-8000-260d63eb1d2c"
+         },
+         "amount" : 4,
+         "attachedEffect" : "PotatoProjectile - Hit",
+         "audiomass" : 250.0,
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "PotatoProjectile - Hit",
+         "effectmaterial" : "Potato",
+         "enableGravity" : true,
+         "enableImpactEffect" : false,
+         "friction" : 0.2000000029802322,
+         "mass" : 0.750,
+         "mesh" : "$GAME_DATA/Projectiles/Renderables/projectile_fries.rend",
+         "name" : "CSGFries",
+         "radius" : 0.06250,
+         "spin" : 0.0,
+         "uuid" : "ef1319ec-1d3d-417f-8014-48f16b4e333c"
+      },
+      {
+         "ammo" : {
+            "cost" : 2,
+            "uuid" : "42cae6ca-b5fb-4869-8000-260d63eb1d2c"
+         },
+         "amount" : 6,
+         "attachedEffect" : "PotatoProjectile - Hit",
+         "audiomass" : 250.0,
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "PotatoProjectile - Hit",
+         "effectmaterial" : "Potato",
+         "enableGravity" : true,
+         "enableImpactEffect" : false,
+         "friction" : 0.2000000029802322,
+         "mass" : 0.750,
+         "mesh" : "$GAME_DATA/Projectiles/Renderables/projectile_fries.rend",
+         "name" : "SSGFries",
+         "radius" : 0.06250,
+         "spin" : 0.0,
+         "uuid" : "f80ca98f-87f4-4963-a043-e711718bbabe"
+      },
+      {
+         "ammo" : {
+            "cost" : 25,
+            "uuid" : "37051f7f-1661-4bd7-9f24-d61bd602616d"
+         },
+         "amount" : 1,
+         "attachedEffect" : "Sledgehammer - Hit",
+         "audiomass" : 250.0,
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "Sledgehammer - Hit",
+         "effectmaterial" : "Metal",
+         "enableGravity" : true,
+         "enableImpactEffect" : false,
+         "friction" : 0.2000000029802322,
+         "mass" : 5.0,
+         "mesh" : "$CONTENT_DATA/Effects/Rend/prj_arbalest.rend",
+         "name" : "ballista",
+         "radius" : 0.250,
+         "spin" : 0.0,
+         "uuid" : "8d32d7e2-c079-4a03-b6b7-086695413ccd"
+      },
+      {
+         "ammo" : {
+            "cost" : 1,
+            "uuid" : "37051f7f-1661-4bd7-9f24-d61bd602616d"
+         },
+         "attachedEffect" : "PotatoProjectile - Hit",
+         "audiomass" : 250.0,
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "PotatoProjectile - Hit",
+         "effectmaterial" : "Potato",
+         "enableGravity" : true,
+         "enableImpactEffect" : true,
+         "friction" : 0.2000000029802322,
+         "mass" : 0.0,
+         "mesh" : "$GAME_DATA/Projectiles/Renderables/potato.rend",
+         "name" : "plasma",
+         "radius" : 0.250,
+         "spin" : 7.0,
+         "uuid" : "23ddb1c6-326d-4515-b083-2d0b8f554f04"
+      },
+      {
+         "ammo" : {
+            "cost" : 1,
+            "uuid" : "72db5fe7-cda0-45a6-a175-3a46ba0cd150"
+         },
+         "attachedEffect" : "PotatoProjectile - Hit",
+         "audiomass" : 250.0,
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "PotatoProjectile - Hit",
+         "effectmaterial" : "Potato",
+         "enableGravity" : true,
+         "enableImpactEffect" : true,
+         "friction" : 0.2000000029802322,
+         "mass" : 3.0,
+         "mesh" : "$GAME_DATA/Projectiles/Renderables/potato.rend",
+         "name" : "unmaykRound",
+         "radius" : 0.250,
+         "spin" : 7.0,
+         "uuid" : "5f033768-d419-481b-aeb6-e0038d743fdb"
+      },
+      {
+         "attachedEffect" : "LootProjectile - Attached",
+         "audiomass" : 250.0,
+         "color" : "ffffff",
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "LootProjectile - Hit",
+         "effectmaterial" : "Default",
+         "enableGravity" : true,
+         "enableImpactEffect" : false,
+         "friction" : 0.2000000029802322,
+         "mass" : 0.004999999888241291,
+         "mesh" : "$CONTENT_DATA/Objects/Rend/drop_hp.rend",
+         "name" : "health",
+         "onlyHitStatic" : true,
+         "radius" : 0.1000000014901161,
+         "spin" : 3.0,
+         "uuid" : "fea0e388-8a29-44f1-aee3-f9110780ee82"
+      },
+      {
+         "attachedEffect" : "LootProjectile - Attached",
+         "audiomass" : 250.0,
+         "color" : "ffffff",
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "LootProjectile - Hit",
+         "effectmaterial" : "Default",
+         "enableGravity" : true,
+         "enableImpactEffect" : false,
+         "friction" : 0.2000000029802322,
+         "mass" : 0.004999999888241291,
+         "mesh" : "$CONTENT_DATA/Objects/Rend/drop_armour.rend",
+         "name" : "armour",
+         "onlyHitStatic" : true,
+         "radius" : 0.1000000014901161,
+         "spin" : 3.0,
+         "uuid" : "59648271-ad12-475d-b72d-456d2cb7aa52"
+      },
+      {
+         "attachedEffect" : "LootProjectile - Attached",
+         "audiomass" : 250.0,
+         "color" : "ffffff",
+         "destruction" : {
+            "destructionLevels" : [
+               {
+                  "chance" : 1.0,
+                  "qualityLevel" : 1
+               }
+            ]
+         },
+         "effect" : "LootProjectile - Hit",
+         "effectmaterial" : "Default",
+         "enableGravity" : true,
+         "enableImpactEffect" : false,
+         "friction" : 0.2000000029802322,
+         "mass" : 0.004999999888241291,
+         "mesh" : "$CONTENT_DATA/Objects/Rend/drop_ammo.rend",
+         "name" : "ammo",
+         "onlyHitStatic" : true,
+         "radius" : 0.1000000014901161,
+         "spin" : 3.0,
+         "uuid" : "56c3d9b5-7736-4c64-8714-7a64dd7911cc"
+      }
+   ]
 }

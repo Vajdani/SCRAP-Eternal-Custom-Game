@@ -1,68 +1,81 @@
 {
-	"toolList":
-	[
-		{
-			"uuid": "8378e3ed-ded9-4a64-9887-76c3b295bc86",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": { 
-				"file": "$CONTENT_DATA/Scripts/tools/wpn_supershotgun.lua", 
-				"class": "SSG" 
-			}
-		},
-		{
-			"uuid": "465b2e4e-e9ff-42bc-aab1-f256663d1c31",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": { 
-				"file": "$CONTENT_DATA/Scripts/tools/wpn_ballista.lua", 
-				"class": "Ballista" 
-			}
-		},
-		{
-			"uuid": "b17f2fa7-1f04-40b5-8f9d-65a40bbf45c0",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": { 
-				"file": "$CONTENT_DATA/Scripts/tools/wpn_plasmarifle.lua", 
-				"class": "PRifle" 
-			}
-		},
-		{
-			"uuid": "25417b29-546d-4a9d-9766-f6e0d3b82f0f",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": { 
-				"file": "$CONTENT_DATA/Scripts/tools/wpn_rocketlauncher.lua", 
-				"class": "RLauncher" 
-			}
-		},
-		{
-			"uuid": "2cc2e981-4261-443b-b925-051ea94707ab",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": { 
-				"file": "$CONTENT_DATA/Scripts/tools/wpn_bigfuckinggun.lua", 
-				"class": "BFG" 
-			}
-		},
-		{
-			"uuid": "30baecf1-d083-4785-932c-4f2272494b5a",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": { 
-				"file": "$CONTENT_DATA/Scripts/tools/wpn_unmaykr.lua", 
-				"class": "Unmaykr"
-			}
-		},
-		{
-			"uuid": "469ddbcd-eda9-4c78-b620-4270b7a36abf",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_sledgehammer_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": { 
-				"file": "$CONTENT_DATA/Scripts/tools/prp_berserk.lua", 
-				"class": "Berserk"
-			}
-		}
-	]
+   "toolList" : [
+      {
+         "name" : "wpn_supershotgun",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "SSG",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/wpn_supershotgun.lua"
+         },
+         "uuid" : "8378e3ed-ded9-4a64-9887-76c3b295bc86"
+      },
+      {
+         "name" : "wpn_ballista",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "Ballista",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/wpn_ballista.lua"
+         },
+         "uuid" : "465b2e4e-e9ff-42bc-aab1-f256663d1c31"
+      },
+      {
+         "name" : "wpn_plasmarifle",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "PRifle",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/wpn_plasmarifle.lua"
+         },
+         "uuid" : "b17f2fa7-1f04-40b5-8f9d-65a40bbf45c0"
+      },
+      {
+         "name" : "wpn_rocketlauncher",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "RLauncher",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/wpn_rocketlauncher.lua"
+         },
+         "uuid" : "25417b29-546d-4a9d-9766-f6e0d3b82f0f"
+      },
+      {
+         "name" : "wpn_bfg",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "BFG",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/wpn_bigfuckinggun.lua"
+         },
+         "uuid" : "2cc2e981-4261-443b-b925-051ea94707ab"
+      },
+      {
+         "name" : "wpn_unmaykr",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "Unmaykr",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/wpn_unmaykr.lua"
+         },
+         "uuid" : "30baecf1-d083-4785-932c-4f2272494b5a"
+      },
+      {
+         "name" : "wpn_berserk",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_sledgehammer_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "Berserk",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/prp_berserk.lua"
+         },
+         "uuid" : "469ddbcd-eda9-4c78-b620-4270b7a36abf"
+      }
+   ]
 }

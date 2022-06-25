@@ -1,70 +1,60 @@
 {
-	"toolList":
-	[
-		{
-			"uuid": "fc1acd1b-611b-44b0-bff7-4b71509abe4c",
-			"name": "Spudgun",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": {
-				"file": "$CONTENT_DATA/Scripts/tools/PotatoRifle.lua",
-				"class": "PotatoRifle",
-				"data": {
-
-				}
-			}
-		},
-		{
-			"uuid": "117344bd-c628-485a-8e89-ab51d57e8528",
-			"name": "Shotgun",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_frier_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": {
-				"file": "$CONTENT_DATA/Scripts/tools/PotatoShotgun.lua",
-				"class": "PotatoShotgun",
-				"data": {
-
-				}
-			}
-		},
-		{
-			"uuid": "d48f73b3-521a-4f60-b4d3-0ff08b145cff",
-			"name": "Gatling gun",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_spinner_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": {
-				"file": "$CONTENT_DATA/Scripts/tools/PotatoGatling.lua",
-				"class": "PotatoGatling",
-				"data": {
-
-				}
-			}
-		},
-		{
-			"uuid": "4b591539-4f1b-49f2-8ede-3d0aa07cb51e",
-			"name": "Hammer",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_sledgehammer_preview.rend",
-			"previewRotation": [  -1, 0, 0, 0, 0, 1, 0, 1, 0 ],
-			"script": {
-				"file": "$CONTENT_DATA/Scripts/tools/Sledgehammer.lua",
-				"class": "Sledgehammer",
-				"data": {
-
-				}
-			}
-		},
-		{
-			"uuid": "2bff990a-0e74-43c7-b7dc-889b3a086fa3",
-			"previewRenderable": "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
-			"previewRotation": [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
-			"script": {
-				"file": "$SURVIVAL_DATA/Scripts/game/tools/Eat.lua",
-				"class": "Eat",
-				"data": {
-					
-				}
-			},
-			"autoTool": true
-		}
-	]
+   "toolList" : [
+      {
+         "name" : "Spudgun",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "PotatoRifle",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/PotatoRifle.lua"
+         },
+         "uuid" : "fc1acd1b-611b-44b0-bff7-4b71509abe4c"
+      },
+      {
+         "name" : "Shotgun",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_frier_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "PotatoShotgun",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/PotatoShotgun.lua"
+         },
+         "uuid" : "117344bd-c628-485a-8e89-ab51d57e8528"
+      },
+      {
+         "name" : "Gatling gun",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_spinner_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "PotatoGatling",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/PotatoGatling.lua"
+         },
+         "uuid" : "d48f73b3-521a-4f60-b4d3-0ff08b145cff"
+      },
+      {
+         "name" : "Hammer",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_sledgehammer_preview.rend",
+         "previewRotation" : [ -1, 0, 0, 0, 0, 1, 0, 1, 0 ],
+         "script" : {
+            "class" : "Sledgehammer",
+            "data" : {},
+            "file" : "$CONTENT_DATA/Scripts/tools/Sledgehammer.lua"
+         },
+         "uuid" : "4b591539-4f1b-49f2-8ede-3d0aa07cb51e"
+      },
+      {
+         "autoTool" : true,
+         "name" : "Eat",
+         "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
+         "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
+         "script" : {
+            "class" : "Eat",
+            "data" : {},
+            "file" : "$SURVIVAL_DATA/Scripts/game/tools/Eat.lua"
+         },
+         "uuid" : "2bff990a-0e74-43c7-b7dc-889b3a086fa3"
+      }
+   ]
 }
