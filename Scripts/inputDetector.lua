@@ -39,10 +39,11 @@ function Basic:client_onAction( action, state )
 
 	self.network:sendToServer("sv_onAction", { action = action, state = state, player = player })
 
-    local consume = false
-    if isAnyOf(action, meathookConsumeActions) and publicData.meathookState or isAnyOf(action, consumeActions) then consume = true end
+    if isAnyOf(action, meathookConsumeActions) and publicData.data.playerData.meathookAttached or isAnyOf(action, consumeActions) then
+        return true
+    end
 
-    return consume
+    return false
 end
 
 function Basic:sv_onAction( args )

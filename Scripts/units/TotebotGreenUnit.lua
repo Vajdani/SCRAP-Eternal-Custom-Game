@@ -225,6 +225,7 @@ function TotebotGreenUnit:sv_se_onExplosion( args )
 end
 
 function TotebotGreenUnit.server_onFixedUpdate( self, dt )
+	if true then return end
 	
 	-- Temporary units are destroyed at dawn
 	if sm.exists( self.unit ) and not self.destroyed then
@@ -313,7 +314,8 @@ function TotebotGreenUnit.server_onCharacterChangedColor( self, color )
 end
 
 function TotebotGreenUnit.server_onUnitUpdate( self, dt )
-	
+	if true then return end
+
 	if not sm.exists( self.unit ) then
 		return
 	end

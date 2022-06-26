@@ -20,10 +20,8 @@ sm.tool.preloadRenderables( renderablesTp )
 sm.tool.preloadRenderables( renderablesFp )
 
 function BFG.client_onCreate( self )
-	self.shootEffect = sm.effect.createEffect( "SpudgunBasic - BasicMuzzel" )
-	self.shootEffectFP = sm.effect.createEffect( "SpudgunBasic - FPBasicMuzzel" )
-
-	--self.chargeEffect = sm.effect.createEffect( "BFG Charge" )
+	self.shootEffect = sm.effect.createEffect( "BFG Shoot" )
+	self.shootEffectFP = sm.effect.createEffect( "BFG Shoot" )
 
 	if not self.tool:isLocal() then return end
 

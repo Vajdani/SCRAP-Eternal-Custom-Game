@@ -1,36 +1,45 @@
 HookPoint = class()
 
 function HookPoint:server_onCreate()
-	self.data = {
+	self.sv = {}
+	self.sv.data = {
 		countdown = 10,
 		canBeHooked = true,
 		recharge = false
 	}
+
+	self.network:sendToClients("cl_updateUv", 0)
 end
 
-function HookPoint:togglehook( toggle )
-	if toggle and self.data.canBeHooked then
-		self.data.canBeHooked = false
-		self.data.countdown = 0
-	elseif not toggle or toggle and not self.data.canBeHooked then
-		self.data.recharge = true
+function HookPoint:sv_hook( toggle )
+	if toggle and self.sv.data.canBeHooked then
+		self.sv.data.canBeHooked = false
+		self.sv.data.countdown = 0
+
+		self.network:sendToClients("cl_updateUv", 1)
+	elseif not toggle or toggle and not self.sv.data.canBeHooked then
+		self.sv.data.recharge = true
 	end
+
+	sm.interactable.setPublicData(self.interactable, self.sv.data)
 end
 
 function HookPoint:server_onFixedUpdate( dt )
-	if self.data.recharge then
-		self.data.countdown = self.data.countdown + dt
-		if self.data.countdown >= 10 then
-			self.data.countdown = 10
-			self.data.canBeHooked = true
-			self.data.recharge = false
+	if self.sv.data.recharge then
+		self.sv.data.countdown = self.sv.data.countdown + dt
+		if self.sv.data.countdown >= 10 then
+			self.sv.data.countdown = 10
+			self.sv.data.canBeHooked = true
+			self.sv.data.recharge = false
+
+			sm.interactable.setPublicData(self.interactable, self.sv.data)
+			self.network:sendToClients("cl_updateUv", 0)
 		end
 	end
-
-	sm.interactable.setPublicData(self.interactable, self.data)
 end
 
-function HookPoint:client_onFixedUpdate( dt )
-	local index = self.data.canBeHooked and 0 or 1 --(self.data.canBeHooked or not self.data.canBeHooked and self.data.countdown == 0)
+
+
+function HookPoint:cl_updateUv( index )
 	sm.interactable.setUvFrameIndex( self.interactable, index )
 end

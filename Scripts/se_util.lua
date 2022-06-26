@@ -271,6 +271,8 @@ rocketExplosionLevels = {
     }
 }
 implosionBombImpulse = sm.vec3.one() * 500
+meathookMaxHorizontalAngle = 30 / 4
+meathookMaxVerticalAngle = 20 / 4
 
 --se_util.lua
 se = {}
@@ -459,6 +461,51 @@ se.player.getRaycast = function ( player, range, body, mask )
     local hit, result = sm.physics.raycast(pos, pos + char.direction * range, body, mask)
     return hit, result
 end
+
+--Weapon
+se_weapon_isInvalidMeathookDir = function( dir )
+	return math.abs(dir.z) > meathookMaxHorizontalAngle or math.abs(dir.x) > meathookMaxVerticalAngle
+end
+
+
+
+--Classes
+Line = class()
+Line.init = function( self, thickness, colour )
+    self.effect = sm.effect.createEffect("ShapeRenderable")
+	self.effect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
+    self.effect:setParameter("color", colour)
+    self.effect:setScale( se.vec3.num(thickness) )
+
+    self.thickness = thickness
+end
+
+Line.update = function( self, startPos, endPos )
+	local delta = (startPos - endPos)
+    local length = delta:length()
+
+    if length < 0.0001 then
+        sm.log.warning("Line:update() | Length of 'startPos - endPos' must be longer than 0.")
+        return
+	end
+
+	local rot = sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta)
+	local distance = sm.vec3.new(self.thickness, self.thickness, length)
+
+	self.effect:setPosition(startPos + delta * 0.5)
+	self.effect:setScale(distance)
+	self.effect:setRotation(rot)
+
+    if not self.effect:isPlaying() then
+        self.effect:start()
+    end
+end
+
+Line.destroy = function( self )
+    self.effect:destroy()
+end
+
+
 
 --Other
 function copyTable( table )

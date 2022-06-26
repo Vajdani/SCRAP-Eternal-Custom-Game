@@ -929,7 +929,8 @@ function Player:sv_checkForVault( pos, dir, char, grounded )
 
 							self.network:sendToClient( self.player, "cl_vaultStart",
 								{
-									dir = dir,
+									startDir = self.player.character.direction,
+									endDir = dir,
 									startPos = pos,
 									endPos = pos + sm.vec3.new(0,0,1.4) --1.295
 								}
@@ -1067,6 +1068,7 @@ function Player:sv_updateRunes( dt, moveDirs, currentMoveDir, pos, char, grounde
 	--since you cant slow down time, Ill just make the character glide
 	if se.player.isEquippedRune( self.player, "Chrono Strike" ) then
 		local mouse1 = self.sv.public.input[sm.interactable.actions.attack]
+		print(mouse1)
 
 		if (self.sv.gliding and not grounded or not sm.physics.raycast(pos, pos - sm.vec3.new(0,0,2.5))) and mouse1 then
 			sm.physics.applyImpulse( char, (vel * -1) * se.vec3.num(20) + sm.vec3.new(75,75,0) * moveDirs[1].dir )
@@ -1186,34 +1188,34 @@ function Player.server_onFixedUpdate( self, dt )
 
 	if data.playerData.damageMultiplier > 1 then
 		self.sv.dmgMultTimer:tick()
-		displayTxt = displayTxt.." #6049c7DAMAGE: #ff9d00"..tostring(("%.0f"):format(self.sv.dmgMultTimer))
+		displayTxt = displayTxt.." #6049c7DAMAGE: #ff9d00"..tostring(("%.0f"):format((self.sv.dmgMultTimer.ticks - self.sv.dmgMultTimer.count)/40))
 		if self.sv.dmgMultTimer:done() then
 			self.sv.dmgMultTimer:reset()
 			data.playerData.damageMultiplier = 1
-			self.network:sendToClient(self.player, "cl_disablePrp", "damageMultiplier")
+			self.network:sendToClients("cl_disablePrp", "damageMultiplier")
 		end
 	end
 
 	if data.playerData.speedMultiplier > 1 then
 		self.sv.spdMultTimer:tick()
 		playerChar.movementSpeedFraction = data.playerData.speedMultiplier
-		displayTxt = displayTxt.." #fff200SPEED: #ff9d00"..tostring(("%.0f"):format(self.sv.spdMultTimer))
+		displayTxt = displayTxt.." #fff200SPEED: #ff9d00"..tostring(("%.0f"):format((self.sv.spdMultTimer.ticks - self.sv.spdMultTimer.count)/40))
 		if self.sv.spdMultTimer:done() then
 			self.sv.spdMultTimer:reset()
 			data.playerData.speedMultiplier = 1
 			self:sv_resetMoveSpeed()
-			self.network:sendToClient(self.player, "cl_disablePrp", "speedMultiplier")
+			self.network:sendToClients("cl_disablePrp", "speedMultiplier")
 		end
 	end
 
 	if data.playerData.berserk then
 		self.sv.berserkTimer:tick()
 		--sm.tool.forceTool( sm.uuid.new("469ddbcd-eda9-4c78-b620-4270b7a36abf") )
-		displayTxt = displayTxt.." #ff1100BERSERK: #ff9d00"..tostring(("%.0f"):format(self.sv.berserkTimer))
+		displayTxt = displayTxt.." #ff1100BERSERK: #ff9d00"..tostring(("%.0f"):format((self.sv.berserkTimer.ticks - self.sv.berserkTimer.count)/40))
 		if self.sv.berserkTimer:done() then
 			self.sv.berserkTimer:reset()
 			data.playerData.berserk = false
-			self.network:sendToClient(self.player, "cl_disablePrp", "berserk")
+			self.network:sendToClients("cl_disablePrp", "berserk")
 		end
 	end
 
@@ -1229,10 +1231,6 @@ function Player.server_onFixedUpdate( self, dt )
 		end
 		local text = data.playerData.damage < 500 and "#ff9d00"..tostring(data.playerData.damage).."#ffffff / "..tostring(500).." dmg" or "#ff9d00Shield Launch activated"
 		displayTxt = displayTxt..text
-	end
-
-	if displayTxt == "" then
-		self.sv.currentPowerupColor = nil
 	end
 
 	local sentData = copyTable(self.sv.public)
@@ -1343,27 +1341,17 @@ function Player.sv_e_debug( self, params ) end
 function Player.sv_e_eat( self, edibleParams )
 	if edibleParams.dmgMult then
 		self.sv.public.data.playerData.damageMultiplier = 4
-		self.sv.dmgMultTimer = 30
-		self.sv.currentPowerupColor = sm.color.new("#6049c7")
 	end
 
 	if edibleParams.spdMult then
 		self.sv.public.data.playerData.speedMultiplier = 2
-		self.sv.spdMultTimer = 30
-		self.sv.currentPowerupColor = sm.color.new("#fff200")
 	end
 
 	if edibleParams.berserk then
 		self.sv.public.data.playerData.berserk = true
-		self.sv.berserkTimer = 30
-		self.sv.currentPowerupColor = sm.color.new("#ff1100")
 	end
 
-	if edibleParams.dmgMult and edibleParams.spdMult and edibleParams.berserk then
-		self.sv.currentPowerupColor = sm.color.new("#DF7F00")
-	end
-
-	self.network:sendToClient(self.player, "cl_e_eat", edibleParams)
+	self.network:sendToClients("cl_e_eat", edibleParams)
 	--self.player:setPublicData( self.sv.public )
 end
 
@@ -1560,9 +1548,9 @@ function Player.client_onCreate( self )
 
 			},
 			powerup = {
-				speedMultiplier = { current = 1, active = 2, default = 1 },
-				damageMultiplier = { current = 1, active = 4, default = 1 },
-				berserk = { current = false, active = true, default = false }
+				speedMultiplier = { current = 1, active = 2, default = 1, colour = sm.color.new("#fff200") },
+				damageMultiplier = { current = 1, active = 4, default = 1, colour = sm.color.new("#6049c7") },
+				berserk = { current = false, active = true, default = false, colour = sm.color.new("#ff1100") }
 			},
 			input = {
 				[sm.interactable.actions.forward] = false,
@@ -1669,19 +1657,17 @@ function Player:client_onFixedUpdate( dt )
 
 
 	if self.player ~= sm.localPlayer.getPlayer() then return end
-	local lookDir = playerChar:getDirection()
+	--[[local lookDir = playerChar:getDirection()
 	local playerVel = playerChar:getVelocity()
 	local playerPos = playerChar:getWorldPosition()
 	local onGround = se.player.isOnGround(self.player)
 	local launcherPos = playerChar:getTpBonePos( "jnt_spine2" ) + playerChar:getTpBoneRot( "jnt_spine2" ) * sm.vec3.new(0.5,0,0.3) + lookDir / 2
 
 	local inputs = self.cl.public.input
-	local currentMoveDir, moveDirs = se.player.getMoveDir( self.player, self.cl.public )
+	local currentMoveDir, moveDirs = se.player.getMoveDir( self.player, self.cl.public )]]
 end
 
 function Player:client_onClientDataUpdate( data, channel )
-	self.cl.powerup.colour = data.currentPowerupColor
-
 	if sm.localPlayer.getPlayer() ~= self.player then return end
 
 	self.cl.public.data = data.data
@@ -1717,11 +1703,14 @@ function Player.client_onInteract( self, character, state )
 end
 
 function Player:cl_vaultStart( args )
+	local fov = sm.camera.getFov()
 	sm.camera.setCameraState( 2 )
-	sm.camera.setDirection( args.dir )
+	sm.camera.setFov(fov)
 	self.cl.cameraMove.mode = "vault"
 	self.cl.cameraMove.startPos = args.startPos
 	self.cl.cameraMove.endPos = args.endPos
+	self.cl.cameraMove.startDir = args.startDir
+	self.cl.cameraMove.endDir = args.endDir
 	self.cl.cameraMove.speed = 2.5
 	self.cl.cameraMove.active = true
 
@@ -1793,15 +1782,32 @@ function Player:cl_chainsawEffect()
 end
 
 function Player:cl_e_eat( params )
-	self.cl.public.powerup.damageMultiplier.current = params.dmgMult ~= nil and self.cl.public.powerup.damageMultiplier.active or self.cl.public.powerup.damageMultiplier.default
-	self.cl.public.powerup.speedMultiplier.current = params.spdMult ~= nil and self.cl.public.powerup.speedMultiplier.active or self.cl.public.powerup.speedMultiplier.default
-	self.cl.public.powerup.berserk.current = params.berserk ~= nil and self.cl.public.powerup.berserk.active or self.cl.public.powerup.berserk.default
+	if self.player == sm.localPlayer.getPlayer() then
+		self.cl.public.powerup.damageMultiplier.current = params.dmgMult ~= nil and self.cl.public.powerup.damageMultiplier.active or self.cl.public.powerup.damageMultiplier.default
+		self.cl.public.powerup.speedMultiplier.current = params.spdMult ~= nil and self.cl.public.powerup.speedMultiplier.active or self.cl.public.powerup.speedMultiplier.default
+		self.cl.public.powerup.berserk.current = params.berserk ~= nil and self.cl.public.powerup.berserk.active or self.cl.public.powerup.berserk.default
+	end
 
+	self:cl_refreshPrpColour()
 	--self.player:setClientPublicData( self.cl.public )
 end
 
 function Player:cl_disablePrp( index )
-	self.cl.public.powerup[index].current = self.cl.public.powerup[index].default
+	if self.player == sm.localPlayer.getPlayer() then
+		self.cl.public.powerup[index].current = self.cl.public.powerup[index].default
+	end
+
+	self:cl_refreshPrpColour()
 	--self.player:setClientPublicData( self.cl.public )
 	--print(self.cl.public.powerup[index], index)
+end
+
+function Player:cl_refreshPrpColour()
+	self.cl.powerup.colour = nil
+	for k, powerup in pairs(self.player:getClientPublicData().powerup) do
+		if powerup.current == powerup.active then
+			self.cl.powerup.colour = powerup.colour
+			break
+		end
+	end
 end

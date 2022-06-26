@@ -1,9 +1,17 @@
 dofile "$GAME_DATA/Scripts/game/AnimationUtil.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 dofile "$SURVIVAL_DATA/Scripts/game/survival_shapes.lua"
+dofile "$SURVIVAL_DATA/Scripts/game/util/Timer.lua"
 
 local hookPointUUID = sm.uuid.new("93710416-d976-4702-96ab-d0107fd4abb2")
+local baseDamage = 35
 local hookRange = 50
+local hookForceMult = 250
+local hookDetachDistance = 1.5
+local meathookDetachImpulse = 1250
+local meathookUseCD = 5 * 40
+local normalHookColour = sm.color.new(0,0,0)
+local burningHookColour = sm.color.new("#df7f00")
 
 SSG = class()
 
@@ -28,33 +36,36 @@ function SSG.client_onCreate( self )
 	self.shootEffect = sm.effect.createEffect( "SpudgunFrier - FrierMuzzel" )
 	self.shootEffectFP = sm.effect.createEffect( "SpudgunFrier - FPFrierMuzzel" )
 
-	--SE
+	self.cl = {}
+	self.cl.hooks = {}
+	self.cl.owner = sm.localPlayer.getPlayer()
+	local data = self.cl.owner:getClientPublicData()
+	self.cl.weaponData = data.data.weaponData.ssg
+	self.cl.prpData = data.powerup
 
-	--General stuff
-	self.player = sm.localPlayer.getPlayer()
-	self.playerChar = self.player:getCharacter()
+	if not self.tool:isLocal() then return end
+	self.cl.data = data.data
 
-	self.data = sm.playerInfo[self.player:getId()].weaponData.ssg
+	self.cl.useCD = {
+		active = false,
+		timer = Timer(),
+		ticks = 5 * 40
+	}
+	self.cl.useCD.timer:start(self.cl.useCD.ticks)
 
-	--Hook
-	self.hookAttached = false
-	self.target = nil
-	self.distance = sm.vec3.zero()
-	self.distanceNormalized = sm.vec3.zero()
-	self.targetPos = sm.vec3.zero()
-	self.hookCD = false
-	self.hookCDcount = 5
-	self.hookCDMax = 5
+	self.cl.primState = nil
+	self.cl.secState = nil
 
-	self.leftOrbit = false
-	self.rightOrbit = false
+	self.cl.hookGui = sm.gui.createWorldIconGui( 50, 50 )
+	self.cl.hookGui:setImage("Icon", "$CONTENT_DATA/Gui/UpgradeStation/icon_mod_meathook.png")
+	self.cl.hookTarget = nil
+end
 
-	--Chains
-	self.ropeEffect = sm.effect.createEffect("ShapeRenderable")
-	self.ropeEffect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
-
-	self.hookGui = sm.gui.createWaypointIconGui()
-	--SE
+function SSG:server_onCreate()
+	self.sv = {}
+	self.sv.hookTarget = nil
+	self.sv.owner = self.tool:getOwner()
+	self.sv.data = self.sv.owner:getPublicData()
 end
 
 function SSG.client_onRefresh( self )
@@ -171,249 +182,181 @@ function SSG.loadAnimations( self )
 
 end
 
---SE
-function SSG:server_onFixedUpdate( dt )
-	if self.hookAttached then
-		if self.distance.z <= 3 or not sm.exists(self.target) then
-			self.network:sendToClient( self.player, "cl_toggleHook", { toggle = false, cd = true })
-		else
-			sm.physics.applyImpulse( self.playerChar, se.vec3.num(10000) * self.distanceNormalized * dt)
-		end
-	end
+function SSG:sv_saveCurrentWpnData( data )
+	sm.event.sendToPlayer( self.cl.owner, "sv_saveWPData", data )
 end
 
-function SSG:sv_saveCurrentWpnData( data )
-	sm.event.sendToPlayer( self.player, "sv_saveWPData", data )
+function SSG:client_onToggle()
+	return true
 end
 
 function SSG:client_onFixedUpdate( dt )
-	self.playerChar = self.player:getCharacter()
-	self.playerLookDir = self.playerChar:getDirection()
-	self.playerPos = self.playerChar:getWorldPosition()
-
-	local data = sm.playerInfo[self.player:getId()]
-	local playerData = data.playerData
-	local jump = playerData.inputs.jump
-	local left = playerData.inputs.dir.left.active
-	local right = playerData.inputs.dir.right.active
-	self.dmgMult = playerData.damageMultiplier
-	self.spdMult = playerData.speedMultiplier
-	self.data = data.weaponData.ssg
-
-	playerData.meathookAttached = self.hookAttached
-
-	--fuck off
-	if self.fireCooldownTimer == nil then
-		self.fireCooldownTimer = 0
-	end
-
-	--upgrades
-	self.hookCDMax = self.data.mod1.up1.owned and 2.5 or 5
-	if self.normalFireMode ~= nil then
-		self.normalFireMode.fireCooldown = self.data.mod1.up2.owned and 0.8 or 1.25
-	end
-
-	local colour = self.data.mod1.mastery.owned and sm.color.new("#DF7F00") or sm.color.new(0,0,0)
-	self.ropeEffect:setParameter("color", colour)
-
-	--powerup
-	local increase = dt * self.spdMult
-	self.Damage = 35 --nice fix there bro
-	self.Damage = self.Damage * self.dmgMult
-
-	if self.hookAttached then
-		--Detach jump
-		if jump then
-			self:cl_toggleHook({ toggle = false, cd = true })
-			self.network:sendToServer("sv_applyImpulse", { char = self.playerChar, force = se.vec3.redirectVel( "z", 1000, self.playerChar ) } )
-		end
-
-		--Orbit around enemy
-		if left then
-			if self.rightOrbit then
-				self.rightOrbit = false
-			elseif self.leftOrbit then
-				self.leftOrbit = false
-			else
-				self.leftOrbit = true
-			end
-		elseif right then
-			if self.leftOrbit then
-				self.leftOrbit = false
-			elseif self.rightOrbit then
-				self.rightOrbit = false
-			else
-				self.rightOrbit = true
-			end
-		end
-
-		local dir = sm.vec3.zero()
-		if self.leftOrbit then
-			dir = sm.vec3.rotate( self.delta, math.rad(-90), sm.vec3.new(0,0,1) ):normalize()
-		elseif self.rightOrbit then
-			dir = sm.vec3.rotate( self.delta, math.rad(90), sm.vec3.new(0,0,1) ):normalize()
-		end
-
-		if dir ~= sm.vec3.zero() then
-			self.network:sendToServer("sv_applyImpulse", { char = self.playerChar, force = sm.vec3.new( 8000, 8000, 0 ) * dir * dt } )
-		end
-	else
-		self.leftOrbit = false
-		self.rightOrbit = false
-	end
-
-	if self.target ~= nil and sm.exists(self.target) and self.hookAttached then
-		self:cl_calcHookData( self.target )
-
-		local hit, result = sm.physics.raycast( self.playerPos, self.targetPos )
-
-		if hit then
-			if result.type == "Character" then
-				if type(self.target) == "Shape" or result:getCharacter() ~= self.target then
-					self:cl_toggleHook({ toggle = false, cd = true })
-				end
-			elseif result.type == "Shape" then
-				if type(self.target) == "Character" or result:getShape() ~= self.target then
-					self:cl_toggleHook({ toggle = false, cd = true })
-				end
-			end
-		end
-	end
+	if not sm.exists(self.tool) or not self.tool:isLocal() then return end
 
 	--Hook cooldown
-	if self.hookCD then
-		self.hookCDcount = self.hookCDcount + increase
-		if self.hookCDcount >= self.hookCDMax then
-			self.hookCDcount = self.hookCDMax
-			self.hookCD = false
+	if self.cl.useCD.active then
+		self.cl.useCD.timer:tick()
+		if self.cl.useCD.timer:done() then
+			self.cl.useCD.timer:reset()
+			self.cl.useCD.active = false
 			sm.audio.play("Blueprint - Open")
 			sm.gui.displayAlertText("Hook recharged.")
 		end
+
+		if self.cl.hookGui:isActive() then
+			self.cl.hookGui:close()
+		end
+
+		return
+	end
+
+	if not self.tool:isEquipped() then return end
+
+	--upgrades
+	self.cl.useCD.timer.ticks = self.cl.weaponData.mod1.up1.owned and meathookUseCD / 2 or meathookUseCD
+	if self.normalFireMode ~= nil then
+		self.normalFireMode.fireCooldown = self.cl.weaponData.mod1.up2.owned and 0.8 or 1.25
+	end
+
+	local clientData = self.cl.owner:getClientPublicData()
+	if clientData.data.playerData.meathookAttached and clientData.input[sm.interactable.actions.jump] then
+		self.network:sendToServer("sv_applyImpulse", { char = self.cl.owner.character, dir = se.vec3.up() * meathookDetachImpulse } )
+		self.cl.hookTarget = nil
+		self.network:sendToServer("sv_setHookTarget", { target = nil, player = self.cl.owner })
+	end
+
+	if self.cl.hookTarget ~= nil and sm.exists(self.cl.hookTarget) then
+		if self.cl.secState == 1 then
+			self.cl.hookTarget = nil
+			self.network:sendToServer("sv_setHookTarget", { target = nil, player = self.cl.owner })
+		end
+
+		return
+	else
+		self.cl.hookTarget = nil
+	end
+
+	local hit, result = sm.localPlayer.getRaycast( hookRange )
+	if hit then
+		local char = result:getCharacter()
+		local shape = result:getShape()
+		local target = char and isAnyOf(char:getCharacterType(), g_robots) and char or nil
+		target = shape and shape.uuid == hookPointUUID and shape or target
+
+		if target then
+			self:cl_updateHookGUI_HookTarget( target )
+		else
+			self.cl.hookGui:close()
+		end
+	else
+		self.cl.hookGui:close()
+	end
+end
+
+function SSG:cl_updateHookGUI_HookTarget( target )
+	self.cl.hookGui:open()
+	self.cl.hookGui:setWorldPosition( target:getWorldPosition() )
+
+	if self.cl.secState == sm.tool.interactState.start then
+		self.cl.hookTarget = target
+		self.cl.owner:getClientPublicData().data.playerData.meathookAttached = true
+		self.network:sendToServer("sv_setHookTarget", { target = target, player = self.cl.owner })
+		self.cl.hookGui:close()
+	end
+end
+
+function SSG:sv_setHookTarget( args )
+	self.sv.data.data.playerData.meathookAttached = args.target ~= nil
+	self.sv.hookTarget = args.target
+
+	self.network:sendToClients("cl_createHook", { player = args.player, target = args.target, pos = args.player:getCharacter():getWorldPosition(), dir = args.player:getCharacter():getDirection(), delete = args.target == nil } )
+end
+
+function SSG:cl_createHook( args )
+	local id = args.player:getId()
+	if args.delete then
+		self.cl.hooks[id].effect:stopImmediate()
+		self.cl.hooks[id] = nil
+
+		local player = sm.localPlayer.getPlayer()
+		if args.player == player then
+			player:getClientPublicData().data.playerData.meathookAttached = false
+			self.cl.useCD.active = true
+		end
+
+		return
+	end
+
+	local hook = sm.effect.createEffect("ShapeRenderable")
+	hook:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
+	hook:setParameter("color", self.cl.weaponData.mod1.mastery.owned and burningHookColour or normalHookColour)
+	hook:setPosition( args.pos )
+	hook:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 0, 1 ), args.dir ) )
+	hook:setScale(sm.vec3.new(0.1,0.1,0.1))
+	hook:start()
+	self.cl.hooks[id] = { effect = hook, player = args.player, target = args.target, pos = args.pos }
+end
+
+function SSG:server_onFixedUpdate( dt )
+	if self.sv.hookTarget ~= nil and sm.exists(self.sv.hookTarget) then
+		local playerChar = self.sv.owner:getCharacter()
+		local dir = self.sv.hookTarget:getWorldPosition() - playerChar.worldPosition
+
+		if dir:length() <= hookDetachDistance or se_weapon_isInvalidMeathookDir(self.sv.owner.character:getDirection():cross(dir)) then
+			self:sv_setHookTarget( { target = nil, player = self.sv.owner })
+			self.network:sendToClients("cl_reset")
+
+			--sm.physics.applyImpulse( playerChar, -playerChar.velocity * playerChar.mass)
+			--playerChar:setWorldPosition(playerChar.worldPosition)
+			return
+		end
+
+		local orbitDir = dir:rotate( math.rad(-90), se.vec3.up() )
+		if self.sv.data.input[sm.interactable.actions.right] then
+			dir = dir + orbitDir
+		end
+
+		if self.sv.data.input[sm.interactable.actions.left] then
+			dir = dir - orbitDir
+		end
+
+		sm.physics.applyImpulse(playerChar, dir:normalize() * hookForceMult, true)
+		--playerChar:setWorldPosition(playerChar.worldPosition + dir:normalize())
+	elseif self.sv.hookTarget ~= nil then
+		self:sv_setHookTarget( { target = nil, player = self.sv.owner })
+		self.network:sendToClients("cl_reset")
 	end
 end
 
 function SSG:sv_applyImpulse( args )
-	sm.physics.applyImpulse( args.char, args.force )
+	sm.physics.applyImpulse(args.char, args.dir, true)
 end
 
-function SSG.cl_onSecondaryUse( self, state )
-	if state == sm.tool.interactState.start and not self.hookAttached and self.target == nil then
-		local hit, result = sm.localPlayer.getRaycast( hookRange )
-		if hit then
-			self:cl_toggleHook({ toggle = true, data = result })
-		end
-	elseif state == sm.tool.interactState.start and self.hookAttached then
-		self:cl_toggleHook({ toggle = false, cd = true })
+function SSG:cl_reset()
+	if self.tool:isLocal() then
+		self.cl.hookTarget = nil
 	end
 end
 
-function SSG:cl_toggleHook( args )
-	if args.toggle --[[and not self.hookCD]] then
-		if args.data.type == "character" then
-			self.hookAttached = true
-			self.target = args.data:getCharacter()
-			self.targetPos = self.target:getWorldPosition()
-			self.ropeEffect:start()
-			self:cl_calcHookData( self.target )
-
-			self.network:sendToServer("sv_toggleHook", true )
-			sm.audio.play("WeldTool - Weld")
-
-			self.oneTickBehind = sm.game.getCurrentTick()
-			self.playerHeight = self.playerPos.z
-		elseif args.data.type == "body" then
-			if sm.shape.getShapeUuid( args.data:getShape() ) == hookPointUUID then
-				self.target = args.data:getShape()
-				self.targetUUID = sm.shape.getShapeUuid( self.target )
-				self.network:sendToServer("sv_hookAPoint", true)
-				self.network:sendToServer("sv_toggleHook", true )
-			else
-				sm.audio.play("Lever off")
-			end
-		else
-			sm.audio.play("Lever off")
-		end
-	elseif not args.toggle then
-		if type(self.target) == "Shape" then
-			self.network:sendToServer("sv_hookAPoint", false)
-		end
-
-		self.distanceNormalized = sm.vec3.zero()
-		self.distance = sm.vec3.zero()
-		if args.cd then
-			self.hookCD = true
-			self.hookCDcount = 0
-		end
-		self.ropeEffect:stop()
-
-		sm.audio.play("Lever off")
-		self.network:sendToServer("sv_toggleHook", false )
-	else
-		sm.audio.play("RaftShark")
-		sm.gui.displayAlertText("You dont have a hook charge yet.")
-	end
-end
-
-function SSG:sv_toggleHook( toggle )
-	self.playerChar:setSwimming( toggle )
-	sm.effect.playEffect( "Sledgehammer - Hit", self.targetPos )
-
-	if type(self.target) == "Character" then
-		if toggle then
-			sm.event.sendToUnit(self.target:getUnit(), "sv_onHook", { player = self.player, fire = self.data.mod1.mastery.owned } )
-		else
-			if self.target ~= nil and sm.exists(self.target) and sm.exists(self.target:getUnit()) then
-				sm.event.sendToUnit(self.target:getUnit(), "sv_onUnHook")
-			end
-			self.hookAttached = false
-			self.target = nil
-			self.targetPos = sm.vec3.zero()
-		end
-	end
-end
-
-function SSG:cl_calcHookData( hookedObj )
-	self.targetPos = hookedObj:getWorldPosition()
-	self.delta = (self.hookPos - self.targetPos)
-	self.rot = sm.vec3.getRotation(sm.vec3.new(0, 0, 1), self.delta)
-	self.distanceNormalized = self.delta:normalize() * -1
-	self.distance = sm.vec3.new(0.01, 0.01, self.delta:length())
-
-	self.ropeEffect:setPosition(self.targetPos + self.delta * 0.5)
-	self.ropeEffect:setScale(self.distance)
-	self.ropeEffect:setRotation(self.rot)
-end
-
-function SSG:sv_hookAPoint( toggle )
-	local hookPointData
-	if self.target ~= nil then
-		local int = self.target:getInteractable()
-		sm.event.sendToInteractable( int, "togglehook", toggle )
-		hookPointData = sm.interactable.getPublicData( int )
-	end
-
-	self.network:sendToClient(self.player, "cl_hookAPoint", { toggle = toggle, data = hookPointData })
-end
-
-function SSG:cl_hookAPoint( args )
-	if args.toggle and args.data.canBeHooked then
-		self.hookAttached = true
-		self:cl_calcHookData( self.target )
-		self.ropeEffect:start()
-		self.network:sendToServer("sv_toggleHook", true )
-		sm.audio.play("WeldTool - Weld")
-	else
-		self.hookAttached = false
-		self.target = nil
-		self:cl_toggleHook( { toggle = false, cd = false } )
-	end
-end
---SE
 
 function SSG.client_onUpdate( self, dt )
-	--SE
-	local increase = dt * self.spdMult
-	--SE
+	if not sm.exists(self.tool) then return end
+
+	for v, k in pairs(self.cl.hooks) do
+		if sm.exists(k.target) then
+			k.pos = self.tool:getOwner() == sm.localPlayer.getPlayer() and self.tool:isInFirstPersonView() and self.tool:getFpBonePos( "pejnt_barrel" ) or self.tool:getTpBonePos( "pejnt_barrel" )
+			local targetPos = k.target:getWorldPosition()
+			local delta = targetPos - k.pos
+			local rot = sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta)
+			local distance = sm.vec3.new(0.01, 0.01, delta:length())
+
+			k.effect:setPosition(k.pos + delta * 0.5)
+			k.effect:setScale(distance)
+			k.effect:setRotation(rot)
+		end
+	end
+
+	local increase = dt * self.cl.prpData.speedMultiplier.current
 
 	-- First person animation
 	local isSprinting =  self.tool:isSprinting()
@@ -634,14 +577,12 @@ function SSG.client_onUpdate( self, dt )
 end
 
 function SSG.client_onEquip( self, animate )
-	--SE
-	local data = {
+	--[[local data = {
 		mod = "ssg",
 		ammo = 0,
 		recharge = 0
 	}
-	self.network:sendToServer( "sv_saveCurrentWpnData", data )
-	--SE
+	self.network:sendToServer( "sv_saveCurrentWpnData", data )]]
 
 	if animate then
 		sm.audio.play( "PotatoRifle - Equip", self.tool:getPosition() )
@@ -675,14 +616,10 @@ function SSG.client_onEquip( self, animate )
 end
 
 function SSG.client_onUnequip( self, animate )
-	--SE
-	if self.hookAttached then
-		self:cl_toggleHook( { toggle = false, cd = true } )
+	if self.tool:isLocal() then
+		self.cl.hookGui:close()
 	end
 
-	self.hookGui:close()
-	--SE
-	
 	if animate then
 		sm.audio.play( "PotatoRifle - Unequip", self.tool:getPosition() )
 	end
@@ -877,7 +814,7 @@ function SSG.cl_onPrimaryUse( self, state )
 
 			local owner = self.tool:getOwner()
 			if owner then
-				sm.projectile.projectileAttack( proj_ssg, self.Damage, firePos, dir * fireMode.fireVelocity, owner, fakePosition, fakePositionSelf )
+				sm.projectile.projectileAttack( proj_ssg, baseDamage * self.cl.data.playerData.damageMultiplier, firePos, dir * fireMode.fireVelocity, owner, fakePosition, fakePositionSelf )
 			end
 
 			-- Timers
@@ -900,42 +837,16 @@ function SSG.cl_onPrimaryUse( self, state )
 end
 
 function SSG.client_onEquippedUpdate( self, primaryState, secondaryState )
-	--SE
-	if not self.hookCD then
-		local hit, result = sm.localPlayer.getRaycast( hookRange )
-		if hit and result:getCharacter() then
-			self.hookGui:setWorldPosition( result:getCharacter():getWorldPosition(), self.playerChar:getWorld() )
-			self.hookGui:setItemIcon( "Icon", "WaypointIconMap", "WaypointIconMap", "meathook" )
-			self.hookGui:setRequireLineOfSight( false )
-			self.hookGui:setMaxRenderDistance( 10000 )
+	self.cl.primState = primaryState
+	self.cl.secState = secondaryState
 
-			self.hookGui:open()
-		else
-			self.hookGui:close()
-		end
-	else
-		self.hookGui:close()
+	if self.cl.useCD.active then
+		sm.gui.setProgressFraction(self.cl.useCD.timer.count/self.cl.useCD.timer.ticks)
 	end
-
-	if self.tool:isInFirstPersonView() then
-		self.hookPos = self.tool:getFpBonePos( "pejnt_barrel" )
-	else
-		self.hookPos = self.tool:getTpBonePos( "pejnt_barrel" )
-	end
-
-	if self.hookCD then
-		sm.gui.setProgressFraction(self.hookCDcount/self.hookCDMax)
-	end
-	--SE
 
 	if primaryState ~= self.prevPrimaryState then
 		self:cl_onPrimaryUse( primaryState )
 		self.prevPrimaryState = primaryState
-	end
-
-	if secondaryState ~= self.prevSecondaryState then
-		self:cl_onSecondaryUse( secondaryState )
-		self.prevSecondaryState = secondaryState
 	end
 
 	return true, true
