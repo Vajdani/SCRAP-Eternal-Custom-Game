@@ -1,5 +1,6 @@
 {
    "particleSystemList" : [
-      "weapons/bfg/p_bfg_shoot.json"
+      "weapons/bfg/p_bfg_shoot.json",
+      "weapons/bfg/p_bfg_explode.json"
    ]
 }

@@ -1,0 +1,24 @@
+{
+	"Destroyer Blade":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/prj_destroyer_blade.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+	"Arbalest Dart":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/prj_arbalest.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	}
+}

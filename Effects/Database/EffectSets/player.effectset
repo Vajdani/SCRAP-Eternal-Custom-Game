@@ -1,0 +1,39 @@
+{
+	"BloodPunch":
+	{
+		"parameterList":
+		{
+			"Material": 1,
+			"Velocity_max_50": 10.0,
+			"Size": 0.005
+		},
+		"effectList":
+		[
+			{
+				"type": "audio",
+				"name": "Weapon - Hit",
+				"parameters":
+				[
+					"Material",
+					"Velocity_max_50",
+					"Size"
+				],
+				"delay": 0.0
+			},
+			{
+				"type": "audio",
+				"name": "WeldTool - Weld",
+				"parameters":
+				[],
+				"delay": 0.0
+			},
+			{
+				"type": "audio",
+				"name": "Retrobass",
+				"parameters":
+				[],
+				"delay": 0.0
+			}
+		]
+	}
+}

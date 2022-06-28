@@ -1,0 +1,37 @@
+{
+	"BFG Ball":
+	{
+		"effectList":
+		[
+			{
+				"type": "renderable",
+				"name": "$CONTENT_DATA/Effects/Rend/prj_bfgball.rend",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			}
+		]
+	},
+	"BFG Shoot":
+	{
+		"effectList":
+		[
+			{
+				"type": "particle",
+				"name": "p_bfg_shoot",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+				"delay": 0.0
+			}
+		]
+	},
+	"BFG Explode":
+	{
+		"effectList":
+		[
+			{
+				"type": "particle",
+				"name": "p_bfg_explode",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+				"delay": 0.0
+			}
+		]
+	}
+}

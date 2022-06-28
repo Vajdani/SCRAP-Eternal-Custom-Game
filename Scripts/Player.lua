@@ -846,7 +846,7 @@ function Player:sv_onInteract( args )
 			--normal punch
 			self:sv_normalPunch()
 			end
-	elseif hit and (result:getShape() ~= nil and (result:getShape():getShapeUuid() == prj_grenade or result:getShape():getShapeUuid() == prj_imploGrenade) or result:getAreaTrigger() ~= nil ) then
+	elseif hit and (result:getShape() ~= nil and (result:getShape():getShapeUuid() == grn_grenade or result:getShape():getShapeUuid() == grn_imploGrenade) or result:getAreaTrigger() ~= nil ) then
 		--grenade parry
 		local shape
 		if result:getAreaTrigger() ~= nil then
@@ -855,7 +855,7 @@ function Player:sv_onInteract( args )
 			shape = result:getShape()
 		end
 
-		if shape ~= nil and (result:getShape():getShapeUuid() == prj_grenade or result:getShape():getShapeUuid() == prj_imploGrenade) then
+		if shape ~= nil and (result:getShape():getShapeUuid() == grn_grenade or result:getShape():getShapeUuid() == grn_imploGrenade) then
 			local force = 15 * shape:getMass()
 			local impulse = sm.vec3.new( se.vec3.redirectVel( "x", force, shape ).x, se.vec3.redirectVel( "y", force, shape ).y, se.vec3.redirectVel( "z", force, shape ).z )
 			sm.physics.applyImpulse( shape, impulse * self.player.character.direction, true )

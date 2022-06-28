@@ -1,7 +1,7 @@
 --Projectiles
-prj_grenade = sm.uuid.new("c951da10-4f23-4321-84e9-1dd77d2a2d58")
-prj_icebomb = sm.uuid.new("239765a7-217d-4c52-8b32-a8fdd984080b")
-prj_imploGrenade = sm.uuid.new("117929a6-1394-421f-91ff-cf89d1e20c4f")
+grn_grenade = sm.uuid.new("c951da10-4f23-4321-84e9-1dd77d2a2d58")
+grn_icebomb = sm.uuid.new("239765a7-217d-4c52-8b32-a8fdd984080b")
+grn_imploGrenade = sm.uuid.new("117929a6-1394-421f-91ff-cf89d1e20c4f")
 
 --Terrain
 trn_boostpad = sm.uuid.new("450639d7-5a77-4900-8c49-a61314bc589b")

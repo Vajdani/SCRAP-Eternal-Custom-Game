@@ -361,16 +361,16 @@ function RLauncher.client_onReload( self )
 	return true
 end
 
---[[function RLauncher:client_onToggle()
-	if self.cl.fireRockets then return end
+function RLauncher:client_onToggle()
+	--[[if self.cl.fireRockets then return end
 
 	self.cl.fireType.count = self.cl.fireType.count + 1
 	self.cl.fireType.current = self.cl.fireType.count%2 == 0 and self.cl.fireType.types[1] or self.cl.fireType.types[2]
 	sm.gui.displayAlertText("Current fire mode: #ff9d00"..self.cl.fireType.current, 2.5)
-	sm.audio.play("PaintTool - ColorPick")
+	sm.audio.play("PaintTool - ColorPick")]]
 
 	return true
-end]]
+end
 
 function RLauncher:client_onClientDataUpdate( data, channel )
 	if not self.tool:isLocal() then return end
@@ -408,7 +408,7 @@ end
 function RLauncher:sv_detonateRockets()
 	for k, rocket in pairs(self.sv.detRockets) do
 		if sm.exists(rocket) then
-			sm.event.sendToScriptableObject(rocket, "sv_onDetonate")
+			sm.event.sendToScriptableObject(rocket, "sv_doRocketExplosion", true)
 		end
 	end
 

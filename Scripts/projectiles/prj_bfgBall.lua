@@ -7,42 +7,35 @@ BBall.speed = 0.2
 BBall.maxLifeTime = 7.5 * 40
 
 function BBall:server_onCreate()
-    local args = self.params
     self.sv = {}
-    self.sv.pos = args.pos
-    self.sv.dir = args.dir
-    self.sv.owner = args.owner
     self.sv.damageCounter = Timer()
     self.sv.damageCounter:start(self.damageFrequency)
-    self.sv.trigger = sm.areaTrigger.createSphere( 50, args.pos, sm.quat.identity(), sm.areaTrigger.filter.character )
 end
 
 function BBall:server_onFixedUpdate(dt)
     if not sm.exists(self.scriptableObject) then return end
 
     local tick = sm.game.getServerTick()
-    self.sv.pos = self.sv.pos + self.sv.dir * self.speed
-    self.sv.trigger:setWorldPosition(self.sv.pos)
-    local hit, result = sm.physics.raycast( self.sv.pos, self.sv.pos + self.sv.dir * self.speed )
+    local hit, result = sm.physics.raycast( self.cl.pos, self.cl.pos + self.cl.dir * self.speed )
 
     if hit or tick - self.params.spawnTick == self.maxLifeTime then
-        sm.effect.playEffect("PropaneTank - ExplosionSmall", self.sv.pos)
+        sm.physics.explode( self.cl.pos, 10, 2.5, 5, 150, "BFG Explode" )
         self.scriptableObject:destroy()
     else
         self.sv.damageCounter:tick()
         if self.sv.damageCounter:done() then
             self.sv.damageCounter:start(self.damageFrequency)
-            for k, char in pairs(self.sv.trigger:getContents()) do
+            for k, char in pairs(self.cl.trigger:getContents()) do
                 if sm.exists(char) and not char:isPlayer() and sm.exists(char:getUnit()) then
                     local charPos = char.worldPosition
-                    local hit, result = sm.physics.raycast(self.sv.pos, charPos, sm.areaTrigger.filter.character)
+                    local hit, result = sm.physics.raycast(self.cl.pos, charPos, sm.areaTrigger.filter.character)
                     if hit and result:getCharacter() == char then
                         sm.event.sendToUnit(char:getUnit(), "sv_se_takeDamage",
                             {
                                 damage = self.damage,
-                                impact = charPos - self.sv.pos,
+                                impact = charPos - self.cl.pos,
                                 hitPos = charPos,
-                                attacker = self.sv.owner
+                                attacker = self.params.owner
                             }
                         )
                     end

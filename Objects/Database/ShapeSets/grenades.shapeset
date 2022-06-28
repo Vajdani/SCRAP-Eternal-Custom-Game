@@ -2,14 +2,14 @@
 	"partList": [
 		{
 			"uuid": "c951da10-4f23-4321-84e9-1dd77d2a2d58",
-			"name": "prj_grenade",
+			"name": "grn_grenade",
 			"renderable": {
 				"lodList": [
 					{
 						"subMeshList": [
 							{
 								"textureList": [
-									"$CONTENT_DATA/Objects/Textures/gray.png", //prj_grenade_dif.png
+									"$CONTENT_DATA/Objects/Textures/gray.png", //grn_grenade_dif.png
 									"$GAME_DATA/Textures/transparent.tga",
 									"$GAME_DATA/Textures/nonor_nor.tga"
 									
@@ -17,7 +17,7 @@
 								"material": "DifAsgNor"
 							}
 						],
-						"mesh": "$CONTENT_DATA/Objects/Mesh/prj_icebomb.fbx" //prj_grenade.fbx
+						"mesh": "$CONTENT_DATA/Objects/Mesh/grn_icebomb.fbx" //grn_grenade.fbx
 					}
 				]
 			},
@@ -26,7 +26,7 @@
 				"diameter": 2
 			},
 			"scripted": {
-				"filename": "$CONTENT_DATA/Scripts/projectiles/prj_grenade.lua",
+				"filename": "$CONTENT_DATA/Scripts/grenades/grn_grenade.lua",
 				"classname": "Grenade",
 				"data": {}
 			},
@@ -50,14 +50,14 @@
 		},
 		{
 			"uuid": "239765a7-217d-4c52-8b32-a8fdd984080b",
-			"name": "prj_icebomb",
+			"name": "grn_icebomb",
 			"renderable": {
 				"lodList": [
 					{
 						"subMeshList": [
 							{
 								"textureList": [
-									"$CONTENT_DATA/Objects/Textures/prj_icebomb_dif.png",
+									"$CONTENT_DATA/Objects/Textures/grn_icebomb_dif.png",
 									"$GAME_DATA/Textures/transparent.tga",
 									"$GAME_DATA/Textures/nonor_nor.tga"
 									
@@ -65,7 +65,7 @@
 								"material": "DifAsgNor"
 							}
 						],
-						"mesh": "$CONTENT_DATA/Objects/Mesh/prj_icebomb.fbx"
+						"mesh": "$CONTENT_DATA/Objects/Mesh/grn_icebomb.fbx"
 					}
 				]
 			},
@@ -74,7 +74,7 @@
 				"diameter": 2
 			},
 			"scripted": {
-				"filename": "$CONTENT_DATA/Scripts/projectiles/prj_icebomb.lua",
+				"filename": "$CONTENT_DATA/Scripts/grenades/grn_icebomb.lua",
 				"classname": "IceBomb",
 				"data": {}
 			},
@@ -98,14 +98,14 @@
 		},
 		{
 			"uuid": "117929a6-1394-421f-91ff-cf89d1e20c4f",
-			"name": "prj_ImplosionBomb",
+			"name": "grn_ImplosionBomb",
 			"renderable": {
 				"lodList": [
 					{
 						"subMeshList": [
 							{
 								"textureList": [
-									"$CONTENT_DATA/Objects/Textures/green.png", //prj_grenade_dif.png
+									"$CONTENT_DATA/Objects/Textures/green.png", //grn_grenade_dif.png
 									"$GAME_DATA/Textures/transparent.tga",
 									"$GAME_DATA/Textures/nonor_nor.tga"
 									
@@ -113,7 +113,7 @@
 								"material": "DifAsgNor"
 							}
 						],
-						"mesh": "$CONTENT_DATA/Objects/Mesh/prj_icebomb.fbx" //prj_grenade.fbx
+						"mesh": "$CONTENT_DATA/Objects/Mesh/grn_icebomb.fbx" //grn_grenade.fbx
 					}
 				]
 			},
@@ -122,7 +122,7 @@
 				"diameter": 2
 			},
 			"scripted": {
-				"filename": "$CONTENT_DATA/Scripts/projectiles/prj_ImplosionBomb.lua",
+				"filename": "$CONTENT_DATA/Scripts/grenades/grn_ImplosionBomb.lua",
 				"classname": "ImploBomb",
 				"data": {}
 			},

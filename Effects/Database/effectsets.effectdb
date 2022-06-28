@@ -1,8 +1,12 @@
 {
    "effectSetList" : [
 		//mod
-		{ "path" : "$CONTENT_DATA/Effects/Database/EffectSets/harvestable_effects.effectset", "showInEditor" : true },
-		{ "path" : "$CONTENT_DATA/Effects/Database/EffectSets/weapon_effects.effectset", "showInEditor" : true },
+		{ "path" : "$CONTENT_DATA/Effects/Database/EffectSets/harvestable.effectset", "showInEditor" : true },
+		{ "path" : "$CONTENT_DATA/Effects/Database/EffectSets/player.effectset", "showInEditor" : true },
+		{ "path" : "$CONTENT_DATA/Effects/Database/EffectSets/weapons/bfg/bfg.effectset", "showInEditor" : true },
+		{ "path" : "$CONTENT_DATA/Effects/Database/EffectSets/weapons/ballista/ballista.effectset", "showInEditor" : true },
+		{ "path" : "$CONTENT_DATA/Effects/Database/EffectSets/weapons/rocketlauncher/rocketlauncher.effectset", "showInEditor" : true },
+		{ "path" : "$CONTENT_DATA/Effects/Database/EffectSets/weapons/chaingun/chaingun.effectset", "showInEditor" : true },
 
 		//crative
 		{ "path":"$GAME_DATA/Effects/Database/EffectSets/interactive.json", "showInEditor": false },

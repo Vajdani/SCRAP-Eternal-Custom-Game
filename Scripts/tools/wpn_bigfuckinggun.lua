@@ -160,6 +160,18 @@ function BFG:sv_onToggle( pos )
 	sm.unit.createUnit(unit_totebot_green, pos)
 end
 
+function BFG:sv_startShootEffect()
+	self.network:sendToClients("cl_startShootEffect")
+end
+
+function BFG:cl_startShootEffect()
+	if self.tool:isInFirstPersonView() then
+		self.shootEffectFP:start()
+	else
+		self.shootEffect:start()
+	end
+end
+
 function BFG:sv_shootBall( args )
 	sm.container.beginTransaction()
 	sm.container.spend( args.owner:getInventory(), se_ammo_argent, 30, true )
@@ -186,7 +198,7 @@ function BFG.client_onFixedUpdate( self, dt )
 			local player = sm.localPlayer.getPlayer()
 			self.network:sendToServer("sv_shootBall",
 				{
-					pos = player.character.worldPosition + camPosDifference + dir,
+					pos = self:calculateTpMuzzlePos(),
 					dir = dir,
 					owner = player
 				}
@@ -243,42 +255,11 @@ function BFG.client_onUpdate( self, dt )
 		return
 	end
 
-	local effectPos, rot
-
-	if self.tool:isLocal() then
-
-		local zOffset = 0.6
-		if self.tool:isCrouching() then
-			zOffset = 0.29
-		end
-
-		local dir = sm.localPlayer.getDirection()
-		local firePos = self.tool:getFpBonePos( "pejnt_barrel" )
-
-		if not self.aiming then
-			effectPos = firePos + dir * 0.2
-		else
-			effectPos = firePos + dir * 0.45
-		end
-
-		rot = sm.vec3.getRotation( sm.vec3.new( 0, 0, 1 ), dir )
-
-
-		self.shootEffectFP:setPosition( effectPos )
-		self.shootEffectFP:setVelocity( self.tool:getMovementVelocity() )
-		self.shootEffectFP:setRotation( rot )
-	end
-	local pos = self.tool:getTpBonePos( "pejnt_barrel" )
 	local dir = self.tool:getTpBoneDir( "pejnt_barrel" )
-
-	effectPos = pos + dir * 0.2
-
-	rot = sm.vec3.getRotation( sm.vec3.new( 0, 0, 1 ), dir )
-
-
-	self.shootEffect:setPosition( effectPos )
-	self.shootEffect:setVelocity( self.tool:getMovementVelocity() )
-	self.shootEffect:setRotation( rot )
+	if self.tool:isLocal() then
+		self.shootEffectFP:setPosition( self:calculateFpMuzzlePos() + dir * 0.25 )
+	end
+	self.shootEffect:setPosition( self.tool:getTpBonePos( "pejnt_barrel" ) + dir * 1.25 )
 
 	-- Timers
 	self.fireCooldownTimer = math.max( self.fireCooldownTimer - dt, 0.0 )
@@ -493,13 +474,6 @@ function BFG.onShoot( self, dir )
 	self.tpAnimations.animations.aimShoot.time = 0
 
 	setTpAnimation( self.tpAnimations, self.aiming and "aimShoot" or "shoot", 10.0 )
-
-	if self.tool:isInFirstPersonView() then
-			self.shootEffectFP:start()
-		else
-			self.shootEffect:start()
-	end
-
 end
 
 function BFG.calculateFirePosition( self )
@@ -643,6 +617,7 @@ function BFG.cl_onPrimaryUse( self, state )
 			local owner = self.tool:getOwner()
 			if owner then
 				self.shootDelay.active = true
+				self.network:sendToServer("sv_startShootEffect")
 			end
 		else
 			local fireMode = self.aiming and self.aimFireMode or self.normalFireMode

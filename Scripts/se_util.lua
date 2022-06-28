@@ -8,9 +8,9 @@ bloodFueledSpeedFraction = 1.5
 airControlSpeed = 20
 projectileSaveKey = "DOOM_Projectiles"
 grenades = {
-	{ throwable = prj_grenade, name = "Frag Grenade" },
-	{ throwable = prj_icebomb, name = "Ice Bomb" },
-	{ throwable = prj_imploGrenade, name = "Implosion Bomb" }
+	{ throwable = grn_grenade, name = "Frag Grenade" },
+	{ throwable = grn_icebomb, name = "Ice Bomb" },
+	{ throwable = grn_imploGrenade, name = "Implosion Bomb" }
 }
 dashImpulse = sm.vec3.new(2500, 2500, 0)
 gkMinSpeed = 2
@@ -391,7 +391,7 @@ se.physics.explode = function( position, level, destructionRadius, impulseRadius
     for v, obj in pairs( addTables({ impulseContacts.characters, impulseContacts.bodies }) ) do
         --local adjust = type(obj) == "Character" and obj:getHeight() / 2 or 0
 
-        if type(obj) ~= "Body" or not isAnyOf(obj:getShapes()[1].uuid, { prj_grenade, prj_icebomb, prj_imploGrenade }) then
+        if type(obj) ~= "Body" or not isAnyOf(obj:getShapes()[1].uuid, { grn_grenade, grn_icebomb, grn_imploGrenade }) then
             local dir = obj:getWorldPosition() - position
             sm.physics.applyImpulse(
                 obj,
