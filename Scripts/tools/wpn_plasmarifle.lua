@@ -644,9 +644,9 @@ function PRifle.client_onUpdate( self, dt )
 
 	local linareAngleDown = clamp( -linareAngle, 0.0, 1.0 )
 
-	down = clamp( -angle, 0.0, 1.0 )
-	fwd = ( 1.0 - math.abs( angle ) )
-	up = clamp( angle, 0.0, 1.0 )
+	local down = clamp( -angle, 0.0, 1.0 )
+	local fwd = ( 1.0 - math.abs( angle ) )
+	local up = clamp( angle, 0.0, 1.0 )
 
 	local crouchWeight = self.tool:isCrouching() and 1.0 or 0.0
 	local normalWeight = 1.0 - crouchWeight
@@ -756,8 +756,8 @@ function PRifle.client_onEquip( self, animate )
 	self.aimWeight = math.max( cameraWeight, cameraFPWeight )
 	self.jointWeight = 0.0
 
-	currentRenderablesTp = {}
-	currentRenderablesFp = {}
+	local currentRenderablesTp = {}
+	local currentRenderablesFp = {}
 
 	for k,v in pairs( renderablesTp ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
 	for k,v in pairs( renderablesFp ) do currentRenderablesFp[#currentRenderablesFp+1] = v end

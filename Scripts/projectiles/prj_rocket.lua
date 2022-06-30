@@ -7,18 +7,18 @@
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
 
 Rocket = class()
-Rocket.speed = 0.5
+Rocket.speed = 0.75
 Rocket.maxLifeTime = 15 * 40
 
 function Rocket:server_onFixedUpdate(dt)
     if not sm.exists(self.scriptableObject) then return end
 
     local tick = sm.game.getServerTick()
-    local hit, result = sm.physics.raycast( self.cl.pos, self.cl.pos + self.cl.dir * self.speed )
+    local hit, result = sm.physics.raycast( self.cl.pos, self.cl.pos + self.cl.dir )
     local hitChar = result:getCharacter()
     local shouldExplode = hit and (hitChar == nil or not hitChar:isPlayer() or hitChar:getPlayer() ~= self.params.owner)
 
-    if shouldExplode or tick - self.params.spawnTick == self.maxLifeTime then
+    if shouldExplode or tick - self.params.spawnTick >= self.maxLifeTime then
         self:sv_doRocketExplosion()
     end
 end
@@ -96,17 +96,4 @@ function Rocket:client_onDestroy()
     self.cl.effect:destroy()
     self.cl.thrust:destroy()
     self.cl.flare:destroy()
-end
-
-
-
-function enemiesInTrigger( trigger )
-    local enemies = {}
-    for k, char in pairs(trigger:getContents()) do
-        if sm.exists(char) and not char:isPlayer() then
-            enemies[#enemies+1] = char
-        end
-    end
-
-    return enemies
 end

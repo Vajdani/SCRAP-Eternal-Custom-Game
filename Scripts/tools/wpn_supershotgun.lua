@@ -577,13 +577,6 @@ function SSG.client_onUpdate( self, dt )
 end
 
 function SSG.client_onEquip( self, animate )
-	--[[local data = {
-		mod = "ssg",
-		ammo = 0,
-		recharge = 0
-	}
-	self.network:sendToServer( "sv_saveCurrentWpnData", data )]]
-
 	if animate then
 		sm.audio.play( "PotatoRifle - Equip", self.tool:getPosition() )
 	end
@@ -594,8 +587,8 @@ function SSG.client_onEquip( self, animate )
 	self.aimWeight = math.max( cameraWeight, cameraFPWeight )
 	self.jointWeight = 0.0
 
-	currentRenderablesTp = {}
-	currentRenderablesFp = {}
+	local currentRenderablesTp = {}
+	local currentRenderablesFp = {}
 
 	for k,v in pairs( renderablesTp ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
 	for k,v in pairs( renderablesFp ) do currentRenderablesFp[#currentRenderablesFp+1] = v end
@@ -776,7 +769,7 @@ function SSG.cl_onPrimaryUse( self, state )
 
 			local dir = sm.localPlayer.getDirection()
 
-			firePos = self:calculateFirePosition()
+			local firePos = self:calculateFirePosition()
 			local fakePosition = self:calculateTpMuzzlePos()
 			local fakePositionSelf = fakePosition
 			if firstPerson then

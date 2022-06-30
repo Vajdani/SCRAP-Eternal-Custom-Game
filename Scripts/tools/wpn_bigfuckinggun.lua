@@ -29,7 +29,7 @@ function BFG.client_onCreate( self )
 		timer = Timer(),
 		active = false
 	}
-	self.shootDelay.timer:start( 20 )
+	self.shootDelay.timer:start( 40 )
 end
 
 function BFG.client_onRefresh( self )
@@ -191,7 +191,8 @@ function BFG.client_onFixedUpdate( self, dt )
 	if self.shootDelay.active then
 		self.shootDelay.timer:tick()
 		if self.shootDelay.timer:done() then
-			self.shootDelay.timer:start(20)
+			sm.tool.forceTool(nil)
+			self.shootDelay.timer:reset()
 			self.shootDelay.active = false
 
 			local dir = sm.localPlayer.getDirection()
@@ -255,11 +256,13 @@ function BFG.client_onUpdate( self, dt )
 		return
 	end
 
-	local dir = self.tool:getTpBoneDir( "pejnt_barrel" )
+	local dir = self.tool:getOwner().character.direction
 	if self.tool:isLocal() then
 		self.shootEffectFP:setPosition( self:calculateFpMuzzlePos() + dir * 0.25 )
+		self.shootEffectFP:setRotation( sm.vec3.getRotation( sm.vec3.new( 1, 0, 0 ), dir ) )
 	end
 	self.shootEffect:setPosition( self.tool:getTpBonePos( "pejnt_barrel" ) + dir * 1.25 )
+	self.shootEffect:setRotation( sm.vec3.getRotation( sm.vec3.new( -1, 0, 0 ), dir ) )
 
 	-- Timers
 	self.fireCooldownTimer = math.max( self.fireCooldownTimer - dt, 0.0 )
@@ -617,6 +620,7 @@ function BFG.cl_onPrimaryUse( self, state )
 			local owner = self.tool:getOwner()
 			if owner then
 				self.shootDelay.active = true
+				sm.tool.forceTool(self.tool)
 				self.network:sendToServer("sv_startShootEffect")
 			end
 		else

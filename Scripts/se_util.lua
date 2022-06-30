@@ -564,3 +564,14 @@ function getGui_RunesIndexByRuneName( name )
 
     return nil
 end
+
+function enemiesInTrigger( trigger )
+    local enemies = {}
+    for k, char in pairs(trigger:getContents()) do
+        if sm.exists(char) and not char:isPlayer() then
+            enemies[#enemies+1] = char
+        end
+    end
+
+    return enemies
+end

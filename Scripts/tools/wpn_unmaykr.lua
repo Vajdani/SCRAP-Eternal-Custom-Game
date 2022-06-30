@@ -514,9 +514,9 @@ function Unmaykr.onShoot( self, dir )
 	setTpAnimation( self.tpAnimations, self.aiming and "aimShoot" or "shoot", 10.0 )
 
 	if self.tool:isInFirstPersonView() then
-			self.shootEffectFP:start()
-		else
-			self.shootEffect:start()
+		self.shootEffectFP:start()
+	else
+		self.shootEffect:start()
 	end
 
 end

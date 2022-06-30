@@ -16,29 +16,30 @@ function BBall:server_onFixedUpdate(dt)
     if not sm.exists(self.scriptableObject) then return end
 
     local tick = sm.game.getServerTick()
-    local hit, result = sm.physics.raycast( self.cl.pos, self.cl.pos + self.cl.dir * self.speed )
+    local hit, result = sm.physics.raycast( self.cl.pos, self.cl.pos + self.cl.dir )
 
-    if hit or tick - self.params.spawnTick == self.maxLifeTime then
-        sm.physics.explode( self.cl.pos, 10, 2.5, 5, 150, "BFG Explode" )
+    if hit or tick - self.params.spawnTick >= self.maxLifeTime then
+        sm.physics.explode( self.cl.pos, 10, 2.5, 5, 100, "BFG Explode" )
         self.scriptableObject:destroy()
-    else
-        self.sv.damageCounter:tick()
-        if self.sv.damageCounter:done() then
-            self.sv.damageCounter:start(self.damageFrequency)
-            for k, char in pairs(self.cl.trigger:getContents()) do
-                if sm.exists(char) and not char:isPlayer() and sm.exists(char:getUnit()) then
-                    local charPos = char.worldPosition
-                    local hit, result = sm.physics.raycast(self.cl.pos, charPos, sm.areaTrigger.filter.character)
-                    if hit and result:getCharacter() == char then
-                        sm.event.sendToUnit(char:getUnit(), "sv_se_takeDamage",
-                            {
-                                damage = self.damage,
-                                impact = charPos - self.cl.pos,
-                                hitPos = charPos,
-                                attacker = self.params.owner
-                            }
-                        )
-                    end
+        return
+    end
+
+    self.sv.damageCounter:tick()
+    if self.sv.damageCounter:done() then
+        self.sv.damageCounter:reset()
+        for k, char in pairs(self.cl.trigger:getContents()) do
+            if sm.exists(char) and not char:isPlayer() and sm.exists(char:getUnit()) then
+                local charPos = char.worldPosition
+                local hit, result = sm.physics.raycast(self.cl.pos, charPos, sm.areaTrigger.filter.character)
+                if hit and result:getCharacter() == char then
+                    sm.event.sendToUnit(char:getUnit(), "sv_se_takeDamage",
+                        {
+                            damage = self.damage,
+                            impact = charPos - self.cl.pos,
+                            hitPos = charPos,
+                            attacker = self.params.owner
+                        }
+                    )
                 end
             end
         end

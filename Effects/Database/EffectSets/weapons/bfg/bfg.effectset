@@ -1,36 +1,99 @@
 {
-	"BFG Ball":
-	{
-		"effectList":
-		[
+	"BFG Ball" : {
+		"effectList" : [
 			{
-				"type": "renderable",
-				"name": "$CONTENT_DATA/Effects/Rend/prj_bfgball.rend",
-				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 }
+				"offset" : [ 0.0, 0.0, 0.0 ],
+				"name" : "$CONTENT_DATA/Effects/Rend/prj_bfgball.rend",
+				"type" : "renderable"
 			}
 		]
 	},
-	"BFG Shoot":
-	{
-		"effectList":
-		[
+	"BFG Explode" : {
+		"maxInstances": 64,
+		"parameterList":
+		{
+			"size": 0.0,
+			"color": "22b14d",
+			"radius": 16.0,
+			"intensity": 2.0,
+			"shakeStrength": 0.5,
+			"shakeRadius": 40.0
+		},
+		"parameterCurves":
+		{
+			"radius":
 			{
-				"type": "particle",
-				"name": "p_bfg_shoot",
+				"timeline":
+				[
+					{ "time":0.0, "value":0.0 },
+					{ "time":0.1, "value":15.0 },
+					{ "time":0.6, "value":0.0 }
+				]
+			}
+		},
+		"effectList" : [
+			{
+				"delay" : 0.0,
+				"offset" : [ 0.0, 0.0, 0.0 ],
+				"name" : "p_bfg_explode",
+				"attached": true,
+				"type" : "particle"
+			},
+			{
+				"type": "audio",
+				"name": "Gas Explosion",
 				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+				"parameters":
+				[
+					"size"
+				],
+				"delay": 0.0
+			},
+			{
+				"type": "pointLight",
+				"name": "",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+				"parameters":
+				[
+					"color",
+					"radius",
+					"intensity"
+				],
+				"duration": 1.0,
+				"delay": 0.0
+			},
+			{
+				"type": "cameraShake",
+				"name": "",
+				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
+				"parameters":
+				[
+					"shakeStrength",
+					"shakeRadius"
+				],
+				"duration": 0.4,
 				"delay": 0.0
 			}
 		]
 	},
-	"BFG Explode":
-	{
-		"effectList":
-		[
+	"BFG Shoot" : {
+		"effectList" : [
 			{
-				"type": "particle",
-				"name": "p_bfg_explode",
-				"offset": { "x": 0.0, "y": 0.0, "z": 0.0 },
-				"delay": 0.0
+				"delay" : 0.0,
+				"offset" : [ 0.0, 0.0, 0.0 ],
+				"name" : "p_bfg_shoot",
+				"type" : "particle"
+			},
+			{
+				"name" : "event:/props/installations/farmerhideout/hideout_vacuum",
+				"delay" : 0.0,
+				"duration" : 0.850,
+				"type" : "audio"
+			},
+			{
+				"name" : "event:/tools/vacuum/vacuum_blowout",
+				"delay" : 1,
+				"type" : "audio"
 			}
 		]
 	}

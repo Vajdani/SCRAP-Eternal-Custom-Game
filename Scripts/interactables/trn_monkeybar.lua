@@ -15,7 +15,7 @@ function MonkeyBar:sv_applyBoost(trigger, result)
     for _, char in ipairs(result) do
         if char:isPlayer() then
             local boostDir = char:getDirection()
-            sm.physics.applyImpulse(char, sm.vec3.new( 800 * boostDir.x, 800 * boostDir.y, se.vec3.redirectVel( "z", 800, char ).z ) )
+            sm.physics.applyImpulse(char, sm.vec3.new( 800 * boostDir.x, 800 * boostDir.y, se.vec3.redirectVel( "z", 1000, char ).z ) )
             self.network:sendToClient(char:getPlayer(), "cl_playAudio")
         end
     end

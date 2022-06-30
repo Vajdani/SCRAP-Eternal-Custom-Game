@@ -81,12 +81,9 @@ proj_ammo = sm.uuid.new("56c3d9b5-7736-4c64-8714-7a64dd7911cc")
 --= sm.uuid.new("")
 proj_bfgBall_sob = sm.uuid.new("5b4592b8-89a4-49a1-8558-2ac9f603c219")
 proj_rocket_sob = sm.uuid.new("59b7e8a7-e633-4d8d-8873-4bd7ce021be4")
-
-g_customProjs = {
-    bfg = {
-        
-    }
-}
+proj_arbalest_sob = sm.uuid.new("b65a6025-fb6e-4341-b18f-128102e11cfc")
+proj_blade_sob = sm.uuid.new("1dcf8c1c-fae1-41a0-b90f-9f64cb362544")
+proj_shield_sob = sm.uuid.new("bc2a2db6-6d0e-405b-bd70-4afb559552b4")
 
 --gui
 gui_runes = {

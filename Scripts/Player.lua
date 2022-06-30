@@ -1519,7 +1519,6 @@ function Player.client_onCreate( self )
 	if self.player ~= sm.localPlayer.getPlayer() then return end
 
 	self.cl.currentPowerupColor = nil
-	self.cl.camPos = sm.vec3.zero()
 
 	self.cl.cameraMove = {
 		active = false,
@@ -1532,9 +1531,11 @@ function Player.client_onCreate( self )
 		mode = ""
 	}
 
-	self.cl.survivalHud = sm.gui.createSurvivalHudGui()
-	self.cl.survivalHud:setVisible("WaterBar", false)
-	self.cl.survivalHud:open()
+	g_survivalHud = sm.gui.createSurvivalHudGui()
+	g_survivalHud:setVisible("WaterBar", false)
+	g_survivalHud:open()
+
+	--g_doomHud = sm.gui.createGuiFromLayout()
 
 	self.cl.powerup = {
 		colour = nil,
@@ -1545,7 +1546,10 @@ function Player.client_onCreate( self )
 		{
 			data = {},
 			weaponMod = {
-
+				mod = "none",
+				using = false,
+				ammo = 0,
+				recharge = 0
 			},
 			powerup = {
 				speedMultiplier = { current = 1, active = 2, default = 1, colour = sm.color.new("#fff200") },
@@ -1678,8 +1682,8 @@ function Player:client_onClientDataUpdate( data, channel )
 		self:cl_displayMsg( { msg = self.cl.powerup.text, dur = 1 } )
 	end
 
-	self.cl.survivalHud:setSliderData( "Health", data.stats.maxhealth * 10 + 1, data.stats.health * 10 )
-	self.cl.survivalHud:setSliderData( "Food", data.stats.maxarmour * 10 + 1, data.stats.armour * 10 )
+	g_survivalHud:setSliderData( "Health", data.stats.maxhealth * 10 + 1, data.stats.health * 10 )
+	g_survivalHud:setSliderData( "Food", data.stats.maxarmour * 10 + 1, data.stats.armour * 10 )
 end
 
 function Player:cl_displayMsg( args )

@@ -11,6 +11,24 @@
 			"classname": "Rocket",
 			"name": "proj_rocket_sob",
 			"uuid": "59b7e8a7-e633-4d8d-8873-4bd7ce021be4"
+		},
+		{
+			"filename": "$CONTENT_DATA/Scripts/projectiles/prj_arbalest.lua",
+			"classname": "Arb",
+			"name": "proj_arbalest_sob",
+			"uuid": "b65a6025-fb6e-4341-b18f-128102e11cfc"
+		},
+		{
+			"filename": "$CONTENT_DATA/Scripts/projectiles/prj_blade.lua",
+			"classname": "Blade",
+			"name": "proj_blade_sob",
+			"uuid": "1dcf8c1c-fae1-41a0-b90f-9f64cb362544"
+		},
+		{
+			"filename": "$CONTENT_DATA/Scripts/projectiles/prj_shield.lua",
+			"classname": "Shield",
+			"name": "proj_shield_sob",
+			"uuid": "bc2a2db6-6d0e-405b-bd70-4afb559552b4"
 		}
 	]
 }

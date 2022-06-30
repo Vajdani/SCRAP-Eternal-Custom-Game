@@ -557,7 +557,7 @@ function PotatoShotgun.client_onUpdate( self, dt )
 
 	if self.tool:isLocal() then
 		local dispersion = 0.0
-		fireMode = self.aiming and self.aimFireMode or self.normalFireMode
+		local fireMode = self.aiming and self.aimFireMode or self.normalFireMode
 		local recoilDispersion = 1.0 - ( math.max( fireMode.minDispersionCrouching, fireMode.minDispersionStanding ) + fireMode.maxMovementDispersion )
 
 		if isCrouching then
@@ -716,8 +716,8 @@ function PotatoShotgun.client_onEquip( self, animate )
 	self.aimWeight = math.max( cameraWeight, cameraFPWeight )
 	self.jointWeight = 0.0
 
-	currentRenderablesTp = {}
-	currentRenderablesFp = {}
+	local currentRenderablesTp = {}
+	local currentRenderablesFp = {}
 
 	for k,v in pairs( renderablesTp ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
 	for k,v in pairs( renderablesFp ) do currentRenderablesFp[#currentRenderablesFp+1] = v end
