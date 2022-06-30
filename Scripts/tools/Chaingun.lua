@@ -2,6 +2,8 @@ dofile "$GAME_DATA/Scripts/game/AnimationUtil.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 dofile "$SURVIVAL_DATA/Scripts/game/survival_shapes.lua"
 
+dofile "$SURVIVAL_DATA/Scripts/game/util/Timer.lua"
+
 
 Chaingun = class()
 Chaingun.mod1 = "Mobile Turret"
@@ -37,6 +39,7 @@ Chaingun.firePosOffsets = {
 	function() return -sm.localPlayer.getRight() * 0.5 - sm.vec3.new(0,0,0.5) end,
 	function() return -sm.localPlayer.getRight() end
 }
+Chaingun.baseDamage = 26
 
 for k, v in pairs(Chaingun.renderables) do
 	sm.tool.preloadRenderables( v )
@@ -64,13 +67,13 @@ end
 
 
 function Chaingun:cl_startShield()
-	self.cl.shield:start()
-	self.cl.energyShieldActive = true
+	self.cl.shield.effect:start()
+	self.cl.shield.active = true
 end
 
 function Chaingun:cl_stopShield()
-	self.cl.shield:stop()
-	self.cl.energyShieldActive = false
+	self.cl.shield.effect:stop()
+	self.cl.shield.active = false
 end
 
 function Chaingun.client_onCreate( self )
@@ -82,20 +85,20 @@ function Chaingun.client_onCreate( self )
 	self.cl.baseWeapon = BaseWeapon()
 	self.cl.baseWeapon.cl_onCreate( self, "chaingun" )
 
-	self.cl.energyShieldActive = false
-	self.cl.shield = sm.effect.createEffect("Energy Shield")
+	self.cl.shield = {
+		active = false,
+		effect = sm.effect.createEffect("Energy Shield") 
+	}
 
 	local minColor = sm.color.new( 0.0, 0.0, 0.25, 0.1 )
 	local maxColor = sm.color.new( 0.0, 0.3, 0.75, 0.6 ) --0.6 for Alpha
-	self.cl.shield:setParameter( "minColor", minColor )
-	self.cl.shield:setParameter( "maxColor", maxColor )
+	self.cl.shield.effect:setParameter( "minColor", minColor )
+	self.cl.shield.effect:setParameter( "maxColor", maxColor )
 
 	if not self.tool:isLocal() then return end
 	self.cl.playerData = self.cl.ownerData.data.playerData
 
-	self.dmgMult = 1
-	self.spdMult = 1
-	self.Damage = 20
+	self.cl.spdMult = 1
 
 	--self.mod1
 	self.cl.mobileTurretActivateCD = 1.5
@@ -106,11 +109,11 @@ function Chaingun.client_onCreate( self )
 	self.cl.trMobility = false
 
 	--self.mod2
-	self.cl.energyShieldActiveCD = 5
-	self.cl.canUseEnergyShield = true
-	self.cl.esRechargeDivider = 3
-	self.cl.esCanProgress = true
-	self.cl.esMasteryKills = 0
+	self.cl.shield.timer = Timer()
+	self.cl.shield.timer:start( 5*40 )
+	self.cl.shield.canUse = true
+	self.cl.shield.canProgress = true
+	self.cl.shield.masteryKills = 0
 end
 
 function Chaingun.client_onRefresh( self )
@@ -238,20 +241,13 @@ function Chaingun:client_onFixedUpdate( dt )
 
 	self.cl.baseWeapon.cl_onFixed( self )
 
-	self.dmgMult = 1 --playerData.damageMultiplier
-	self.spdMult = 1 --playerData.speedMultiplier
-
 	--upgrades
 	self.cl.mobileTurretActivateMax = self.cl.weaponData.mod1.up1.owned and 0.75 or 1.5
 	self.cl.trMobility = self.cl.weaponData.mod1.up2.owned and true or false
-	self.cl.esRechargeDivider = self.cl.weaponData.mod2.up1.owned and 1.875 or 3
-
-	self.Damage = self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and 26 or 24
 
 	--powerup
-	local increase = dt * self.spdMult
-	local multVal = self.berserk and self.dmgMult * 4 or self.dmgMult
-	self.Damage = self.Damage * multVal
+	local speedMult = self.cl.powerups.speedMultiplier.current
+	local increase = dt * speedMult
 
 	--self.mod1 activate
 	if self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.modSwitch.active then
@@ -285,21 +281,21 @@ function Chaingun:client_onFixedUpdate( dt )
 	for pos, val in pairs(self.cl.playerData.kills) do
 		kills = kills + val
 	end
-	self.cl.esMasteryKills = kills
+	self.cl.shield.masteryKills = kills
 
 	if self.cl.weaponData.mod1.up1.owned and self.cl.weaponData.mod1.up2.owned and not self.cl.weaponData.mod1.mastery.owned then
-		if self.cl.esCanProgress and self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.overheated then
+		if self.cl.shield.canProgress and self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.overheated then
 
-			if self.cl.esMasteryKills >= 5 then
+			if self.cl.shield.masteryKills >= 5 then
 				self.cl.weaponData.mod1.mastery.progress = self.cl.weaponData.mod1.mastery.progress + 1
-				self.cl.esCanProgress = false
+				self.cl.shield.canProgress = false
 				self.network:sendToServer("sv_saveESMastery")
 				for pos, val in pairs(self.cl.playerData.kills) do
 					self.cl.playerData.kills[pos] = 0
 				end
 			end
 		elseif self.cl.currentWeaponMod == self.mod1 and (not self.cl.usingMod or self.cl.overheated) then
-			self.cl.esCanProgress = true
+			self.cl.shield.canProgress = true
 			for pos, val in pairs(self.cl.playerData.kills) do
 				self.cl.playerData.kills[pos] = 0
 			end
@@ -307,14 +303,14 @@ function Chaingun:client_onFixedUpdate( dt )
 	end
 
 	--self.mod2
-	if self.cl.currentWeaponMod == self.mod2 and self.cl.energyShieldActive and self.cl.canUseEnergyShield then
-		--self.cl.energyShieldActiveCD = self.cl.energyShieldActiveCD - dt
-		if self.cl.energyShieldActiveCD <= 0 then
-			self.cl.canUseEnergyShield = false
-			self.cl.energyShieldActive = false
+	if self.cl.currentWeaponMod == self.mod2 and self.cl.shield.active and self.cl.shield.canUse then
+		self.cl.shield.timer:tick()
+		if self.cl.shield.timer:done() then
+			self.cl.shield.canUse = false
+			self.cl.shield.active = false
 			self.cl.playerData.isInvincible = false
 
-			if self.cl.playerData.damage >= 500 then
+			--if self.cl.playerData.damage >= 500 then
 				self.network:sendToServer("sv_shootShield",
 					{
 						pos = self:calculateFirePosition(),
@@ -325,22 +321,25 @@ function Chaingun:client_onFixedUpdate( dt )
 				)
 				
 				sm.audio.play( "Retrofmblip" )
-			end
+			--end
 
 			self.network:sendToServer("sv_stopShield")
 		end
 	end
 
-	if self.cl.energyShieldActiveCD < 5 and not self.cl.energyShieldActive then
-		self.cl.energyShieldActiveCD = self.cl.energyShieldActiveCD + increase/3
-		if self.cl.energyShieldActiveCD >= 5 then
-			self.cl.energyShieldActiveCD = 5
-			self.cl.canUseEnergyShield = true
+	if self.cl.shield.timer.count > 0 and not self.cl.shield.active then
+		for i = 1, speedMult do
+			self.cl.shield.timer.count = self.cl.shield.timer.count - 1
+		end
+		
+		if self.cl.shield.timer.count <= 0 then
+			self.cl.shield.timer:reset()
+			self.cl.shield.canUse = true
 		end
 	end
 
 	if self.cl.currentWeaponMod == self.mod2 then
-		self.tool:setMovementSlowDown( self.cl.energyShieldActive )
+		self.tool:setMovementSlowDown( self.cl.shield.active )
 	elseif self.cl.usingMod and (not self.cl.trMobility or self.cl.currentWeaponMod == "poor") then
 		self.tool:setMovementSlowDown( self.cl.usingMod )
 	else
@@ -359,8 +358,8 @@ end
 
 function Chaingun:client_onReload()
 	self.cl.baseWeapon.onModSwitch( self )
-	self.cl.shield:stop()
-	self.cl.energyShieldActive = false
+	self.cl.shield.effect:stop()
+	self.cl.shield.active = false
 
 	return true
 end
@@ -368,17 +367,16 @@ end
 
 
 function Chaingun.client_onUpdate( self, dt )
-	local increase = dt * self.spdMult
-	local fpsAdjust = dt * 50
+	dt = dt * self.cl.powerups.speedMultiplier.current
 
-	if self.cl.energyShieldActive and self.tool:isEquipped() and self.cl.currentWeaponMod == self.mod2 then
+	if self.cl.shield.active and self.tool:isEquipped() and self.cl.currentWeaponMod == self.mod2 then
 		local char = self.cl.owner.character
         local lookDir = char:getDirection()
         local offset = char:isCrouching() and sm.vec3.zero() or sm.vec3.new(0,0,0.43)
         local newPos = char:getTpBonePos( "jnt_spine2" ) + offset + lookDir * 0.55
 
-        self.cl.shield:setPosition( newPos )
-        self.cl.shield:setRotation( sm.quat.fromEuler( lookDir * 90 ) )
+        self.cl.shield.effect:setPosition( newPos )
+        self.cl.shield.effect:setRotation( sm.quat.fromEuler( lookDir * 90 ) )
 	end
 	
 
@@ -449,9 +447,9 @@ function Chaingun.client_onUpdate( self, dt )
 	self.windupEffect:setPosition( effectPos )
 
 	-- Timers
-	self.fireCooldownTimer = math.max( self.fireCooldownTimer - increase, 0.0 )
-	self.spreadCooldownTimer = math.max( self.spreadCooldownTimer - increase, 0.0 )
-	self.sprintCooldownTimer = math.max( self.sprintCooldownTimer - increase, 0.0 )
+	self.fireCooldownTimer = math.max( self.fireCooldownTimer - dt, 0.0 )
+	self.spreadCooldownTimer = math.max( self.spreadCooldownTimer - dt, 0.0 )
+	self.sprintCooldownTimer = math.max( self.sprintCooldownTimer - dt, 0.0 )
 
 	if self.tool:isLocal() then
 		local dispersion = 0.0
@@ -493,7 +491,7 @@ function Chaingun.client_onUpdate( self, dt )
 	end
 
 	-- Sprint block
-	local blockSprint = self.aiming or self.sprintCooldownTimer > 0.0 or self.cl.currentWeaponMod == self.mod2 and self.cl.energyShieldActive
+	local blockSprint = self.aiming or self.sprintCooldownTimer > 0.0 or self.cl.currentWeaponMod == self.mod2 and self.cl.shield.active
 	self.tool:setBlockSprint( blockSprint )
 
 	local playerDir = self.tool:getDirection()
@@ -596,8 +594,8 @@ function Chaingun.client_onEquip( self, animate )
 		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
 	end
 	
-	if self.cl.energyShieldActive and self.cl.currentWeaponMod == self.mod2 then
-		self.cl.shield:start()
+	if self.cl.shield.active and self.cl.currentWeaponMod == self.mod2 then
+		self.cl.shield.effect:start()
 	end
 
 	if animate then
@@ -634,7 +632,7 @@ function Chaingun.client_onUnequip( self, animate )
 
 	
 	self.cl.usingMod = false
-	self.cl.shield:stop()
+	self.cl.shield.effect:stop()
 	
 	self.windupEffect:stop()
 	self.wantEquipped = false
@@ -695,12 +693,12 @@ function Chaingun.onShoot( self, dir )
 end
 
 function Chaingun.cl_updateGatling( self, dt )
-	local increase = dt * self.spdMult
+	local divide = 1/self.cl.spdMult
 
-	self.gatlingWeight = self.gatlingActive and ( self.gatlingWeight + self.gatlingBlendSpeedIn * increase ) or ( self.gatlingWeight - self.gatlingBlendSpeedOut * increase )
+	self.gatlingWeight = self.gatlingActive and ( self.gatlingWeight + self.gatlingBlendSpeedIn * dt ) or ( self.gatlingWeight - self.gatlingBlendSpeedOut * dt )
 	self.gatlingWeight = math.min( math.max( self.gatlingWeight, 0.0 ), 1.0 )
 	local frac
-	frac, self.gatlingTurnFraction = math.modf( self.gatlingTurnFraction + self.gatlingTurnSpeed * self.gatlingWeight * increase )
+	frac, self.gatlingTurnFraction = math.modf( self.gatlingTurnFraction + self.gatlingTurnSpeed * self.gatlingWeight * dt )
 
 	self.windupEffect:setParameter( "velocity", self.gatlingWeight )
 	if self.equipped and not self.windupEffect:isPlaying() then
@@ -711,11 +709,11 @@ function Chaingun.cl_updateGatling( self, dt )
 
 	-- Update gatling animation
 	if self.tool:isLocal() then
-		self.tool:updateFpAnimation( "spudgun_spinner_shoot_fp", self.gatlingTurnFraction, 1.0/self.spdMult, true )
+		self.tool:updateFpAnimation( "spudgun_spinner_shoot_fp", self.gatlingTurnFraction, divide, true )
 	end
-	self.tool:updateAnimation( "spudgun_spinner_shoot_tp", self.gatlingTurnFraction, 1.0/self.spdMult )
+	self.tool:updateAnimation( "spudgun_spinner_shoot_tp", self.gatlingTurnFraction, divide )
 
-	if self.fireCooldownTimer <= 0.0 and self.gatlingWeight >= 1.0/self.spdMult and self.gatlingActive then
+	if self.fireCooldownTimer <= 0.0 and self.gatlingWeight >= divide and self.gatlingActive then
 		self:cl_fire()
 	end
 end
@@ -770,14 +768,31 @@ function Chaingun.cl_fire( self )
 		local owner = self.tool:getOwner()
 		if owner and not self.cl.modSwitch.active then
 			if self.cl.currentWeaponMod ~= self.mod1 or not self.cl.usingMod then
-				sm.projectile.projectileAttack( projectile_potato, self.Damage, firePos, dir * fireMode.fireVelocity, owner, fakePosition, fakePositionSelf )
-			elseif self.cl.usingMod and self.cl.canFireMobileTurret and not self.cl.overheated then
+				sm.projectile.projectileAttack(
+					projectile_potato,
+					self.baseDamage * self.cl.powerups.damageMultiplier.current,
+					firePos,
+					dir * fireMode.fireVelocity,
+					owner,
+					fakePosition,
+					fakePositionSelf
+				)
+			elseif self.cl.canFireMobileTurret and not self.cl.overheated then
 				if not self.cl.weaponData.mod1.mastery.owned then
 					self.cl.mobileTurretOverheatCD = self.cl.mobileTurretOverheatCD - 0.5
 				end
 
 				for i = 1, 4 do
-					sm.projectile.projectileAttack( projectile_potato, self.Damage, firePos + self.firePosOffsets[i](), (sm.noise.gunSpread( dir, spreadDeg )) * fireMode.fireVelocity, owner, fakePosition, fakePositionSelf )
+					dir = sm.noise.gunSpread( dir, spreadDeg )
+					sm.projectile.projectileAttack(
+						projectile_potato,
+						self.baseDamage * self.cl.powerups.damageMultiplier.current,
+						firePos + self.firePosOffsets[i](),
+						dir * fireMode.fireVelocity,
+						owner,
+						fakePosition,
+						fakePositionSelf
+					)					
 				end
 			end
 		end
@@ -817,11 +832,11 @@ function Chaingun.cl_onSecondaryUse( self, state )
 		end
 	end
 	
-	if state ~= sm.tool.interactState.start or self.cl.energyShieldActive then return end
+	if state ~= sm.tool.interactState.start or self.cl.shield.active then return end
 
 	if self.cl.currentWeaponMod == self.mod1 then
 		self.cl.mobileTurretActivateCD = 0
-	elseif self.cl.currentWeaponMod == self.mod2 and self.cl.canUseEnergyShield then
+	elseif self.cl.currentWeaponMod == self.mod2 and self.cl.shield.canUse then
 		self.network:sendToServer("sv_startShield")
 		self.cl.playerData.isInvincible = true
 	end
@@ -832,7 +847,7 @@ function Chaingun.client_onEquippedUpdate( self, primaryState, secondaryState )
 	
 	--[[local data = {
 		mod = self.cl.currentWeaponMod,	
-		using = self.cl.currentWeaponMod == self.mod2 and self.cl.energyShieldActive or self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod or self.cl.currentWeaponMod == "poor" and self.cl.usingMod,
+		using = self.cl.currentWeaponMod == self.mod2 and self.cl.shield.active or self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod or self.cl.currentWeaponMod == "poor" and self.cl.usingMod,
 		ammo = 0,
 		recharge = 0
 	}
@@ -846,8 +861,8 @@ function Chaingun.client_onEquippedUpdate( self, primaryState, secondaryState )
 		sm.gui.setProgressFraction(self.cl.mobileTurretActivateCD/self.cl.mobileTurretActivateMax)
 	elseif self.cl.mobileTurretOverheatCD < 15 and self.cl.currentWeaponMod == self.mod1 then
 		sm.gui.setProgressFraction(self.cl.mobileTurretOverheatCD*2/30)
-	elseif self.cl.currentWeaponMod == self.mod2 and self.cl.energyShieldActiveCD < 5 then
-		sm.gui.setProgressFraction(self.cl.energyShieldActiveCD/5)
+	elseif self.cl.currentWeaponMod == self.mod2 and self.cl.shield.timer.count > 0 then
+		sm.gui.setProgressFraction(self.cl.shield.timer.count/self.cl.shield.timer.ticks)
 	end
 
 	if primaryState == sm.tool.interactState.start or primaryState == sm.tool.interactState.hold then

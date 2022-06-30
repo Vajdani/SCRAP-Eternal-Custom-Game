@@ -247,7 +247,7 @@ function UpgradeStation:client_onInteract( char, lookAt )
 		self.CurrentWeapon = nil
 		self.CurrentMod = 1
 
-		self.Data = sm.playerInfo[self.Player:getId()]
+		self.Data = self.Player:getClientPublicData().data
 
 		for pos, moddable in pairs(g_allWeapons.upgradeStation) do
 			local widget = "wpn"..tostring(pos)

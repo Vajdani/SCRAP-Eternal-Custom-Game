@@ -1,7 +1,7 @@
 Shield = class()
 Shield.damage = 150
-Shield.speed = 0.8
-Shield.maxLifeTime = 5 * 40
+Shield.speed = 0 --.6
+Shield.maxLifeTime = 10 * 40
 
 function Shield:server_onCreate()
     self.sv = {}
@@ -14,13 +14,15 @@ function Shield:server_onCreate()
 	self.sv.trigger:bindOnEnter( "sv_damageUnits" )
 end
 
-function Shield:client_onFixedUpdate()
-    if sm.exists(self.scriptableObject) then return end
+function Shield:server_onFixedUpdate()
+    if not sm.exists(self.scriptableObject) then return end
 
     local tick = sm.game.getServerTick()
     local hit, result = sm.physics.raycast( self.cl.pos, self.cl.pos + self.cl.dir )
 
-    if hit or tick - self.params.spawnTick >= self.maxLifeTime then
+    print(tick - self.params.spawnTick, self.maxLifeTime)
+
+    if (hit and result:getCharacter() == nil) or tick - self.params.spawnTick >= self.maxLifeTime then
         self.scriptableObject:destroy()
         return
     end
@@ -55,11 +57,22 @@ function Shield:client_onCreate()
 
     self.cl.effect:setPosition( self.cl.pos )
     self.cl.effect:setRotation( self.params.rot )
+
+    local minColor = sm.color.new( 0.0, 0.0, 0.25, 0.1 )
+	local maxColor = sm.color.new( 0.0, 0.3, 0.75, 0.6 )
+	self.cl.effect:setParameter( "minColor", minColor )
+	self.cl.effect:setParameter( "maxColor", maxColor )
+
+    self.cl.effect:start()
 end
 
-function Shield:client_onFixedUpdate()
+function Shield:client_onUpdate( dt )
     if self.cl == nil or not sm.exists(self.scriptableObject) then return end
 
     self.cl.pos = self.cl.pos + self.cl.dir * self.speed * ( dt / (1/40) )
     self.cl.effect:setPosition(self.cl.pos)
+end
+
+function Shield:client_onDestroy()
+    self.cl.effect:destroy()
 end

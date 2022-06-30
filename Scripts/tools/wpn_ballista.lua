@@ -244,8 +244,6 @@ function Ballista:client_onFixedUpdate( dt )
 
 	self.cl.baseWeapon.cl_onFixed( self )
 
-	self.dmgMult = 1 --playerData.damageMultiplier
-
 	--upgrades
 	self.cl.bladeChargeMax = self.cl.weaponData.mod2.up2.owned and 3 or 3.6
 	self.cl.bladeMastery = self.cl.weaponData.mod2.mastery.owned
@@ -342,13 +340,14 @@ function Ballista.cl_onPrimaryUse( self, state )
 				if not self.cl.usingMod then
 					sm.projectile.projectileAttack(
 						proj_ballista,
-						self.baseDamage * self.dmgMult,
+						self.baseDamage * self.cl.powerups.damageMultiplier.current,
 						firePos,
 						dir * fireMode.fireVelocity,
 						owner,
 						fakePosition,
 						fakePositionSelf
 					)
+
 					self.network:sendToServer("sv_knockback")
 				elseif self.cl.currentWeaponMod == self.mod1 then
 					self.network:sendToServer("sv_shootDart",
@@ -644,7 +643,6 @@ function Ballista.client_onEquip( self, animate )
 end
 
 function Ballista.client_onUnequip( self, animate )
-
 	if animate then
 		sm.audio.play( "PotatoRifle - Unequip", self.tool:getPosition() )
 	end
