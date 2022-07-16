@@ -1,0 +1,18 @@
+{
+	"lodList": [
+		{
+			"mesh": "$CONTENT_DATA/Effects/Mesh/plasma_blast_ring.fbx",
+			"subMeshList": [
+				{		
+					"textureList": [
+						"$GAME_DATA/Textures/transparent.tga",
+						"$GAME_DATA/Textures/transparent.tga",
+						"$GAME_DATA/Textures/nonor_nor.tga"
+					],
+					"material": "DifAsgNor"	
+				}
+			],
+			"maxViewDistance": 1000.0
+		}
+	]
+}

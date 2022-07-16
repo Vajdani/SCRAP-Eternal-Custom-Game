@@ -216,6 +216,8 @@ function TotebotGreenUnit.server_onDestroy( self )
 	print( "-- TotebotGreenUnit terminated --" )
 end
 
+
+
 function TotebotGreenUnit:sv_se_takeDamage( args )
 	self:sv_takeDamage( args.damage, args.impact, args.hitPos, nil, args.attacker )
 end
@@ -224,9 +226,15 @@ function TotebotGreenUnit:sv_se_onExplosion( args )
 	self:sv_se_takeDamage( args )
 end
 
+function TotebotGreenUnit:sv_se_onProjectile( args )
+	self:sv_se_takeDamage( args )
+end
+
+
+
 function TotebotGreenUnit.server_onFixedUpdate( self, dt )
-	se.unitData[self.unit.id] = { unit = self.unit, data = self.saved, cCharge = 1 }
-	--if true then return end
+	se.unitData[self.unit.character.id] = { unit = self.unit, data = self.saved, cCharge = 1 }
+	if true then return end
 
 	-- Temporary units are destroyed at dawn
 	if sm.exists( self.unit ) and not self.destroyed then
@@ -244,19 +252,19 @@ function TotebotGreenUnit.server_onFixedUpdate( self, dt )
 		self.roamState.cliffAvoidance = true
 		self.pathingState:sv_setCliffAvoidance( true )
 	end
-	
+
 	self.stateTicker:tick()
-	
+
 	if updateCrushing( self ) then
 		print("'TotebotGreenUnit' was crushed!")
 		self:sv_onDeath( sm.vec3.new( 0, 0, 0 ) )
 	end
-	
+
 	updateTumble( self )
 	updateAirTumble( self, self.idleState )
-	
+
 	self.griefTimer:tick()
-	
+
 	if self.avoidCount > 0 then
 		self.avoidResetTimer:tick()
 		if self.avoidResetTimer:done() then
@@ -264,7 +272,7 @@ function TotebotGreenUnit.server_onFixedUpdate( self, dt )
 			self.avoidResetTimer:reset()
 		end
 	end
-	
+
 	if self.currentState then
 		if self.target and not sm.exists( self.target ) then
 			self.target = nil
@@ -285,7 +293,6 @@ function TotebotGreenUnit.server_onFixedUpdate( self, dt )
 		self.unit:setMovementDirection( self.currentState:getMovementDirection() )
 		self.unit:setMovementType( self.currentState:getMovementType() )
 		self.unit:setFacingDirection( self.currentState:getFacingDirection() )
-		
 		-- Random roaming during idle
 		if self.currentState == self.idleState then
 			self.roamTimer:tick()
@@ -297,9 +304,8 @@ function TotebotGreenUnit.server_onFixedUpdate( self, dt )
 
 		self.staggerCooldownTicks = math.max( self.staggerCooldownTicks - 1, 0 )
 		self.impactCooldownTicks = math.max( self.impactCooldownTicks - 1, 0 )
-		
 	end
-	
+
 	-- Update target for totebot character
 	if self.target ~= self.previousTarget then
 		self:sv_updateCharacterTarget()
@@ -315,16 +321,16 @@ function TotebotGreenUnit.server_onCharacterChangedColor( self, color )
 end
 
 function TotebotGreenUnit.server_onUnitUpdate( self, dt )
-	--if true then return end
+	if true then return end
 
 	if not sm.exists( self.unit ) then
 		return
 	end
-	
+
 	if self.currentState then
 		self.currentState:onUnitUpdate( dt )
 	end
-	
+
 	-- Temporary units are routed by the daylight
 	if self.saved.temporary then
 		if self.currentState ~= self.dayFlee and sm.game.getCurrentTick() >= self.saved.deathTickTimestamp - DaysInTicks( 1 / 24 ) then
@@ -337,11 +343,11 @@ function TotebotGreenUnit.server_onUnitUpdate( self, dt )
 			return
 		end
 	end
-	
+
 	if self.unit.character:isTumbling() then
 		return
 	end
-	
+
 	local targetCharacter
 	local closestVisiblePlayerCharacter
 	local closestHeardPlayerCharacter

@@ -84,6 +84,7 @@ proj_rocket_sob = sm.uuid.new("59b7e8a7-e633-4d8d-8873-4bd7ce021be4")
 proj_arbalest_sob = sm.uuid.new("b65a6025-fb6e-4341-b18f-128102e11cfc")
 proj_blade_sob = sm.uuid.new("1dcf8c1c-fae1-41a0-b90f-9f64cb362544")
 proj_shield_sob = sm.uuid.new("bc2a2db6-6d0e-405b-bd70-4afb559552b4")
+proj_stickyBomb_sob = sm.uuid.new("a9d34c94-9e6e-40ef-b4f5-2a222cca12f9")
 
 --gui
 gui_runes = {

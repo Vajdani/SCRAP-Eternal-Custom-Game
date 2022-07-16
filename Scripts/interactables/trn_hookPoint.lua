@@ -8,6 +8,7 @@ function HookPoint:server_onCreate()
 		recharge = false
 	}
 
+	self.interactable:setPublicData(self.sv.data)
 	self.network:sendToClients("cl_updateUv", 0)
 end
 
@@ -20,8 +21,6 @@ function HookPoint:sv_hook( toggle )
 	elseif not toggle or toggle and not self.sv.data.canBeHooked then
 		self.sv.data.recharge = true
 	end
-
-	sm.interactable.setPublicData(self.interactable, self.sv.data)
 end
 
 function HookPoint:server_onFixedUpdate( dt )
@@ -32,7 +31,6 @@ function HookPoint:server_onFixedUpdate( dt )
 			self.sv.data.canBeHooked = true
 			self.sv.data.recharge = false
 
-			sm.interactable.setPublicData(self.interactable, self.sv.data)
 			self.network:sendToClients("cl_updateUv", 0)
 		end
 	end
@@ -41,5 +39,6 @@ end
 
 
 function HookPoint:cl_updateUv( index )
-	sm.interactable.setUvFrameIndex( self.interactable, index )
+	print(index)
+	self.interactable:setUvFrameIndex( index )
 end

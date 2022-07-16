@@ -2,84 +2,214 @@ dofile "$GAME_DATA/Scripts/game/AnimationUtil.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 dofile "$SURVIVAL_DATA/Scripts/game/survival_shapes.lua"
 
+dofile "$CONTENT_DATA/Scripts/se_util.lua"
+dofile "$SURVIVAL_DATA/Scripts/game/util/Timer.lua"
+
 PRifle = class()
 
-local mod_blast = "Heat Blast"
-local mod_beam = "Microwave Beam"
-local blastDamage = 50
-
-local renderables = {
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_basic/char_spudgun_barrel_basic.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+PRifle.mod1 = "Heat Blast"
+PRifle.mod2 = "Microwave Beam"
+PRifle.renderables = {
+	poor = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_basic/char_spudgun_barrel_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	},
+	["Heat Blast"] = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_basic/char_spudgun_barrel_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	},
+	["Microwave Beam"] = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_basic/char_spudgun_barrel_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	}
 }
+PRifle.renderablesTp = {
+	"$GAME_DATA/Character/Char_Male/Animations/char_male_tp_spudgun.rend",
+	"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_tp_animlist.rend"
+}
+PRifle.renderablesFp = {
+	"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_fp_animlist.rend"
+}
+PRifle.blastColours = {
+	sm.color.new("#0000ff"),
+	sm.color.new("#00aaff"),
+	sm.color.new("#ff0000")
+}
+PRifle.beamRange = 10
+PRifle.baseDamage = 26
+PRifle.blastDamage = 50
+PRifle.bindDefaultFuncs = true
 
-local renderablesTp = {"$GAME_DATA/Character/Char_Male/Animations/char_male_tp_spudgun.rend", "$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_tp_animlist.rend"}
-local renderablesFp = {"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_fp_animlist.rend"}
+for k, v in pairs(PRifle.renderables) do
+	sm.tool.preloadRenderables( v )
+end
+sm.tool.preloadRenderables( PRifle.renderablesTp )
+sm.tool.preloadRenderables( PRifle.renderablesFp )
 
-sm.tool.preloadRenderables( renderables )
-sm.tool.preloadRenderables( renderablesTp )
-sm.tool.preloadRenderables( renderablesFp )
+function PRifle:server_onCreate()
+	self.sv = {}
+	self.sv.owner = self.tool:getOwner()
+	self.sv.blastTrigger = sm.areaTrigger.createBox(
+		sm.vec3.new(2,2,2),
+		self.sv.owner.character.worldPosition,
+		sm.quat.identity(),
+		sm.areaTrigger.filter.character + sm.areaTrigger.filter.dynamicBody
+	)
+end
+
+function PRifle:server_onFixedUpdate()
+	local char = self.sv.owner.character
+	if not char then return end
+
+	self.sv.blastTrigger:setWorldPosition( char.worldPosition + char.direction * 2 )
+end
+
+function PRifle:sv_updateBeamTarget( char )
+	self.network:sendToClients("cl_updateBeamTarget", char)
+end
+
+function PRifle:sv_damageBeamTargets( targets )
+	sm.container.beginTransaction()
+	sm.container.spend( self.sv.owner:getInventory(), se_ammo_plasma, 1, true )
+	sm.container.endTransaction()
+
+	for k, char in pairs(targets) do
+		if sm.exists(char) then
+			if char:getCharacterType() ~= unit_mechanic then
+				local unit = char:getUnit()
+				sm.event.sendToUnit( unit, "sv_se_takeDamage",
+					{
+						damage = 15,
+						impact = sm.vec3.one(),
+						hitPos = char.worldPosition,
+						attacker = self.sv.owner
+					}
+				)
+
+				sm.event.sendToUnit( unit, "sv_addStagger", 1 )
+			end
+		end
+	end
+end
+
+function PRifle:sv_blast( args )
+	local level = args.level
+	local dir = self.sv.owner.character:getDirection()
+
+	local damageMultiplier = 1
+	for _, object in pairs(self.sv.blastTrigger:getContents()) do
+		local mass = object:getMass()/75
+		local force
+		if type(object) == "Body" then
+			force = sm.vec3.one() * 1000 * dir * mass * level
+			sm.physics.applyImpulse( object, force/mass )
+		elseif not object:isPlayer() then
+			force = sm.vec3.new(1000 * dir.x, 1000 * dir.y, 450) * mass * level
+			if object:getCharacterType() ~= unit_farmbot then
+				damageMultiplier = 1
+				sm.physics.applyImpulse( object, force )
+			else
+				damageMultiplier = 5
+			end
+
+			if object:getCharacterType() ~= unit_mechanic then
+				sm.event.sendToUnit( object:getUnit(), "sv_se_takeDamage", { damage = self.blastDamage * level * damageMultiplier, impact = force / 1000, hitPos = object:getWorldPosition(), attacker = self.cl.owner } )
+			end
+		end
+	end
+
+	self.network:sendToClients("cl_blast", level)
+end
+
+
+
+function PRifle:cl_updateBeamTarget( char )
+	self.cl.beam.effectTarget = char
+
+	if not self.tool:isLocal() then return end
+	--[[if not char then
+		self.cl.beam.hud:close()
+	else
+		self.cl.beam.hud:open()
+	end]]
+end
 
 function PRifle.client_onCreate( self )
 	self.shootEffect = sm.effect.createEffect( "SpudgunBasic - BasicMuzzel" )
 	self.shootEffectFP = sm.effect.createEffect( "SpudgunBasic - FPBasicMuzzel" )
 
-	--SE
+	self.cl = {}
+	self.cl.baseWeapon = BaseWeapon()
+	self.cl.baseWeapon.cl_onCreate( self, "plasma" )
 
-	--General stuff
-	self.player = sm.localPlayer.getPlayer()
-	self.playerChar = self.player:getCharacter()
+	self.cl.blast = {}
+	self.cl.blast.effect = sm.effect.createEffect( "Plasma Blast" )
 
-	self.data = sm.playerInfo[self.player:getId()].weaponData.plasma
+	self.cl.beam = {}
+	self.cl.beam.targets = {}
+	self.cl.beam.effectTarget = nil
+	--[[self.cl.beam.effect = Line()
+	self.cl.beam.effect:init( 0.05, sm.color.new(0, 1, 1) )
+	
+	self.cl.beam.beamTest = {}
+	for i = 1, 9 do
+		self.cl.beam.beamTest[#self.cl.beam.beamTest+1] = Line()
+		self.cl.beam.beamTest[i]:init( 0.05, sm.color.new(0, 1, 1) )
+	end]]
 
-	self.dmgMult = 1
-	self.spdMult = 1
-	self.Damage = 24
-	self.isFiring = false
-	self.usingMod = false
+	self.cl.beam.curvedTest = CurvedLine()
+	self.cl.beam.curvedTest:init( 0.05, sm.color.new(0, 1, 1), 99, 5, "Plasma Beam_sound" )
 
-	--Mod switch
-	if self.data.mod1.owned then
-		self.currentWeaponMod = mod_blast
-	elseif self.data.mod2.owned then
-		self.currentWeaponMod = mod_beam
-	else
-		self.currentWeaponMod = "poor"
-	end
+	if not self.tool:isLocal() then return end
 
-	self.modSwitchCount = 0
-	self.afterModCD = false
-	self.afterModCDCount = 1
+	self.cl.Damage = self.baseDamage
 
-	--mod_blast
-	self.blastChargeIncrease = 1
-	self.blastCharge = 0
-	self.blastChargeLevel = 0
-	self.blastFireDelay = false
-	self.blastFireDelayCD = 0
-	self.blastFireDelayCDMax = 0.75
-	self.blastMasteryDmg = false
-	self.blastMasteryDmgCD = 0
-	self.blastTrigger = nil
-	self.triggerDestroycd = false
-	self.triggerDestroyCD = 0.3
-	self.effect = sm.effect.createEffect( "Thruster - Level 5" )
+	--mod1
+	self.cl.blastChargeIncrease = 1
+	self.cl.blastCharge = 0
+	self.cl.blast.fireDelay = {
+		active = false,
+		timer = Timer()
+	}
+	self.cl.blast.fireDelay.timer:start( 30 )
+	self.cl.blast.masteryEffect = {
+		active = false,
+		timer = Timer()
+	}
+	self.cl.blast.masteryEffect.timer:start( 200 )
 
-	--mod_beam
-	self.beamActivateMax = 1
-	self.beamActivateCD = 0
-	self.beamCD = false
-	self.beamRange = 10
-	self.beamTargets = { target1 = nil, target2 = nil }
-	self.beamDmgCounter = 0
-	self.targetData = nil
+	--mod2
+	self.cl.beam.targetIndicator = sm.gui.createWorldIconGui( 50, 50 )
+	self.cl.beam.targetIndicator:setImage("Icon", "$CONTENT_DATA/Gui/susshake.png")
+	self.cl.beam.cd = {
+		active = false,
+		timer = Timer()
+	}
+	self.cl.beam.cd.timer:start( 30 )
+	self.cl.beam.targets = {}
+	self.cl.beam.dmgTimer = Timer()
+	self.cl.beam.dmgTimer:start( 5 )
 
-	self.beamEffect = sm.effect.createEffect("ShapeRenderable")
-	self.beamEffect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
-	self.beamEffect:setParameter("color", sm.color.new(0, 1, 1, 1))
+	--[[self.cl.beam.hud = sm.gui.createGuiFromLayout( "$CONTENT_DATA/Gui/weapons/plasma/charge.layout", false,
+		{
+			isHud = true,
+			isInteractive = false,
+			needsCursor = false,
+			hidesHotbar = false,
+			isOverlapped = false,
+			backgroundAlpha = 0,
+		}
+	)
+	self.cl.beam.hud:createHorizontalSlider("chargeSlider", 1600, 0, "", false)]]
 end
 
 function PRifle.client_onRefresh( self )
@@ -196,234 +326,166 @@ function PRifle.loadAnimations( self )
 
 end
 
---SE
+
 function PRifle:client_onFixedUpdate( dt )
-	local playerData = sm.playerInfo[self.player:getId()].playerData
-	self.data = sm.playerInfo[self.player:getId()].weaponData.plasma
-	self.dmgMult = playerData.damageMultiplier
-	self.spdMult = playerData.speedMultiplier
+	if not self.tool:isLocal() or not self.tool:isEquipped() then return end
+
+	self.cl.baseWeapon.cl_onFixed( self )
 
 	--fuck off
 	if self.fireCooldownTimer == nil then
 		self.fireCooldownTimer = 0
 	end
 
-	if self.currentWeaponMod == "poor" then
-		if self.data.mod1.owned then
-			self.currentWeaponMod = mod_blast
-		elseif self.data.mod2.owned then
-			self.currentWeaponMod = mod_beam
+	if self.cl.currentWeaponMod == "poor" then
+		if self.cl.weaponData.mod1.owned then
+			self.cl.currentWeaponMod = self.mod1
+		elseif self.cl.weaponData.mod2.owned then
+			self.cl.currentWeaponMod = self.mod2
 		end
 
-		--checks if youre still poor, and if you are, it returns so that it doesnt calculate all the shit below this
-		if self.currentWeaponMod == "poor" then
-			return
-		end
+		return
 	end
 
 	--upgrades
-	self.blastFireDelayCDMax = self.data.mod1.up1.owned and 0.5 or 0.75
-	self.blastChargeIncrease = self.data.mod1.up2.owned and 2 or 1
-	self.beamActivateMax = self.data.mod2.up1.owned and 0.75 or 1
-	self.beamRange = self.data.mod2.up2.owned and 15 or 10
+	self.cl.blastChargeIncrease = self.cl.weaponData.mod1.up2.owned and 2 or 1
+	self.cl.beamRange = self.cl.weaponData.mod2.up2.owned and 15 or 10
 
-	if self.blastMasteryDmg then
-		self.blastMasteryDmgCD = self.blastMasteryDmgCD + dt
-		if self.blastMasteryDmgCD >= 5 then
-			self.blastMasteryDmgCD = 0
-			self.blastMasteryDmg = false
+	if self.cl.blast.masteryEffect.active then
+		self.cl.blast.masteryEffect.timer:tick()
+		if self.cl.blast.masteryEffect.timer:done() then
+			self.cl.blast.masteryEffect.active = false
+			self.cl.blast.masteryEffect.timer:reset()
+			self.cl.Damage = self.baseDamage
 		end
-	else
-		self.Damage = 24
 	end
 
 	--powerup
-	local increase = dt * self.spdMult
+	local increase = dt * self.cl.powerups.speedMultiplier.current
 
-	if not self.blastMasteryDmg then
-		self.Damage = self.Damage * self.dmgMult
-	end
-
-	--main and some mod_blast
-	if (self.currentWeaponMod == "poor" and self.isFiring or self.currentWeaponMod == mod_blast and self.isFiring and not self.blastFireDelay or self.currentWeaponMod == mod_beam and not self.afterModCD and self.isFiring and not self.usingMod ) and not self.playerChar:isSwimming() and not self.playerChar:isDiving() and self.tool:isEquipped() then
+	--main and some mod1
+	local ownerChar = self.cl.owner.character
+	if self.cl.isFiring and (self.cl.currentWeaponMod == "poor" or not self.cl.modSwitch.active and (self.cl.currentWeaponMod == self.mod1 and not self.cl.blast.fireDelay.active or self.cl.currentWeaponMod == self.mod2 and not self.cl.usingMod) ) and not ownerChar:isSwimming() and not ownerChar:isDiving() then
 		self.fireCounter = self.fireCounter + increase
-		if (self.fireCounter/0.2) > 1 then
+		if (self.fireCounter/0.2) >= 1 then
 			if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), se_ammo_plasma, 1 ) then
-				self:shootProjectile( proj_plasma, self.Damage )
-				if self.blastMasteryDmg then
+				self:shootProjectile( proj_plasma, self.cl.Damage * self.cl.powerups.damageMultiplier.current )
+				if self.cl.blast.masteryEffect.active then
 					sm.audio.play( "Retrofmblip" )
 				end
 
-				if self.currentWeaponMod == mod_blast and self.blastCharge < 60 and not self.blastMasteryDmg then
-					self.blastCharge = self.blastCharge + self.blastChargeIncrease
-					if self.blastCharge == 20 or self.blastCharge == 40 or self.blastCharge == 60 then
+				if self.cl.currentWeaponMod == self.mod1 and self.cl.blastCharge < 60 and not self.cl.blast.masteryEffect.active then
+					self.cl.blastCharge = self.cl.blastCharge + self.cl.blastChargeIncrease
+
+					--very good solution
+					if isAnyOf(self.cl.blastCharge, { 20, 40, 60 }) or self.cl.blastChargeIncrease > 1 and isAnyOf(self.cl.blastCharge, { 21, 41, 61 }) then
 						sm.audio.play( "Blueprint - Open" )
 					end
 				end
 			else
 				sm.audio.play( "PotatoRifle - NoAmmo" )
 			end
-		end
 
-		if self.fireCounter > 0.2 then
 			self.fireCounter = 0
 		end
 	else
 		self.fireCounter = 0
 	end
 
-	--mod_beam
-	--print(self.beamCD)
-	if self.beamCD then
-		self.beamActivateCD = self.beamActivateCD + increase
-		if self.beamActivateCD >= self.beamActivateMax then
-			self.beamActivateCD = 0
-			self.beamCD = false
+	--mod2
+	if self.cl.beam.cd.active then
+		for i = 1, (self.cl.weaponData.mod2.up1.owned and 2 or 1) do
+			self.cl.beam.cd.timer:tick()
+		end
+
+		if self.cl.beam.cd.timer:done() then
+			self.cl.beam.cd.active = false
+			self.cl.beam.cd.timer:reset()
 		end
 	end
 
-	if self.currentWeaponMod == mod_beam and self.usingMod and not self.beamCD and not self.afterModCD then
-		if self.beamTargets.target1 == nil then
-			local hit, result = sm.localPlayer.getRaycast( self.beamRange )
-			if result.type == "character" then
-				self.beamTargets.target1 = result:getCharacter()
-			end
-		elseif sm.exists(self.beamTargets.target1) then
-			local targetPos = self.beamTargets.target1:getWorldPosition()
-			local delta = (self:calculateFirePosition() - targetPos)
-			local rot = sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta)
-			local distance = sm.vec3.new(0.01, 0.01, delta:length())
+	if self.cl.currentWeaponMod == self.mod2 and self.cl.usingMod and not self.cl.beam.cd.active and not self.cl.modSwitch.active then
+		if #self.cl.beam.targets == 0 then
+			local hit, result = sm.localPlayer.getRaycast( self.cl.beamRange )
+			if hit and result.type == "character" then
+				local char = result:getCharacter()
+				if not sm.exists(char) then return end
 
-			if distance.z <= 15 then
-				self.beamEffect:setPosition(targetPos + delta * 0.5)
-				self.beamEffect:setScale(distance)
-				self.beamEffect:setRotation(rot)
-				self.beamEffect:start()
-
-				--try to find any other enemies that the beam intercepts
-				local hit, result = sm.physics.raycast( self.playerPos, targetPos )
-				if result.type == "character" then
-					self.beamTargets.target2 = result:getCharacter()
+				self.cl.beam.targetIndicator:setWorldPosition( char.worldPosition )
+				if not self.cl.beam.targetIndicator:isActive() then
+					self.cl.beam.targetIndicator:open()
 				end
 
-				self.beamDmgCounter = self.beamDmgCounter + increase
-
-				if self.beamDmgCounter >= 0.15 then
-					for pos, target in pairs (self.beamTargets) do
-						if sm.exists(target) then
-							self.network:sendToServer("sv_beamAttack", { target = target, damage = 10, impact = self.lookDir, hitPos = target:getWorldPosition(), attacker = self.player } )
-						else
-							self.beamTargets[pos] = nil
-						end
-					end
-					self.beamDmgCounter = 0
+				if self.cl.isFiring then
+					self.cl.beam.targets[#self.cl.beam.targets+1] = char
+					self.network:sendToServer("sv_updateBeamTarget", char)
+					self.cl.beam.targetIndicator:close()
 				end
-			else
-				self.beamCD = true
-				self.beamTargets = {}
-				self.beamEffect:stop()
+			elseif self.cl.beam.targetIndicator:isActive() then
+				self.network:sendToServer("sv_updateBeamTarget", nil)
+				self.cl.beam.targetIndicator:close()
 			end
-		elseif not sm.exists(self.beamTargets.target1) and self.beamTargets.target1 ~= nil then
-			self.targetData = nil
-			self.beamCD = true
-			self.beamTargets = { target1 = nil, target2 = nil }
-			self.beamEffect:stop()
-		end
-	end
+		elseif sm.exists(self.cl.beam.targets[1]) then
+			local playerChar = self.cl.owner.character
+			local playerPos = playerChar.worldPosition
+			local dir = self.cl.beam.targets[1].worldPosition - (playerPos + camPosDifference)
+			local distance = dir:length()
 
-
-	--mod_blast
-	--print(self.blastCharge)
-	--print(self.blastChargeLevel)
-	self.blastChargeLevel = math.min(self.blastCharge/20)
-
-	if self.blastFireDelay then
-		self.blastFireDelayCD = self.blastFireDelayCD + increase
-		if self.blastFireDelayCD >= self.blastFireDelayCDMax then
-			self.blastFireDelay = false
-			self.blastFireDelayCD = 0
-		end
-	end
-
-	if self.triggerDestroycd then
-		self.triggerDestroyCD = self.triggerDestroyCD - dt
-		if self.triggerDestroyCD <= 0 then
-			self.triggerDestroyCD = 0.3
-			self.triggerDestroycd = false
-			if sm.exists(self.blastTrigger) then
-				self.network:sendToServer("sv_destroyTrigger")
-			end
-		end
-	end
-
-	--Mod switch cooldown
-	if self.afterModCD then
-		if self.afterModCDCount < 1 then
-			self.afterModCDCount = self.afterModCDCount + increase*1.75
-		elseif self.afterModCDCount >= 1 then
-			self.afterModCDCount = 1
-			self.afterModCD = false
-		end
-	end
-end
-
-function PRifle:sv_beamAttack( args )
-	sm.container.beginTransaction()
-	sm.container.spend( self.player:getInventory(), se_ammo_plasma, 1, 1 )
-	sm.container.endTransaction()
-
-	if sm.exists(args.target) then
-		if args.target:getCharacterType() ~= unit_mechanic then
-			sm.event.sendToUnit( args.target:getUnit(), "sv_se_takeDamage", { damage = args.damage, impact = args.impact, hitPos = args.hitPos, attacker = args.attacker } )
-			sm.event.sendToUnit( args.target:getUnit(), "sv_addStagger", 10 )
-		end
-	end
-end
-
-function PRifle:sv_blast( args )
-	self.keepLevel = self.blastChargeLevel
-	self.blastChargeLevel = 0
-	self.blastCharge = 0
-	--sm.physics.explode( pos, 3, 5, 6, 10, "PropaneTank - ExplosionSmall" )
-	self.blastTrigger = sm.areaTrigger.createBox( args.size, args.pos, sm.quat.identity(), sm.areaTrigger.filter.character + sm.areaTrigger.filter.dynamicBody )
-	self.blastTrigger:bindOnStay( "sv_applyBlast" )
-	self.triggerDestroycd = true
-	self.network:sendToClients("cl_stopFX")
-end
-
-function PRifle:cl_stopFX()
-	self.effect:stop()
-end
-
-function PRifle:sv_applyBlast( trigger, result )
-	local damageMultiplier = 1
-	for _, object in pairs(result) do
-		local mass = object:getMass()/75
-		local force
-		if type(object) == "Body" then
-			force = sm.vec3.new(1000, 1000, 1000) * self.lookDir * mass * self.keepLevel
-			sm.physics.applyImpulse( object, force/mass )
-		elseif object:getId() ~= self.playerChar:getId() then
-			force = sm.vec3.new(1000 * self.lookDir.x, 1000 * self.lookDir.y, 450) * mass * self.keepLevel
-			if object:getCharacterType() ~= sm.uuid.new("9f4fde94-312f-4417-b13b-84029c5d6b52") then
-				damageMultiplier = 1
-				sm.physics.applyImpulse( object, force )
-			else
-				damageMultiplier = 5
+			if not self.cl.isFiring or distance > 15 --[[or se_weapon_isInvalidBeamDir(playerChar:getDirection() - dir:normalize())]] then
+				self.cl.beam.targets = {}
+				self.network:sendToServer("sv_updateBeamTarget", nil)
+				self.cl.beam.cd.active = true
+				return
 			end
 
-			if object:getCharacterType() ~= unit_mechanic then
-				sm.event.sendToUnit( object:getUnit(), "sv_se_takeDamage", { damage = blastDamage * self.keepLevel * damageMultiplier, impact = force / 1000, hitPos = object:getWorldPosition(), attacker = self.player } )
+			if not self.cl.beamTrigger or not sm.exists(self.cl.beamTrigger) then
+				self.cl.beamTrigger = sm.areaTrigger.createBox( sm.vec3.one(), playerPos, sm.quat.identity(), sm.areaTrigger.filter.character )
 			end
+
+			self.cl.beamTrigger:setWorldPosition( playerPos + dir * 0.5 )
+			self.cl.beamTrigger:setWorldRotation( sm.vec3.getRotation( sm.vec3.new(0,0,1), dir:normalize() ) )
+			self.cl.beamTrigger:setSize( sm.vec3.new( 0.25, 0.25, distance  ) )
+
+			for k, char in pairs(self.cl.beamTrigger:getContents()) do
+				if sm.exists(char) and not isAnyOf(char, self.cl.beam.targets) then
+					self.cl.beam.targets[#self.cl.beam.targets+1] = char
+				end
+			end
+
+			self.cl.beam.dmgTimer:tick()
+			if self.cl.beam.dmgTimer:done() then
+				self.cl.beam.dmgTimer:reset()
+				self.network:sendToServer("sv_damageBeamTargets", self.cl.beam.targets)
+			end
+		else
+			self.cl.beam.targets = {}
+			self.cl.beam.dmgTimer:reset()
+			self.network:sendToServer("sv_updateBeamTarget", nil)
+			self.cl.beam.cd.active = true
+		end
+	elseif self.cl.beam.targetIndicator:isActive() or #self.cl.beam.targets > 0 then
+		self.cl.beam.targets = {}
+		self.network:sendToServer("sv_updateBeamTarget", nil)
+		self.cl.beam.targetIndicator:close()
+	end
+
+
+	--mod1
+	if self.cl.blast.fireDelay.active then
+		for i = 1, (self.cl.weaponData.mod1.up1.owned and 2 or 1) do
+			self.cl.blast.fireDelay.timer:tick()
+		end
+
+		if self.cl.blast.fireDelay.timer:done() then
+			self.cl.blast.fireDelay.active = false
+			self.cl.blast.fireDelay.timer:reset()
 		end
 	end
-	self.keepLevel = 0
-
-	self:sv_destroyTrigger()
 end
 
-function PRifle:sv_destroyTrigger()
-	sm.areaTrigger.destroy( self.blastTrigger )
+function PRifle:cl_blast( level )
+	self.cl.blast.effect:setParameter("color", self.blastColours[math.floor(level)])
+	self.cl.blast.effect:start()
 end
 
 function PRifle.shootProjectile( self, projectileType, projectileDamage)
@@ -471,10 +533,10 @@ function PRifle.shootProjectile( self, projectileType, projectileDamage)
 	dir = sm.noise.gunSpread( dir, spreadDeg )
 
 	local owner = self.tool:getOwner()
-			
+
 	if owner then
 		sm.projectile.projectileAttack( projectileType, projectileDamage, firePos, sm.noise.gunSpread( dir, spreadDeg ) * fireMode.fireVelocity, owner, fakePosition, fakePositionSelf )
-	end 
+	end
 
 	-- Send TP shoot over network and dircly to self
 	self:onShoot( dir )
@@ -485,48 +547,105 @@ function PRifle.shootProjectile( self, projectileType, projectileDamage)
 end
 
 function PRifle.client_onReload( self )
-	if self.data.mod1.owned and self.data.mod2.owned then
-		self.modSwitchCount = self.modSwitchCount + 1
-		if self.modSwitchCount % 2 == 0 then
-			self.currentWeaponMod = mod_blast
-		else
-			self.currentWeaponMod = mod_beam
-		end
-		self.afterModCDCount = 0
-		self.afterModCD = true
-		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.currentWeaponMod, 2.5)
-		sm.audio.play("PaintTool - ColorPick")
-	elseif self.data.mod1.owned or self.data.mod2.owned or self.currentWeaponMod == "poor" then
-		sm.audio.play("Button off")
-	end
+	self.cl.baseWeapon.onModSwitch( self )
+	self.network:sendToServer("sv_updateBeamTarget", nil)
 
 	return true
 end
 
-function PRifle:sv_saveCurrentWpnData( data )
-	sm.event.sendToPlayer( self.player, "sv_saveWPData", data )
-end
---SE
-
 function PRifle.client_onUpdate( self, dt )
-	--SE
-	self.playerChar = self.player:getCharacter()
-	self.lookDir = sm.localPlayer.getDirection()
-	self.playerPos = self.playerChar:getWorldPosition()
+	if self.cl.beam.effectTarget and sm.exists(self.cl.beam.effectTarget) then
+		--[[self.cl.beam.effect:update(
+			self.tool:isInFirstPersonView() and self.tool:getFpBonePos( "pejnt_barrel" ) - self.cl.owner.character.direction * 0.15 or self.tool:getTpBonePos( "pejnt_barrel" ),
+			self.cl.beam.effectTarget.worldPosition,
+			dt,
+			250
+		)]]
 
-	local increase = dt * self.spdMult
+		local char = self.cl.owner.character
+		local p1 = self.tool:isInFirstPersonView() and self.tool:getFpBonePos( "pejnt_barrel" ) - self.cl.owner.character.direction * 0.15 or self.tool:getTpBonePos( "pejnt_barrel" )
+		local toTarget = (self.cl.beam.effectTarget.worldPosition - p1)
+		local p2 = p1 + char:getDirection() * 5
+		local p3 = p1 + toTarget * 0.5
+		local p4 = self.cl.beam.effectTarget.worldPosition
 
-	if self.beamTargets.target1 then
-		--self.network:sendToServer("sv_getEnemyData", self.beamTargets.target1)
-		self.targetData = sm.unitData[self.beamTargets.target1:getId()]
+		local hit, result = sm.physics.raycast( p1, p2 )
+		if hit and result:getCharacter() == nil then p2 = result.pointWorld + sm.vec3.new(0,0,0.1) end
+
+		local hit, result = sm.physics.raycast( p2, p3 )
+		if hit and result:getCharacter() == nil then p3 = result.pointWorld + sm.vec3.new(0,0,0.1) end
+
+		local data = se.unitData[self.cl.beam.effectTarget.id]
+		local multiplier = data and sm.util.clamp(data.data.stats.maxhp/sm.util.clamp(data.data.stats.hp + 0.001, 0, data.data.stats.maxhp), 0, 10) or 1
+
+		self.cl.beam.curvedTest:update(
+			p1,
+			p2,
+			p3,
+			p4,
+			dt,
+			{ x = 0, y = 0, z = 0.25 },
+			{ x = 0, y = 0, z = 0.25 },
+			10 * multiplier / 2,
+			250
+		)
+
+		--[[for i = 1, 10 do
+			sm.particle.createParticle( "construct_welding", sm.vec3.bezier3( p1, p2, p3, p4, i / 10 ) )
+		end]]
+
+		--[[local steps = #self.cl.beam.beamTest
+		local positions = {}
+		for i = 1, steps do
+			if i < 3 then
+				positions[#positions+1] = {
+					startPos = sm.vec3.bezier3( p1, p2, p3, p4, (i-1) / steps ),
+					endPos = sm.vec3.bezier3( p1, p2, p3, p4, i / steps )
+				}
+			else
+				local prev = positions[i-1]
+				positions[#positions+1] = {
+					startPos = prev.endPos,
+					endPos = sm.vec3.bezier3( p1, p2, p3, p4, i / steps ) --sm.noise.gunSpread( sm.vec3.bezier3( p1, p2, p3, p4, i / steps ), 2 )
+				}
+			end
+		end
+
+		for k, v in pairs(positions) do
+			local beam = self.cl.beam.beamTest[k]
+
+			beam:update(
+				v.startPos,
+				v.endPos,
+				true,
+				dt,
+				250
+			)
+		end]]
+	elseif self.cl.beam.curvedTest.effects[1].effect:isPlaying() then
+		for k, v in pairs(self.cl.beam.curvedTest.effects) do
+			v.effect:stopImmediate()
+		end
+
+		self.cl.beam.curvedTest.sound:stopImmediate()
 	end
-	--SE
+	--[[elseif self.cl.beam.beamTest[1].effect:isPlaying() then
+		for i = 1, #self.cl.beam.beamTest do
+			self.cl.beam.beamTest[i].effect:stopImmediate()
+		end
+	end]]
+	--[[elseif self.cl.beam.effect.effect:isPlaying() then
+		self.cl.beam.effect.effect:stopImmediate()
+	end]]
+
+	local increase = dt * self.cl.powerups.speedMultiplier.current
 
 	-- First person animation
 	local isSprinting =  self.tool:isSprinting()
 	local isCrouching =  self.tool:isCrouching()
+	local isLocal = self.tool:isLocal()
 
-	if self.tool:isLocal() then
+	if isLocal then
 		if self.equipped then
 			if isSprinting and self.fpAnimations.currentAnimation ~= "sprintInto" and self.fpAnimations.currentAnimation ~= "sprintIdle" then
 				swapFpAnimation( self.fpAnimations, "sprintExit", "sprintInto", 0.0 )
@@ -554,7 +673,7 @@ function PRifle.client_onUpdate( self, dt )
 
 	local effectPos, rot
 
-	if self.tool:isLocal() then
+	if isLocal then
 
 		local zOffset = 0.6
 		if self.tool:isCrouching() then
@@ -576,6 +695,9 @@ function PRifle.client_onUpdate( self, dt )
 		self.shootEffectFP:setPosition( effectPos )
 		self.shootEffectFP:setVelocity( self.tool:getMovementVelocity() )
 		self.shootEffectFP:setRotation( rot )
+
+		self.cl.blast.effect:setPosition( effectPos )
+		self.cl.blast.effect:setRotation( rot )
 	end
 	local pos = self.tool:getTpBonePos( "pejnt_barrel" )
 	local dir = self.tool:getTpBoneDir( "pejnt_barrel" )
@@ -588,6 +710,11 @@ function PRifle.client_onUpdate( self, dt )
 	self.shootEffect:setPosition( effectPos )
 	self.shootEffect:setVelocity( self.tool:getMovementVelocity() )
 	self.shootEffect:setRotation( rot )
+
+	if not isLocal then
+		self.cl.blast.effect:setPosition( effectPos )
+		self.cl.blast.effect:setRotation( rot )
+	end
 
 	-- Timers
 	self.fireCooldownTimer = math.max( self.fireCooldownTimer - increase, 0.0 )
@@ -635,7 +762,7 @@ function PRifle.client_onUpdate( self, dt )
 	end
 
 	-- Sprint block
-	local blockSprint = self.aiming or self.sprintCooldownTimer > 0.0 or self.currentWeaponMod == mod_beam and self.usingMod
+	local blockSprint = self.aiming or self.sprintCooldownTimer > 0.0 or self.cl.currentWeaponMod == self.mod2 and self.cl.usingMod
 	self.tool:setBlockSprint( blockSprint )
 
 	local playerDir = self.tool:getDirection()
@@ -740,11 +867,9 @@ function PRifle.client_onUpdate( self, dt )
 end
 
 function PRifle.client_onEquip( self, animate )
-	--SE
-	if self.currentWeaponMod ~= "poor" then
-		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.currentWeaponMod, 2.5)
+	if self.cl.currentWeaponMod ~= "poor" then
+		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
 	end
-	--SE
 
 	if animate then
 		sm.audio.play( "PotatoRifle - Equip", self.tool:getPosition() )
@@ -756,27 +881,16 @@ function PRifle.client_onEquip( self, animate )
 	self.aimWeight = math.max( cameraWeight, cameraFPWeight )
 	self.jointWeight = 0.0
 
-	local currentRenderablesTp = {}
-	local currentRenderablesFp = {}
-
-	for k,v in pairs( renderablesTp ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
-	for k,v in pairs( renderablesFp ) do currentRenderablesFp[#currentRenderablesFp+1] = v end
-	for k,v in pairs( renderables ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
-	for k,v in pairs( renderables ) do currentRenderablesFp[#currentRenderablesFp+1] = v end
-	self.tool:setTpRenderables( currentRenderablesTp )
-
-	self:loadAnimations()
+	self:updateRenderables()
 
 	setTpAnimation( self.tpAnimations, "pickup", 0.0001 )
-
 	if self.tool:isLocal() then
-		-- Sets PRifle renderable, change this to change the mesh
-		self.tool:setFpRenderables( currentRenderablesFp )
 		swapFpAnimation( self.fpAnimations, "unequip", "equip", 0.2 )
 	end
 end
 
 function PRifle.client_onUnequip( self, animate )
+	self.cl.beam.effectTarget = nil
 
 	if animate then
 		sm.audio.play( "PotatoRifle - Unequip", self.tool:getPosition() )
@@ -785,142 +899,13 @@ function PRifle.client_onUnequip( self, animate )
 	self.wantEquipped = false
 	self.equipped = false
 	setTpAnimation( self.tpAnimations, "putdown" )
-	if self.tool:isLocal() and self.fpAnimations.currentAnimation ~= "unequip" then
-		swapFpAnimation( self.fpAnimations, "equip", "unequip", 0.2 )
-	end
-end
+	if self.tool:isLocal() then
+		self.cl.beam.targets = {}
 
-function PRifle.sv_n_onAim( self, aiming )
-	self.network:sendToClients( "cl_n_onAim", aiming )
-end
-
-function PRifle.cl_n_onAim( self, aiming )
-	if not self.tool:isLocal() and self.tool:isEquipped() then
-		self:onAim( aiming )
-	end
-end
-
-function PRifle.onAim( self, aiming )
-	self.aiming = aiming
-	if self.tpAnimations.currentAnimation == "idle" or self.tpAnimations.currentAnimation == "aim" or self.tpAnimations.currentAnimation == "relax" and self.aiming then
-		setTpAnimation( self.tpAnimations, self.aiming and "aim" or "idle", 5.0 )
-	end
-end
-
-function PRifle.sv_n_onShoot( self, dir )
-	self.network:sendToClients( "cl_n_onShoot", dir )
-end
-
-function PRifle.cl_n_onShoot( self, dir )
-	if not self.tool:isLocal() and self.tool:isEquipped() then
-		self:onShoot( dir )
-	end
-end
-
-function PRifle.onShoot( self, dir )
-
-	self.tpAnimations.animations.idle.time = 0
-	self.tpAnimations.animations.shoot.time = 0
-	self.tpAnimations.animations.aimShoot.time = 0
-
-	setTpAnimation( self.tpAnimations, self.aiming and "aimShoot" or "shoot", 10.0 )
-
-	if self.tool:isInFirstPersonView() then
-			self.shootEffectFP:start()
-		else
-			self.shootEffect:start()
-	end
-
-end
-
-function PRifle.calculateFirePosition( self )
-	local crouching = self.tool:isCrouching()
-	local firstPerson = self.tool:isInFirstPersonView()
-	local dir = sm.localPlayer.getDirection()
-	local pitch = math.asin( dir.z )
-	local right = sm.localPlayer.getRight()
-
-	local fireOffset = sm.vec3.new( 0.0, 0.0, 0.0 )
-
-	if crouching then
-		fireOffset.z = 0.15
-	else
-		fireOffset.z = 0.45
-	end
-
-	if firstPerson then
-		if not self.aiming then
-			fireOffset = fireOffset + right * 0.05
+		if self.fpAnimations.currentAnimation ~= "unequip" then
+			swapFpAnimation( self.fpAnimations, "equip", "unequip", 0.2 )
 		end
-	else
-		fireOffset = fireOffset + right * 0.25
-		fireOffset = fireOffset:rotate( math.rad( pitch ), right )
 	end
-	local firePosition = GetOwnerPosition( self.tool ) + fireOffset
-	return firePosition
-end
-
-function PRifle.calculateTpMuzzlePos( self )
-	local crouching = self.tool:isCrouching()
-	local dir = sm.localPlayer.getDirection()
-	local pitch = math.asin( dir.z )
-	local right = sm.localPlayer.getRight()
-	local up = right:cross(dir)
-
-	local fakeOffset = sm.vec3.new( 0.0, 0.0, 0.0 )
-
-	--General offset
-	fakeOffset = fakeOffset + right * 0.25
-	fakeOffset = fakeOffset + dir * 0.5
-	fakeOffset = fakeOffset + up * 0.25
-
-	--Action offset
-	local pitchFraction = pitch / ( math.pi * 0.5 )
-	if crouching then
-		fakeOffset = fakeOffset + dir * 0.2
-		fakeOffset = fakeOffset + up * 0.1
-		fakeOffset = fakeOffset - right * 0.05
-
-		if pitchFraction > 0.0 then
-			fakeOffset = fakeOffset - up * 0.2 * pitchFraction
-		else
-			fakeOffset = fakeOffset + up * 0.1 * math.abs( pitchFraction )
-		end
-	else
-		fakeOffset = fakeOffset + up * 0.1 *  math.abs( pitchFraction )
-	end
-
-	local fakePosition = fakeOffset + GetOwnerPosition( self.tool )
-	return fakePosition
-end
-
-function PRifle.calculateFpMuzzlePos( self )
-	local fovScale = ( sm.camera.getFov() - 45 ) / 45
-
-	local up = sm.localPlayer.getUp()
-	local dir = sm.localPlayer.getDirection()
-	local right = sm.localPlayer.getRight()
-
-	local muzzlePos45 = sm.vec3.new( 0.0, 0.0, 0.0 )
-	local muzzlePos90 = sm.vec3.new( 0.0, 0.0, 0.0 )
-
-	if self.aiming then
-		muzzlePos45 = muzzlePos45 - up * 0.2
-		muzzlePos45 = muzzlePos45 + dir * 0.5
-
-		muzzlePos90 = muzzlePos90 - up * 0.5
-		muzzlePos90 = muzzlePos90 - dir * 0.6
-	else
-		muzzlePos45 = muzzlePos45 - up * 0.15
-		muzzlePos45 = muzzlePos45 + right * 0.2
-		muzzlePos45 = muzzlePos45 + dir * 1.25
-
-		muzzlePos90 = muzzlePos90 - up * 0.15
-		muzzlePos90 = muzzlePos90 + right * 0.2
-		muzzlePos90 = muzzlePos90 + dir * 0.25
-	end
-
-	return self.tool:getFpBonePos( "pejnt_barrel" ) + sm.vec3.lerp( muzzlePos45, muzzlePos90, fovScale )
 end
 
 function PRifle.cl_onPrimaryUse( self, state )
@@ -933,12 +918,12 @@ function PRifle.cl_onPrimaryUse( self, state )
 		if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), se_ammo_plasma, 1 ) then
 			local owner = self.tool:getOwner()
 
-			if owner and self.currentWeaponMod == "poor" or owner and not self.usingMod and not self.afterModCD then
-				if self.currentWeaponMod == mod_blast and not self.blastFireDelay or self.currentWeaponMod == mod_beam then
-					self:shootProjectile( proj_plasma, self.Damage )
+			if owner and self.cl.currentWeaponMod == "poor" or owner and not self.cl.usingMod and not self.cl.modSwitch.active then
+				if self.cl.currentWeaponMod == self.mod1 and not self.cl.blast.fireDelay.active or self.cl.currentWeaponMod == self.mod2 then
+					self:shootProjectile( proj_plasma, self.cl.Damage * self.cl.powerups.damageMultiplier.current )
 
-					if self.currentWeaponMod == mod_blast and self.blastCharge < 60 and not self.blastMasteryDmg then
-						self.blastCharge = self.blastCharge + self.blastChargeIncrease
+					if self.cl.currentWeaponMod == self.mod1 and self.cl.blastCharge < 60 and not self.cl.blast.masteryEffect.active then
+						self.cl.blastCharge = self.cl.blastCharge + self.cl.blastChargeIncrease
 					end
 				end
 			end
@@ -946,92 +931,64 @@ function PRifle.cl_onPrimaryUse( self, state )
 	end
 
 	if state == sm.tool.interactState.stop then
-		self.blastFireDelay = true
+		self.cl.blast.fireDelay.active = true
 	end
 end
 
 function PRifle.cl_onSecondaryUse( self, state )
-	if state == sm.tool.interactState.start and not self.usingMod --[[self.aiming]] then
-		--SE
-		self.usingMod = true
+	if state == sm.tool.interactState.start then
+		if self.cl.currentWeaponMod == self.mod1 then
+			local level = self.cl.blastCharge/20
+			if level >= 1 then
+				self.network:sendToServer("sv_blast",
+					{
+						pos = self.cl.owner.character.worldPosition + (sm.localPlayer.getDirection() * 2.5),
+						level = level
+					}
+				)
 
-		if self.currentWeaponMod == mod_blast then
-			if self.blastChargeLevel >= 1 then
-				self.network:sendToServer("sv_blast", { pos = self.playerPos + (self.lookDir * 2.5), size = sm.vec3.new(2,2,2) })
-				sm.audio.play( "Phaser" )
-				self.effect:setPosition( self:calculateFirePosition())
-				self.effect:setRotation( sm.vec3.getRotation( sm.vec3.new(0,0,1), self.lookDir ) )
-				self.effect:start()
+				self.cl.blastCharge = 0
 
-				if self.data.mod1.mastery.owned then
-					self.blastMasteryDmg = true
-					self.Damage = self.Damage + self.blastChargeLevel * 10
+				self:onShoot( false )
+				self.network:sendToServer( "sv_n_onShoot", false )
+				setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
+
+				if self.cl.weaponData.mod1.mastery.owned then
+					self.cl.blast.masteryEffect.active = true
+					self.cl.Damage = self.cl.Damage + level * 10
 				end
 			else
 				sm.audio.play( "RaftShark" )
 			end
-		elseif self.currentWeaponMod == mod_beam then
+		elseif self.cl.currentWeaponMod == self.mod2 then
 			self.tool:setMovementSlowDown( true )
-			self.beamCD = true
+			self.cl.beam.cd.active = true
 		end
-		--SE
-
-		--[[self.aiming = true
-		self.tpAnimations.animations.idle.time = 0
-
-		self:onAim( self.aiming )
-		self.tool:setMovementSlowDown( self.aiming )
-		self.network:sendToServer( "sv_n_onAim", self.aiming )]]
-	end
-
-	if self.usingMod --[[self.aiming]] and (state == sm.tool.interactState.stop or state == sm.tool.interactState.null) then
-		--SE
-		self.usingMod = false
-
+	elseif state == sm.tool.interactState.stop or state == sm.tool.interactState.null and self.cl.currentWeaponMod == self.mod2 then
 		self.tool:setMovementSlowDown( false )
-		self.beamActivateCD = 0
-		self.beamActivate = false
-		self.beamCD = false
-		self.beamTargets = { target1 = nil, target2 = nil }
-		self.beamEffect:stop()
-		--SE
-
-		--[[self.aiming = false
-		self.tpAnimations.animations.idle.time = 0
-
-		self:onAim( self.aiming )
-		self.tool:setMovementSlowDown( self.aiming )
-		self.network:sendToServer( "sv_n_onAim", self.aiming )]]
+		self.cl.beam.cd.active = true
+		self.cl.beam.targets = {}
+		self.network:sendToServer("sv_updateBeamTarget", nil)
 	end
 end
 
 function PRifle.client_onEquippedUpdate( self, primaryState, secondaryState )
-	--SE
-	local data = {
-		mod = self.currentWeaponMod,
-		using = self.usingMod,
-		ammo = 0,
-		recharge = 0
-	}
-	self.network:sendToServer( "sv_saveCurrentWpnData", data )
+	self.cl.baseWeapon.onEquipped( self, primaryState, secondaryState )
 
-    if self.afterModCD then
-		sm.gui.setProgressFraction(self.afterModCDCount/1)
+	if self.cl.currentWeaponMod == self.mod1 and not self.cl.modSwitch.active then
+		sm.gui.setProgressFraction(self.cl.blastCharge/60)
 	end
 
-	if self.currentWeaponMod == mod_blast and not self.afterModCD then
-		sm.gui.setProgressFraction(self.blastChargeLevel/3)
+	if self.cl.currentWeaponMod == self.mod2 and not self.cl.modSwitch.active and not self.cl.beam.targets[1] then
+		sm.gui.setProgressFraction(self.cl.beam.cd.timer.count/self.cl.beam.cd.timer.ticks)
+	elseif self.cl.currentWeaponMod == self.mod2 and self.cl.usingMod and self.cl.beam.targets[1] then
+		local data = se.unitData[self.cl.beam.targets[1].id]
+		if data ~= nil then
+			--self.cl.beam.hud:setSliderPosition( "chargeSlider", 1600 * (data.data.stats.hp/data.data.stats.maxhp)  )
+			sm.gui.setProgressFraction(data.data.stats.hp/data.data.stats.maxhp)
+		end
 	end
 
-	if self.currentWeaponMod == mod_beam and self.usingMod and not self.beamTargets.target1 then
-		sm.gui.setProgressFraction(self.beamActivateCD/self.beamActivateMax)
-	elseif self.currentWeaponMod == mod_beam and self.usingMod and self.beamTargets.target1 then
-		sm.gui.setProgressFraction(self.targetData.data.stats.hp/self.targetData.data.stats.maxhp)
-	end
-
-	self.isFiring = (primaryState == sm.tool.interactState.start or primaryState == sm.tool.interactState.hold) and true or false
-    --SE
-	
 	if primaryState ~= self.prevPrimaryState then
 		self:cl_onPrimaryUse( primaryState )
 		self.prevPrimaryState = primaryState

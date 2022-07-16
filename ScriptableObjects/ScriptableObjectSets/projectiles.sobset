@@ -29,6 +29,12 @@
 			"classname": "Shield",
 			"name": "proj_shield_sob",
 			"uuid": "bc2a2db6-6d0e-405b-bd70-4afb559552b4"
+		},
+		{
+			"filename": "$CONTENT_DATA/Scripts/projectiles/prj_sticky.lua",
+			"classname": "Sticky",
+			"name": "proj_stickyBomb_sob",
+			"uuid": "a9d34c94-9e6e-40ef-b4f5-2a222cca12f9"
 		}
 	]
 }

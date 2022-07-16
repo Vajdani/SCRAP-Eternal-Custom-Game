@@ -243,7 +243,7 @@ function SSG:client_onFixedUpdate( dt )
 		local target = char and isAnyOf(char:getCharacterType(), g_robots) and char or nil
 		target = shape and shape.uuid == hookPointUUID and shape or target
 
-		if target then
+		if target and (type(target) ~= "Shape" or target.interactable:getUvFrameIndex() ~= 1) then
 			self:cl_updateHookGUI_HookTarget( target )
 		else
 			self.cl.hookGui:close()
@@ -259,13 +259,20 @@ function SSG:cl_updateHookGUI_HookTarget( target )
 
 	if self.cl.secState == sm.tool.interactState.start then
 		self.cl.hookTarget = target
-		self.cl.owner:getClientPublicData().data.playerData.meathookAttached = true
 		self.network:sendToServer("sv_setHookTarget", { target = target, player = self.cl.owner })
 		self.cl.hookGui:close()
 	end
 end
 
 function SSG:sv_setHookTarget( args )
+	if args.target and type(args.target) == "Shape" then
+		if not args.target.interactable:getPublicData().canBeHooked then return end
+
+		sm.event.sendToInteractable( args.target.interactable, "sv_hook", true )
+	elseif type(self.sv.hookTarget) == "Shape" then
+		sm.event.sendToInteractable( self.sv.hookTarget.interactable, "sv_hook", false )
+	end
+
 	self.sv.data.data.playerData.meathookAttached = args.target ~= nil
 	self.sv.hookTarget = args.target
 
@@ -273,16 +280,20 @@ function SSG:sv_setHookTarget( args )
 end
 
 function SSG:cl_createHook( args )
+	local player = sm.localPlayer.getPlayer()
+	if args.player == player then
+		if args.delete then
+			player:getClientPublicData().data.playerData.meathookAttached = false
+			self.cl.useCD.active = true
+		else
+			player:getClientPublicData().data.playerData.meathookAttached = true
+		end
+	end
+
 	local id = args.player:getId()
 	if args.delete then
 		self.cl.hooks[id].effect:stopImmediate()
 		self.cl.hooks[id] = nil
-
-		local player = sm.localPlayer.getPlayer()
-		if args.player == player then
-			player:getClientPublicData().data.playerData.meathookAttached = false
-			self.cl.useCD.active = true
-		end
 
 		return
 	end
@@ -300,9 +311,10 @@ end
 function SSG:server_onFixedUpdate( dt )
 	if self.sv.hookTarget ~= nil and sm.exists(self.sv.hookTarget) then
 		local playerChar = self.sv.owner:getCharacter()
-		local dir = self.sv.hookTarget:getWorldPosition() - playerChar.worldPosition
+		local targetPos = self.sv.hookTarget:getWorldPosition()
+		local dir = targetPos - playerChar.worldPosition
 
-		if dir:length() <= hookDetachDistance or se_weapon_isInvalidMeathookDir(self.sv.owner.character:getDirection():cross(dir)) then
+		if dir:length() <= hookDetachDistance or se_weapon_isInvalidMeathookDir(playerChar:getDirection() - dir:normalize()) then
 			self:sv_setHookTarget( { target = nil, player = self.sv.owner })
 			self.network:sendToClients("cl_reset")
 
@@ -321,7 +333,6 @@ function SSG:server_onFixedUpdate( dt )
 		end
 
 		sm.physics.applyImpulse(playerChar, dir:normalize() * hookForceMult, true)
-		--playerChar:setWorldPosition(playerChar.worldPosition + dir:normalize())
 	elseif self.sv.hookTarget ~= nil then
 		self:sv_setHookTarget( { target = nil, player = self.sv.owner })
 		self.network:sendToClients("cl_reset")

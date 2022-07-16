@@ -3,17 +3,9 @@ UpgradeStation = class()
 local hasMod = "$GAME_DATA/Gui/Resolutions/3840x2160/ChallengeMode/IconChallengeCompleted.png"
 local hasntMod = "$GAME_DATA/Gui/Resolutions/3840x2160/ChallengeMode/IconChallengeLocked.png"
 
-function UpgradeStation:server_onCreate()
-	self.CurrentWeapon = nil
-	self.CurrentMod = nil
-	self.Player = nil
-	self.PlayerInventory = nil
-	self.Data = nil
-end
-
 function UpgradeStation:client_onCreate()
 	self.gui = sm.gui.createGuiFromLayout( "$CONTENT_DATA/Gui/UpgradeStation/UpgradeStation.layout" )
-	self.gui:setOnCloseCallback( "sv_reset" )
+	self.gui:setOnCloseCallback( "cl_reset" )
 
 	self.gui:setButtonCallback( "modBtn1", "cl_modBtn1" )
 	self.gui:setButtonCallback( "modBtn2", "cl_modBtn2" )
@@ -69,9 +61,15 @@ function UpgradeStation:client_onCreate()
 
 	self.gui:setImage("wpPointIcon", "$CONTENT_DATA/Gui/UpgradeStation/IconCreativeMode.png" ) -- $GAME_DATA/Gui/Resolutions/3840x2160/Icons/IconCreativeMode.png
 	self.gui:setImage("mastPointIcon", "$CONTENT_DATA/Gui/UpgradeStation/IconChallengeMode.png" ) --$GAME_DATA/Gui/Resolutions/3840x2160/Icons/IconChallengeMode.png
+
+	self.CurrentWeapon = nil
+	self.CurrentMod = nil
+	self.Player = nil
+	self.PlayerInventory = nil
+	self.Data = nil
 end
 
-function UpgradeStation:sv_reset()
+function UpgradeStation:cl_reset()
 	self.CurrentWeapon = nil
 	self.CurrentMod = nil
 	self.Player = nil
@@ -205,8 +203,8 @@ end
 
 function UpgradeStation:cl_masteryBtn()
     local points = self.Data.playerData.masteryPoints
-    local mod = self.CurrentMod == 1 and self.CurrentWeapon.mod1 or self.CurrentWeapon.mod2				
-	local valid = not mod.mastery.owned and points > 0 and mod.up1.owned and mod.up2.owned and ( mod.up3 and mod.up3.owned or not mod.up3 ) and not mod.mastery.owned
+    local mod = self.CurrentMod == 1 and self.CurrentWeapon.mod1 or self.CurrentWeapon.mod2
+	local valid = not mod.mastery.owned and points > 0 and mod.up1.owned and mod.up2.owned and ( not mod.up3 or mod.up3.owned  ) and not mod.mastery.owned
 	--mod.up1.owned and mod.up2.owned and mod.up3 and mod.up3.owned or not mod.mastery.owned and points > 0 and mod.up1.owned and mod.up2.owned and not mod.up3
 
     if valid then
@@ -234,10 +232,6 @@ end
 
 function UpgradeStation:sv_save()
 	sm.event.sendToPlayer( self.Player, "sv_save" )
-end
-
-function UpgradeStation:client_canInteract()
-	return self.Player == nil
 end
 
 function UpgradeStation:client_onInteract( char, lookAt )

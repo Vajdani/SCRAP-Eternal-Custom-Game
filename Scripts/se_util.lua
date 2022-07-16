@@ -1,4 +1,5 @@
 dofile "$CONTENT_DATA/Scripts/se_items.lua"
+dofile "$SURVIVAL_DATA/Scripts/util.lua"
 
 --constants
 freezeColour = sm.color.new("#0c97c9")
@@ -271,8 +272,10 @@ rocketExplosionLevels = {
     }
 }
 implosionBombImpulse = sm.vec3.one() * 500
-meathookMaxHorizontalAngle = 30 / 4
-meathookMaxVerticalAngle = 20 / 4
+meathookMaxHorizontalAngle = 0.3
+meathookMaxVerticalAngle = 0.2
+beamMaxHorizontalAngle = 0.25
+beamMaxVerticalAngle = 0.1
 
 --se_util.lua
 se = {}
@@ -281,18 +284,13 @@ se.unit = {}
 se.physics = {}
 se.player = {}
 se.unitData = {}
+se.quat = {}
 
 --Vec3
-se.vec3.strip = function( vector, axis )
-    if axis == "x" then
-        vector.x = 0
-    elseif axis == "y" then
-        vector.y = 0
-    elseif axis == "z" then
-        vector.z = 0
-    end
+se.vec3.strip = function( vec, axis )
+  	vec[axis] = 0
 
-    return vector
+    return vec
 end
 
 se.vec3.abs = function( vector )
@@ -404,6 +402,12 @@ se.physics.explode = function( position, level, destructionRadius, impulseRadius
     sm.effect.playEffect(effect, position)
 end
 
+function se_raycast_getHitObj(raycastResult)
+	return raycastResult:getShape() or raycastResult:getBody() or raycastResult:getCharacter() or raycastResult:getHarvestable() or raycastResult:getJoint() or raycastResult.type
+end
+
+
+
 --Player
 se.player.isEquippedRune = function ( player, name )
     for v, rune in pairs(player:getPublicData().data.suitData.runes.equipped) do
@@ -454,7 +458,7 @@ se.player.getMoveDir = function( player, data )
 	return moveDir, moveDirs
 end
 
-se.player.getRaycast = function ( player, range, body, mask )
+se.player.getRaycast = function( player, range, body, mask )
     local char = player.character
     local pos = char.worldPosition + camPosDifference
 
@@ -462,34 +466,99 @@ se.player.getRaycast = function ( player, range, body, mask )
     return hit, result
 end
 
+
+--Quat
+--Thanks to 00Fant for this function
+--https://discord.com/channels/722093268095205406/971007192545255464/980055810417754143 (in his discord server https://discord.gg/C7dUD8npzP)
+se.quat.lookRot = function( forward, up )
+    local vector = sm.vec3.normalize( forward )
+    local vector2 = sm.vec3.normalize( sm.vec3.cross( up, vector ) )
+    local vector3 = sm.vec3.cross( vector, vector2 )
+    local m00 = vector2.x
+    local m01 = vector2.y
+    local m02 = vector2.z
+    local m10 = vector3.x
+    local m11 = vector3.y
+    local m12 = vector3.z
+    local m20 = vector.x
+    local m21 = vector.y
+    local m22 = vector.z
+    local num8 = (m00 + m11) + m22
+	local quaternion = sm.quat.identity()
+    if num8 > 0 then
+        local num = math.sqrt(num8 + 1)
+        quaternion.w = num * 0.5
+        num = 0.5 / num
+        quaternion.x = (m12 - m21) * num
+        quaternion.y = (m20 - m02) * num
+        quaternion.z = (m01 - m10) * num
+        return quaternion
+    end
+    if (m00 >= m11) and (m00 >= m22) then
+        local num7 = math.sqrt(((1 + m00) - m11) - m22)
+        local num4 = 0.5 / num7
+        quaternion.x = 0.5 * num7
+        quaternion.y = (m01 + m10) * num4
+        quaternion.z = (m02 + m20) * num4
+        quaternion.w = (m12 - m21) * num4
+        return quaternion
+    end
+    if m11 > m22 then
+        local num6 = math.sqrt(((1 + m11) - m00) - m22)
+		local num3 = 0.5 / num6
+        quaternion.x = (m10+ m01) * num3
+        quaternion.y = 0.5 * num6
+        quaternion.z = (m21 + m12) * num3
+        quaternion.w = (m20 - m02) * num3
+        return quaternion
+    end
+    local num5 = math.sqrt(((1 + m22) - m00) - m11)
+    local num2 = 0.5 / num5
+    quaternion.x = (m20 + m02) * num2
+    quaternion.y = (m21 + m12) * num2
+    quaternion.z = 0.5 * num5;
+    quaternion.w = (m01 - m10) * num2
+    return quaternion
+end
+
+
 --Weapon
-se_weapon_isInvalidMeathookDir = function( dir )
+function se_weapon_isInvalidMeathookDir( dir )
 	return math.abs(dir.z) > meathookMaxHorizontalAngle or math.abs(dir.x) > meathookMaxVerticalAngle
+end
+
+function se_weapon_isInvalidBeamDir( dir )
+	return math.abs(dir.z) > beamMaxHorizontalAngle or math.abs(dir.x) > beamMaxVerticalAngle
 end
 
 
 
 --Classes
 Line = class()
-Line.init = function( self, thickness, colour )
+function Line:init( thickness, colour )
     self.effect = sm.effect.createEffect("ShapeRenderable")
 	self.effect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
     self.effect:setParameter("color", colour)
     self.effect:setScale( se.vec3.num(thickness) )
 
     self.thickness = thickness
+	self.spinTime = 0
 end
 
-Line.update = function( self, startPos, endPos )
-	local delta = (startPos - endPos)
+function Line:update( startPos, endPos, dt, spinSpeed )
+	local delta = endPos - startPos
     local length = delta:length()
 
     if length < 0.0001 then
-        sm.log.warning("Line:update() | Length of 'startPos - endPos' must be longer than 0.")
+        sm.log.warning("Line:update() | Length of 'endPos - startPos' must be longer than 0.")
         return
 	end
 
-	local rot = sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta)
+	local rot = sm.vec3.getRotation(up, delta)
+	local speed = spinSpeed or 1
+	self.spinTime = self.spinTime + dt * speed
+	rot = rot * sm.quat.angleAxis( math.rad(self.spinTime), up )
+
 	local distance = sm.vec3.new(self.thickness, self.thickness, length)
 
 	self.effect:setPosition(startPos + delta * 0.5)
@@ -501,8 +570,73 @@ Line.update = function( self, startPos, endPos )
     end
 end
 
-Line.destroy = function( self )
-    self.effect:destroy()
+
+CurvedLine = class()
+function CurvedLine:init( thickness, colours, steps, bendStart, soundEffect )
+	self.effects = {}
+	for i = 1, steps do
+		self.effects[#self.effects+1] = Line()
+		self.effects[i]:init( thickness, type(colours) == "table" and colours[i] or colours )
+	end
+
+	self.thickness = thickness
+	self.colours = colours
+	self.steps = steps
+	self.bendStart = bendStart or 1
+	self.activeTime = 0
+
+	if soundEffect then
+		self.sound = sm.effect.createEffect( soundEffect )
+	end
+end
+
+function CurvedLine:update( p1, p2, p3, p4, dt, sizes, freqs, sineSpeed, spinSpeed )
+	self.activeTime = self.activeTime + dt * sineSpeed
+
+	if self.sound then
+		self.sound:setPosition( p1 )
+		if not self.sound:isPlaying() then
+			self.sound:start()
+		end
+	end
+
+	local positions = {}
+	for i = 1, self.steps do
+		--[[if i <= self.bendStart then
+			positions[#positions+1] = {
+				startPos = sm.vec3.bezier3( p1, p2, p3, p4, (i-1) / self.steps ),
+				endPos = sm.vec3.bezier3( p1, p2, p3, p4, i / self.steps )
+			}
+		else]]
+			local prev = positions[i-1]
+			positions[#positions+1] = {
+				startPos = prev and prev.endPos or p1,
+				endPos = sm.vec3.bezier3( p1, p2, p3, p4, i / self.steps )
+			}
+
+			local current = positions[i]
+			local size = not isAnyOf(type(sizes), {"table", "Vec3"}) and { x = sizes, y = sizes, z = sizes } or sizes
+			local frequency = not isAnyOf(type(freqs), {"table", "Vec3"}) and { x = freqs, y = freqs, z = freqs } or freqs
+			current.endPos = current.endPos + (i == self.steps and
+				sm.vec3.zero() or
+				sm.vec3.new(
+					size.x * math.cos(self.activeTime - i * frequency.x),
+					size.y * math.cos(self.activeTime - i * frequency.y),
+					size.z * math.sin(self.activeTime - i * frequency.z)
+				) * (i <= self.bendStart and sm.util.clamp(0.1 * i, 0, 1) or 1 )
+			)
+		--end
+	end
+
+	for k, v in pairs(positions) do
+		local beam = self.effects[k]
+		beam:update(
+			v.startPos,
+			v.endPos,
+			dt,
+			spinSpeed
+		)
+	end
 end
 
 

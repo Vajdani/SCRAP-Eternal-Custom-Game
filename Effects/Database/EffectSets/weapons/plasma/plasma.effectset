@@ -1,0 +1,35 @@
+{
+	"Plasma Blast" : {
+		"effectList" : [
+			{
+				"delay" : 0.0,
+				"name" : "p_plasma_blast",
+				"offset" : [ 0.0, 0.0, 0.0 ],
+				"parameters" : [ "color" ],
+				"type" : "particle"
+			},
+			{
+				"audio" : [ "event:/vehicle/horns/phaserhorn" ],
+				"delay" : 0.0,
+				"offset" : [ 0.0, 0.0, 0.0 ],
+				"parameters" : [ "pitch" ],
+				"type" : "audio",
+				"duration": 1
+			}
+		],
+		"parameterList" : {
+			"pitch" : 0.50,
+			"color" : "ffffff"
+		}
+	},
+	"Plasma Beam_sound" : {
+		"effectList" : [
+			{
+				"audio" : [ "event:/tools/connectiontool/connectiontool_fire" ],
+				"delay" : 0.0,
+				"offset" : [ 0.0, 0.0, 0.0 ],
+				"type" : "audio"
+			}
+		]
+	}	
+}

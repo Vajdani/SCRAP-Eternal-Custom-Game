@@ -2,77 +2,77 @@ dofile "$GAME_DATA/Scripts/game/AnimationUtil.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 dofile "$SURVIVAL_DATA/Scripts/game/survival_shapes.lua"
 
-local mod_sticky = "Sticky Bombs"
-local mod_auto = "Full Auto"
-local bombVel = sm.vec3.new(0.6,0.6,0.6)
-local effectRot = sm.vec3.new( 0, 1, 0 )
+dofile "$CONTENT_DATA/Scripts/se_util.lua"
+dofile "$SURVIVAL_DATA/Scripts/game/util/Timer.lua"
 
 PotatoShotgun = class()
 
-local renderables = {
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_frier/char_spudgun_barrel_frier.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+PotatoShotgun.mod1 = "Sticky Bombs"
+PotatoShotgun.mod2 = "Full Auto"
+PotatoShotgun.renderables = {
+	poor = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_frier/char_spudgun_barrel_frier.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	},
+	["Sticky Bombs"] = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_frier/char_spudgun_barrel_frier.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	},
+	["Full Auto"] = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_frier/char_spudgun_barrel_frier.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	}
 }
+PotatoShotgun.renderablesTp = {
+	"$GAME_DATA/Character/Char_Male/Animations/char_male_tp_spudgun.rend",
+	"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_tp_animlist.rend"
+}
+PotatoShotgun.renderablesFp = {
+	"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_fp_animlist.rend"
+}
+PotatoShotgun.baseDamage = 24
 
-local renderablesTp = {"$GAME_DATA/Character/Char_Male/Animations/char_male_tp_spudgun.rend", "$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_tp_animlist.rend"}
-local renderablesFp = {"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_fp_animlist.rend"}
-
-sm.tool.preloadRenderables( renderables )
-sm.tool.preloadRenderables( renderablesTp )
-sm.tool.preloadRenderables( renderablesFp )
+for k, v in pairs(PotatoShotgun.renderables) do
+	sm.tool.preloadRenderables( v )
+end
+sm.tool.preloadRenderables( PotatoShotgun.renderablesTp )
+sm.tool.preloadRenderables( PotatoShotgun.renderablesFp )
 
 function PotatoShotgun.client_onCreate( self )
 	self.shootEffect = sm.effect.createEffect( "SpudgunFrier - FrierMuzzel" )
 	self.shootEffectFP = sm.effect.createEffect( "SpudgunFrier - FPFrierMuzzel" )
 
-	--SE
+	self.cl = {}
+	self.cl.baseWeapon = BaseWeapon()
+	self.cl.baseWeapon.cl_onCreate( self, "shotgun" )
 
-	--General stuff
-	self.windupEffect = sm.effect.createEffect( "SpudgunSpinner - Windup" )
-	self.player = sm.localPlayer.getPlayer()
-	self.playerChar = self.player:getCharacter()
+	if not self.tool:isLocal() then return end
 
-	self.data = sm.playerInfo[self.player:getId()].weaponData.shotgun
+	--mod1
+	self.cl.sticky = {}
+	self.cl.sticky.ammo = 3
+	self.cl.sticky.ammoMax = 3
+	self.cl.sticky.recharge = 5
+	self.cl.sticky.rechargeMax = 8
 
-	self.Damage = 24
-	self.ammoCost = 1
-	self.isFiring = false
-	self.usingMod = false
-
-	--Mod switch
-	if self.data.mod1.owned then
-		self.currentWeaponMod = mod_sticky
-	elseif self.data.mod2.owned then
-		self.currentWeaponMod = mod_auto
-	else
-		self.currentWeaponMod = "poor"
-	end
-
-	self.modSwitchCount = 0
-	self.afterModCD = false
-	self.afterModCDCount = 1
-
-	--mod_sticky
-	self.stickyBombAmmo = 3
-	self.stickyBombAmmoMax = 3
-	self.stickyReCharge = 8
-	self.stickyReChargeMax = 8
-	self.explosionRadius = 5
-
-	self.bombs = {}
-
-	--mod_auto
-	self.fullAutoCounter = 0
-	self.faMobility = false
-	self.faWindUp = 1
-	self.faWindUpMax = 1
-	self.faWindDown = 1.25
-	self.faWindDownMax = 1.25
-	self.canUseFA = false
-	--SE
+	--mod2
+	self.cl.auto = {}
+	self.cl.auto.counter = 0
+	self.cl.auto.windUp = 1
+	self.cl.auto.windUpMax = 1
+	self.cl.auto.windingDown = false
+	self.cl.auto.windDown = 1.25
+	self.cl.auto.windDownMax = 1.25
+	self.cl.auto.canUse = false
 end
 
 
@@ -190,132 +190,92 @@ function PotatoShotgun.loadAnimations( self )
 	self.aimWeight = math.max( cameraWeight, cameraFPWeight )
 end
 
---SE
+
 function PotatoShotgun.client_onFixedUpdate( self, dt )
-	self.playerChar = self.player:getCharacter()
+	if not self.tool:isLocal() or not self.tool:isEquipped() then return end
 
-	local playerData = sm.playerInfo[self.player:getId()].playerData
-	self.data = sm.playerInfo[self.player:getId()].weaponData.shotgun
-	self.dmgMult = playerData.damageMultiplier
-	self.spdMult = playerData.speedMultiplier
-
-	--fuck off
-	if self.fireCooldownTimer == nil then
-		self.fireCooldownTimer = 0
-	end
+	self.cl.baseWeapon.cl_onFixed( self )
 
 	--upgrades
-	self.stickyReChargeMax = self.data.mod1.up1.owned and 6.4 or 8
-	self.explosionRadius = self.data.mod1.up2.owned and 7.25 or 5
-	self.stickyBombAmmoMax = self.data.mod1.mastery.owned and 5 or 3
-	self.faWindUpMax = self.data.mod2.up1.owned and 0.75 or 1
-	self.faWindDownMax = self.data.mod2.up2.owned and 0.9 or 1.25
-	self.faMobility = self.data.mod2.up3.owned and true or false
+	self.cl.sticky.rechargeMax = self.cl.weaponData.mod1.up1.owned and 6.4 or 8
+	self.cl.sticky.ammoMax = self.cl.weaponData.mod1.mastery.owned and 5 or 3
+	self.cl.auto.windUpMax = self.cl.weaponData.mod2.up1.owned and 0.75 or 1
+	self.cl.auto.windDownMax = self.cl.weaponData.mod2.up2.owned and 0.9 or 1.25
 
 	--powerup
-	local increase = dt * self.spdMult
-	self.Damage = 24 --nice fix there bro
-	local multVal = self.berserk and self.dmgMult * 4 or self.dmgMult
-	self.Damage = self.Damage * multVal
+	local increase = dt * self.cl.powerups.speedMultiplier.current
 
-	if self.afterModCD then
-		self.afterModCDCount = self.afterModCDCount + increase*1.75
-
-		if self.afterModCDCount >= 1 then
-			self.afterModCDCount = 1
-			self.afterModCD = false
-		end
-	end
-
-	if self.usingMod and self.currentWeaponMod == mod_auto and not self.afterModCD and self.canUseFA and self.isFiring and not self.playerChar:isSwimming() and not self.playerChar:isDiving() and self.tool:isEquipped() then
+	local playerChar = self.cl.owner.character
+	if self.cl.currentWeaponMod == self.mod2 and self.cl.usingMod and not self.cl.modSwitch.active and self.cl.auto.canUse and not self.cl.auto.windingDown and self.cl.isFiring and not playerChar:isSwimming() and not playerChar:isDiving() and self.tool:isEquipped() then
 		if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), se_ammo_shells, 1 ) then
-			self.fullAutoCounter = self.fullAutoCounter + increase
-			if (self.fullAutoCounter/0.25) > 1 then
-				self:shootProjectile("CSGFries", self.Damage)
+			self.cl.auto.counter = self.cl.auto.counter + increase
+			if (self.cl.auto.counter/0.25) > 1 then
+				self:shootProjectile(proj_csg, self.baseDamage * self.cl.powerups.damageMultiplier.current)
 			end
-			if self.fullAutoCounter > 0.25 then
-				self.aimFireMode.fireCooldown = 0.5
-				self.fullAutoCounter = 0
+
+			if self.cl.auto.counter > 0.25 then
+				self.cl.auto.counter = 0
 			end
 		else
 			sm.audio.play( "PotatoRifle - NoAmmo" )
 		end
 	else
-		self.fullAutoCounter = 0
+		self.cl.auto.counter = 0
 	end
 
-	if self.currentWeaponMod == mod_auto and self.usingMod and not self.afterModCD then
-		if self.faWindUp < self.faWindUpMax then
-			self.faWindUp = self.faWindUp + increase*2
+	if self.cl.currentWeaponMod == self.mod2 then
+		if self.cl.usingMod and not self.cl.modSwitch.active then
+			if self.cl.auto.windUp < self.cl.auto.windUpMax then
+				self.cl.auto.windUp = self.cl.auto.windUp + increase*2
+			else
+				self.cl.auto.windUp = self.cl.auto.windUpMax
+				self.cl.auto.canUse = true
+			end
+		else
+			self.cl.auto.canUse = false
 		end
 
-		if self.faWindUp >= self.faWindUpMax then
-			self.faWindUp = self.faWindUpMax
-			self.canUseFA = true
+		if self.cl.auto.windingDown then
+			if self.cl.auto.windDown < self.cl.auto.windDownMax then
+				self.cl.auto.windDown = self.cl.auto.windDown + increase*2
+			else
+				self.cl.auto.windDown = self.cl.auto.windDownMax
+				self.cl.auto.windingDown = false
+				sm.tool.forceTool( nil )
+			end
 		end
-	else
-		self.canUseFA = false
 	end
 
-	if self.usingMod and self.currentWeaponMod == mod_sticky then
-		self.ammoCost = 5
-	else
-		self.ammoCost = 1
-	end
-
-	if self.stickyBombAmmo < self.stickyBombAmmoMax or self.stickyBombAmmo < self.stickyBombAmmoMax and self.currentWeaponMod == mod_auto then
-		if self.fireCooldownTimer <= 0.0 or self.fireCooldownTimer > 0.0 and self.stickyBombAmmo == 0 then
-			if self.stickyReCharge < self.stickyReChargeMax and self.stickyBombAmmo < 5 then
-				self.stickyReCharge = self.stickyReCharge + increase
+	if self.cl.sticky.ammo < self.cl.sticky.ammoMax or self.cl.sticky.ammo < self.cl.sticky.ammoMax and self.cl.currentWeaponMod == self.mod2 then
+		if self.fireCooldownTimer <= 0.0 or self.cl.sticky.ammo == 0 then
+			if self.cl.sticky.recharge < self.cl.sticky.rechargeMax and self.cl.sticky.ammo < 5 then
+				self.cl.sticky.recharge = self.cl.sticky.recharge + increase
 			end
 
-			if (self.stickyReCharge/self.stickyReChargeMax) > 1 then
-				self.stickyBombAmmo = self.stickyBombAmmo + 1
-			end
-
-			if self.stickyBombAmmo < self.stickyBombAmmoMax and self.stickyReCharge >= self.stickyReChargeMax then
-				self.stickyReCharge = 0
+			if (self.cl.sticky.recharge/self.cl.sticky.rechargeMax) >= 1 then
+				self.cl.sticky.ammo = self.cl.sticky.ammo + 1
+				self.cl.sticky.recharge = 0
 			end
 		end
 	end
 end
 
-function PotatoShotgun:cl_shootBomb( args )
-	local bomb = {effect = sm.effect.createEffect("Rocket"), leakfx = sm.effect.createEffect("PropaneTank - ActivateBig"), pos = args.pos, dir = args.dir, lifeTime = 0, explodeCD = 0, exploded = false, attached = false, attachedTarget = nil, attachPos = sm.vec3.zero(), attachDir = sm.vec3.zero()}
-
-	bomb.effect:setPosition( args.pos )
-	bomb.effect:setRotation( sm.vec3.getRotation( effectRot, args.dir ) )
-	bomb.effect:start()
-
-	table.insert(self.bombs, bomb)
-	self.network:sendToServer("sv_shootBomb")
-end
-
-function PotatoShotgun:sv_shootBomb()
+function PotatoShotgun:sv_shootBomb( args )
 	sm.container.beginTransaction()
-	sm.container.spend( self.player:getInventory(), se_ammo_shells, 1, true )
+	sm.container.spend( args.owner:getInventory(), se_ammo_shells, 1, true )
 	sm.container.endTransaction()
-end
 
-function PotatoShotgun:sv_bombExplode( pos )
-	sm.physics.explode( pos, 5, self.explosionRadius/2, 4.0, 15.0, "PropaneTank - ExplosionSmall" )
+	args.spawnTick = sm.game.getServerTick()
+	sm.scriptableObject.createScriptableObject(
+		proj_stickyBomb_sob,
+		args,
+		args.owner:getCharacter():getWorld()
+	)
 end
 
 function PotatoShotgun.client_onReload( self )
-	if self.data.mod1.owned and self.data.mod2.owned then
-		self.modSwitchCount = self.modSwitchCount + 1
-		if self.modSwitchCount % 2 == 0 then
-			self.currentWeaponMod = mod_sticky
-		else
-			self.currentWeaponMod = mod_auto
-		end
-		self.afterModCDCount = 0
-		self.afterModCD = true
-		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.currentWeaponMod, 2.5)
-		sm.audio.play("PaintTool - ColorPick")
-	elseif self.data.mod1.owned or self.data.mod2.owned or self.currentWeaponMod == "poor" then
-		sm.audio.play("Button off")
-	end
+	if self.cl.auto.windingDown then return true end
+	self.cl.baseWeapon.onModSwitch( self )
 
 	return true
 end
@@ -378,108 +338,13 @@ function PotatoShotgun:shootProjectile( projectileType, projectileDamage )
 	setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
 end
 
-function PotatoShotgun:sv_saveCurrentWpnData( data )
-	sm.event.sendToPlayer( self.player, "sv_saveWPData", data )
-end
-
-function PotatoShotgun:server_onFixedUpdate( dt )
-	gravity = sm.vec3.new(0, 0, sm.physics.getGravity()) * 0.0005
-end
-
 function PotatoShotgun:sv_farmbotCannonCheck( args )
 	sm.event.sendToUnit(args.unit, "sv_checkBombPos", { pos = args.pos, attacker = args.attacker } )
 end
---SE
+
 
 function PotatoShotgun.client_onUpdate( self, dt )
-	--SE
-	self.playerChar = self.player:getCharacter()
-	self.lookDir = sm.localPlayer.getDirection()
-	self.playerPos = self.playerChar:getWorldPosition()
-
-	local increase = dt * self.spdMult
-	local fpsAdjust = dt * 50
-
-	for tablePos, bomb in pairs(self.bombs) do
-		if bomb.lifeTime >= 15 or bomb.exploded then
-			bomb.effect:stop()
-			bomb.leakfx:stop()
-			if bomb.exploded then
-				self.network:sendToServer("sv_bombExplode", bomb.pos)
-			end
-
-			table.remove(self.bombs,tablePos)
-		elseif bomb.attached then
-			if not bomb.leakfx:isPlaying() then
-				bomb.leakfx:start()
-			end
-
-			bomb.explodeCD = bomb.explodeCD + dt
-
-			if bomb.explodeCD >= 2.5 then
-				bomb.exploded = true
-			end
-
-			if bomb.attachedTarget and sm.exists(bomb.attachedTarget) then
-				local newPos
-				if type(bomb.attachedTarget) == "Shape" then
-					local rot = bomb.attachedTarget.worldRotation
-					newPos = bomb.attachedTarget:getWorldPosition() + rot * bomb.attachPos
-					bomb.effect:setRotation( sm.vec3.getRotation( effectRot, rot * bomb.attachDir ) )
-					bomb.leakfx:setRotation( sm.vec3.getRotation( effectRot, rot * bomb.attachDir ) )
-				elseif type(bomb.attachedTarget) == "Character" then
-					local dir = bomb.attachedTarget:getDirection()
-					newPos = bomb.attachedTarget:getWorldPosition() + dir * bomb.attachPos
-					bomb.effect:setRotation( sm.vec3.getRotation( effectRot, dir * bomb.attachDir ) )
-					bomb.leakfx:setRotation( sm.vec3.getRotation( effectRot, dir * bomb.attachDir ) )
-				end
-
-				bomb.pos = newPos
-				bomb.effect:setPosition( newPos )
-				bomb.leakfx:setPosition( newPos - sm.vec3.new(0,0,0.5) )
-			elseif bomb.attachedTarget and not sm.exists(bomb.attachedTarget) then
-				bomb.attached = false
-				bomb.attachedTarget = nil
-				--bomb.explodeCD = 69420 --explodes the bomb
-			end
-		else
-			local hit, result = sm.physics.raycast( bomb.pos, bomb.pos + bomb.dir * 0.5 * fpsAdjust )
-			if hit then
-				local object 
-				local type = result.type
-				if type == "terrainSurface" then
-					bomb.attached = true
-				elseif type == "character" then
-					object = result:getCharacter()
-
-					bomb.attachedTarget = object
-					bomb.attachPos = bomb.pos - object:getWorldPosition()
-					if object:getCharacterType() == sm.uuid.new("9f4fde94-312f-4417-b13b-84029c5d6b52") then
-						self.network:sendToServer("sv_farmbotCannonCheck", { unit = object:getUnit(), pos = bomb.attachPos, attacker = self.player } )
-					end
-
-					bomb.attachDir = bomb.dir
-					bomb.attached = true
-				elseif type == "body" then
-					object = result:getShape()
-					bomb.attachedTarget = object
-					bomb.attachPos = bomb.pos - object:getWorldPosition()
-					bomb.attachDir = bomb.dir
-					bomb.attached = true
-				end
-			end
-
-			if bomb.dir.z > -1 then
-				bomb.dir = bomb.dir - gravity * fpsAdjust
-			end
-			bomb.lifeTime = bomb.lifeTime + dt
-			local newPos = bomb.pos + bombVel * bomb.dir * fpsAdjust
-			bomb.pos = newPos
-			bomb.effect:setPosition( newPos )
-			bomb.effect:setRotation( sm.vec3.getRotation(effectRot, bomb.dir) )
-		end
-	end
-	--SE
+	local increase = dt * self.cl.powerups.speedMultiplier.current
 
 	-- First person animation
 	local isSprinting =  self.tool:isSprinting()
@@ -700,11 +565,9 @@ function PotatoShotgun.client_onUpdate( self, dt )
 end
 
 function PotatoShotgun.client_onEquip( self, animate )
-	--SE
-	if self.currentWeaponMod ~= "poor" then
-		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.currentWeaponMod, 2.5)
+	if self.cl.currentWeaponMod ~= "poor" then
+		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
 	end
-	--SE
 
 	if animate then
 		sm.audio.play( "PotatoRifle - Equip", self.tool:getPosition() )
@@ -716,22 +579,11 @@ function PotatoShotgun.client_onEquip( self, animate )
 	self.aimWeight = math.max( cameraWeight, cameraFPWeight )
 	self.jointWeight = 0.0
 
-	local currentRenderablesTp = {}
-	local currentRenderablesFp = {}
-
-	for k,v in pairs( renderablesTp ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
-	for k,v in pairs( renderablesFp ) do currentRenderablesFp[#currentRenderablesFp+1] = v end
-	for k,v in pairs( renderables ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
-	for k,v in pairs( renderables ) do currentRenderablesFp[#currentRenderablesFp+1] = v end
-	self.tool:setTpRenderables( currentRenderablesTp )
-
-	self:loadAnimations()
+	self:updateRenderables()
 
 	setTpAnimation( self.tpAnimations, "pickup", 0.0001 )
-
 	if self.tool:isLocal() then
 		-- Sets PotatoRifle renderable, change this to change the mesh
-		self.tool:setFpRenderables( currentRenderablesFp )
 		swapFpAnimation( self.fpAnimations, "unequip", "equip", 0.2 )
 	end
 end
@@ -741,9 +593,7 @@ function PotatoShotgun.client_onUnequip( self, animate )
 		sm.audio.play( "PotatoRifle - Unequip", self.tool:getPosition() )
 	end
 
-	--SE
-	self.usingMod = false
-	--SE
+	self.cl.usingMod = false
 	self.wantEquipped = false
 	self.equipped = false
 	setTpAnimation( self.tpAnimations, "putdown" )
@@ -786,143 +636,52 @@ function PotatoShotgun.onShoot( self, dir )
 
 	setTpAnimation( self.tpAnimations, self.aiming and "aimShoot" or "shoot", 10.0 )
 
-	--SE
 	if self.tool:isInFirstPersonView() then
-		if self.usingMod and self.stickyBombAmmo == 0 and self.currentWeaponMod == mod_sticky or self.afterModCD or self.usingMod and self.currentWeaponMod == mod_auto and not self.canUseFA then
+		if self.cl.usingMod and self.cl.sticky.ammo == 0 and self.cl.currentWeaponMod == self.mod1 or self.cl.modSwitch.active or self.cl.usingMod and self.cl.currentWeaponMod == self.mod2 and not self.cl.auto.canUse then
 			sm.audio.play( "PotatoRifle - NoAmmo" )
 		else
 			self.shootEffectFP:start()
 		end
 	else
-		if self.usingMod and self.stickyBombAmmo == 0 and self.currentWeaponMod == mod_sticky or self.afterModCD or self.usingMod and self.currentWeaponMod == mod_auto and not self.canUseFA then
+		if self.cl.usingMod and self.cl.sticky.ammo == 0 and self.cl.currentWeaponMod == self.mod1 or self.cl.modSwitch.active or self.cl.usingMod and self.cl.currentWeaponMod == self.mod2 and not self.cl.auto.canUse then
 			sm.audio.play( "PotatoRifle - NoAmmo" )
 		else
 			self.shootEffect:start()
 		end
 	end
-	--SE
-end
-
-function PotatoShotgun.calculateFirePosition( self )
-	local crouching = self.tool:isCrouching()
-	local firstPerson = self.tool:isInFirstPersonView()
-	local dir = sm.localPlayer.getDirection()
-	local pitch = math.asin( dir.z )
-	local right = sm.localPlayer.getRight()
-
-	local fireOffset = sm.vec3.new( 0.0, 0.0, 0.0 )
-
-	if crouching then
-		fireOffset.z = 0.15
-	else
-		fireOffset.z = 0.45
-	end
-
-	if firstPerson then
-		if not self.aiming then
-			fireOffset = fireOffset + right * 0.05
-		end
-	else
-		fireOffset = fireOffset + right * 0.25
-		fireOffset = fireOffset:rotate( math.rad( pitch ), right )
-	end
-	local firePosition = GetOwnerPosition( self.tool ) + fireOffset
-	return firePosition
-end
-
-function PotatoShotgun.calculateTpMuzzlePos( self )
-	local crouching = self.tool:isCrouching()
-	local dir = sm.localPlayer.getDirection()
-	local pitch = math.asin( dir.z )
-	local right = sm.localPlayer.getRight()
-	local up = right:cross(dir)
-
-	local fakeOffset = sm.vec3.new( 0.0, 0.0, 0.0 )
-
-	--General offset
-	fakeOffset = fakeOffset + right * 0.25
-	fakeOffset = fakeOffset + dir * 0.5
-	fakeOffset = fakeOffset + up * 0.25
-
-	--Action offset
-	local pitchFraction = pitch / ( math.pi * 0.5 )
-	if crouching then
-		fakeOffset = fakeOffset + dir * 0.2
-		fakeOffset = fakeOffset + up * 0.1
-		fakeOffset = fakeOffset - right * 0.05
-
-		if pitchFraction > 0.0 then
-			fakeOffset = fakeOffset - up * 0.2 * pitchFraction
-		else
-			fakeOffset = fakeOffset + up * 0.1 * math.abs( pitchFraction )
-		end
-	else
-		fakeOffset = fakeOffset + up * 0.1 *  math.abs( pitchFraction )
-	end
-
-	local fakePosition = fakeOffset + GetOwnerPosition( self.tool )
-	return fakePosition
-end
-
-function PotatoShotgun.calculateFpMuzzlePos( self )
-	local fovScale = ( sm.camera.getFov() - 45 ) / 45
-
-	local up = sm.localPlayer.getUp()
-	local dir = sm.localPlayer.getDirection()
-	local right = sm.localPlayer.getRight()
-
-	local muzzlePos45 = sm.vec3.new( 0.0, 0.0, 0.0 )
-	local muzzlePos90 = sm.vec3.new( 0.0, 0.0, 0.0 )
-
-	if self.aiming then
-		muzzlePos45 = muzzlePos45 - up * 0.2
-		muzzlePos45 = muzzlePos45 + dir * 0.5
-
-		muzzlePos90 = muzzlePos90 - up * 0.5
-		muzzlePos90 = muzzlePos90 - dir * 0.6
-	else
-		muzzlePos45 = muzzlePos45 - up * 0.15
-		muzzlePos45 = muzzlePos45 + right * 0.2
-		muzzlePos45 = muzzlePos45 + dir * 1.25
-
-		muzzlePos90 = muzzlePos90 - up * 0.15
-		muzzlePos90 = muzzlePos90 + right * 0.2
-		muzzlePos90 = muzzlePos90 + dir * 0.25
-	end
-
-	return self.tool:getFpBonePos( "pejnt_barrel" ) + sm.vec3.lerp( muzzlePos45, muzzlePos90, fovScale )
 end
 
 function PotatoShotgun.cl_onPrimaryUse( self, state )
-	if self.tool:getOwner().character == nil then
+	if self.tool:getOwner().character == nil or self.cl.modSwitch.active or (self.cl.currentWeaponMod == self.mod2 and self.cl.usingMod and not self.cl.auto.canUse) or self.cl.auto.windingDown then
 		return
 	end
-	if self.fireCooldownTimer <= 0.0 and state == sm.tool.interactState.start then
 
-		if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), se_ammo_shells, self.ammoCost ) then
+	if self.fireCooldownTimer <= 0.0 and state == sm.tool.interactState.start then
+		local cost = self.cl.usingMod and self.cl.currentWeaponMod == self.mod1 and 5 or 1
+		if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), se_ammo_shells, cost ) then
 
 			local fireMode = self.aiming and self.aimFireMode or self.normalFireMode
+			local dir = sm.localPlayer.getDirection()
 			local owner = self.tool:getOwner()
 
-			if owner and not self.usingMod and not self.afterModCD or owner and self.usingMod and not self.afterModCD and self.currentWeaponMod == mod_auto or owner and self.currentWeaponMod == "poor" then
-				self.aimFireMode.fireCooldown = 0.5
-				self:shootProjectile( "CSGFries", self.Damage )
-			elseif owner and self.usingMod and self.currentWeaponMod == mod_sticky and self.stickyBombAmmo > 0 and not self.afterModCD then
-				--self:shootProjectile( "stickybomb", self.Damage )
+			if not owner then return end
 
-				--self:shootProjectile( "explosivetape", self.Damage )
+			if not self.cl.usingMod or isAnyOf(self.cl.currentWeaponMod, { "poor", self.mod2 }) then
+				self:shootProjectile( proj_csg, self.baseDamage * self.cl.powerups.damageMultiplier.current )
+			elseif self.cl.currentWeaponMod == self.mod1 and self.cl.sticky.ammo > 0 then
+				self.network:sendToServer("sv_shootBomb",
+						{
+							pos = self:calculateFirePosition(),
+							dir = dir,
+							owner = owner
+						}
+					)
 
-				self:cl_shootBomb({ pos = self:calculateFirePosition() + self.lookDir, dir = self.lookDir })
-
-				self.stickyBombAmmo = self.stickyBombAmmo - 1
-				--if self.stickyBombAmmo == 5 then
-					--self.stickyReCharge = self.stickyReCharge - 30
-					self.stickyReCharge = 0
-				--end
+				self.cl.sticky.ammo = self.cl.sticky.ammo - 1
 
 				-- Send TP shoot over network and dircly to self
-				self:onShoot( self.lookDir )
-				self.network:sendToServer( "sv_n_onShoot", self.lookDir )
+				self:onShoot( dir )
+				self.network:sendToServer( "sv_n_onShoot", dir )
 
 				-- Play FP shoot animation
 				setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
@@ -941,67 +700,41 @@ function PotatoShotgun.cl_onPrimaryUse( self, state )
 end
 
 function PotatoShotgun.cl_onSecondaryUse( self, state )
-	if state == sm.tool.interactState.start and not self.usingMod --[[self.aiming]] then
-		--SE
-		self.usingMod = true
-		self.aiming = true
-		--if self.currentWeaponMod == mod_auto or self.currentWeaponMod == "poor" then
-			self.tpAnimations.animations.idle.time = 0
-			self:onAim( self.usingMod )
-			if self.currentWeaponMod == mod_auto and not self.faMobility or self.currentWeaponMod == "poor" then
-				self.tool:setMovementSlowDown( self.usingMod )
-			end
-			self.network:sendToServer( "sv_n_onAim", self.usingMod )
-		--end
-		--SE
-	end
+	--self.aiming = state == sm.tool.interactState.start or state == sm.tool.interactState.hold
+	--self.tpAnimations.animations.idle.time = 0
+	--self:onAim( self.cl.usingMod )
+	if self.cl.currentWeaponMod == self.mod2 then
+		if not self.cl.weaponData.mod2.up3.owned then
+			self.tool:setMovementSlowDown( self.cl.usingMod )
+		end
 
-	if self.usingMod --[[self.aiming]] and (state == sm.tool.interactState.stop or state == sm.tool.interactState.null) then
-		--SE
-		self.usingMod = false
-		self.aiming = false
-		--if self.currentWeaponMod == mod_auto or self.currentWeaponMod == "poor" then
-			self.tpAnimations.animations.idle.time = 0
-			self:onAim( self.usingMod )
-			if self.currentWeaponMod == mod_auto and not self.faMobility or self.currentWeaponMod == "poor" then
-				self.tool:setMovementSlowDown( self.usingMod )
-			end
-			self.network:sendToServer( "sv_n_onAim", self.usingMod )
-		--end
-		--SE
+		if state == sm.tool.interactState.stop then
+			self.cl.auto.windDown = 0
+			self.cl.auto.windingDown = true
+			sm.tool.forceTool( self.tool )
+		end
 	end
+	--self.network:sendToServer( "sv_n_onAim", self.cl.usingMod )
 
-	--SE
-	if self.currentWeaponMod == mod_auto then
-		self.faWindUp = 0
+	if self.cl.currentWeaponMod == self.mod2 then
+		self.cl.auto.windUp = 0
 	end
-	--SE
 end
 
 function PotatoShotgun.client_onEquippedUpdate( self, primaryState, secondaryState )
-	--SE
-	local data = {
-		mod = self.currentWeaponMod,
-		using = self.usingMod,
-		ammo = 0,
-		recharge = 0
-	}
-	self.network:sendToServer( "sv_saveCurrentWpnData", data )
+	self.cl.baseWeapon.onEquipped( self, primaryState, secondaryState )
 
-	if self.currentWeaponMod == mod_sticky then
-		sm.gui.setProgressFraction(self.stickyBombAmmo/self.stickyBombAmmoMax)
+	if self.cl.currentWeaponMod == self.mod1 then
+		if not self.cl.modSwitch.active then
+			sm.gui.setProgressFraction(self.cl.sticky.ammo/self.cl.sticky.ammoMax)
+		end
+	else
+		if not self.cl.auto.canUse and self.cl.usingMod then
+			sm.gui.setProgressFraction(self.cl.auto.windUp/self.cl.auto.windUpMax)
+		elseif self.cl.auto.windingDown then
+			sm.gui.setProgressFraction(self.cl.auto.windDown/self.cl.auto.windDownMax)
+		end
 	end
-
-	if not self.canUseFA and self.currentWeaponMod == mod_auto and self.usingMod then
-		sm.gui.setProgressFraction(self.faWindUp/self.faWindUpMax)
-	end
-
-	if self.afterModCD then
-		sm.gui.setProgressFraction(self.afterModCDCount/1)
-	end
-
-	self.isFiring = (primaryState == sm.tool.interactState.start or primaryState == sm.tool.interactState.hold) and true or false
-	--SE
 
 	if primaryState ~= self.prevPrimaryState then
 		self:cl_onPrimaryUse( primaryState )

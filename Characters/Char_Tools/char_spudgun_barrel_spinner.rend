@@ -1,0 +1,24 @@
+{
+	"lodList": [{
+		"mesh": "$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner_geo.dae",
+		"subMeshList" : [
+			{
+				"textureList": [
+					"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner_dif.tga",
+					"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner_asg.tga",
+					"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner_nor.tga"
+				],
+				"color": "ffffff",
+				"material": "DifAsgNor"
+			}
+		],
+		"animationList": [
+			{ "name" : "spudgun_spinner_shoot_fp", "file" : "$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/ani_char_spudgun_barrel_spinner_rotation.dae", "looping" : true },
+			{ "name" : "spudgun_spinner_shoot_tp", "file" : "$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/ani_char_spudgun_barrel_spinner_rotation.dae", "looping" : true },
+			{ "name" : "spudgun_spinner_poke_fp", "file" : "$CONTENT_DATA/Characters/Char_Tools/barrel_fwd_move.dae", "looping" : false },
+			{ "name" : "spudgun_spinner_poke_tp", "file" : "$CONTENT_DATA/Characters/Char_Tools/barrel_fwd_move.dae", "looping" : false }
+		],
+
+		"maxViewDistance": 1000.0
+	}]
+}

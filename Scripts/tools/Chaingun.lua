@@ -3,7 +3,7 @@ dofile "$SURVIVAL_DATA/Scripts/util.lua"
 dofile "$SURVIVAL_DATA/Scripts/game/survival_shapes.lua"
 
 dofile "$SURVIVAL_DATA/Scripts/game/util/Timer.lua"
-
+dofile "$CONTENT_DATA/Scripts/se_util.lua"
 
 Chaingun = class()
 Chaingun.mod1 = "Mobile Turret"
@@ -11,21 +11,24 @@ Chaingun.mod2 = "Energy Shield"
 Chaingun.renderables = {
 	poor = {
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
-		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner.rend",
+		--"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner.rend",
+		"$CONTENT_DATA/Characters/Char_Tools/char_spudgun_barrel_spinner.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_spinner/char_spudgun_sight_spinner.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
 	},
 	["Mobile Turret"] = {
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
-		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner.rend",
+		--"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner.rend",
+		"$CONTENT_DATA/Characters/Char_Tools/char_spudgun_barrel_spinner.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_spinner/char_spudgun_sight_spinner.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
 	},
 	["Energy Shield"] = {
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
-		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner.rend",
+		--"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_spinner/char_spudgun_barrel_spinner.rend",
+		"$CONTENT_DATA/Characters/Char_Tools/char_spudgun_barrel_spinner.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_spinner/char_spudgun_sight_spinner.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
 		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
@@ -40,6 +43,7 @@ Chaingun.firePosOffsets = {
 	function() return -sm.localPlayer.getRight() end
 }
 Chaingun.baseDamage = 26
+Chaingun.bindDefaultFuncs = false
 
 for k, v in pairs(Chaingun.renderables) do
 	sm.tool.preloadRenderables( v )
@@ -87,7 +91,7 @@ function Chaingun.client_onCreate( self )
 
 	self.cl.shield = {
 		active = false,
-		effect = sm.effect.createEffect("Energy Shield") 
+		effect = sm.effect.createEffect("Energy Shield")
 	}
 
 	local minColor = sm.color.new( 0.0, 0.0, 0.25, 0.1 )
@@ -98,22 +102,21 @@ function Chaingun.client_onCreate( self )
 	if not self.tool:isLocal() then return end
 	self.cl.playerData = self.cl.ownerData.data.playerData
 
-	self.cl.spdMult = 1
-
 	--self.mod1
-	self.cl.mobileTurretActivateCD = 1.5
-	self.cl.mobileTurretActivateMax = 1.5
-	self.cl.canFireMobileTurret = false
-	self.cl.mobileTurretOverheatCD = 15
-	self.cl.overheated = false
-	self.cl.trMobility = false
+	self.cl.turret = {}
+	self.cl.turret.timer = Timer()
+	self.cl.turret.timer:start( 1.5*40 )
+	self.cl.turret.canUse = false
+	self.cl.turret.overheatTimer = Timer()
+	self.cl.turret.overheatTimer:start( 30 )
+	self.cl.turret.overheated = false
+	self.cl.turret.canProgress = true
+	self.cl.turret.masteryKills = 0
 
 	--self.mod2
 	self.cl.shield.timer = Timer()
-	self.cl.shield.timer:start( 5*40 )
+	self.cl.shield.timer:start( 6*40 )
 	self.cl.shield.canUse = true
-	self.cl.shield.canProgress = true
-	self.cl.shield.masteryKills = 0
 end
 
 function Chaingun.client_onRefresh( self )
@@ -241,68 +244,60 @@ function Chaingun:client_onFixedUpdate( dt )
 
 	self.cl.baseWeapon.cl_onFixed( self )
 
-	--upgrades
-	self.cl.mobileTurretActivateMax = self.cl.weaponData.mod1.up1.owned and 0.75 or 1.5
-	self.cl.trMobility = self.cl.weaponData.mod1.up2.owned and true or false
-
 	--powerup
 	local speedMult = self.cl.powerups.speedMultiplier.current
-	local increase = dt * speedMult
 
-	--self.mod1 activate
+	--mod1 activate
 	if self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.modSwitch.active then
-		if self.cl.mobileTurretActivateCD < self.cl.mobileTurretActivateMax then
-			self.cl.mobileTurretActivateCD = self.cl.mobileTurretActivateCD + increase*2
-		end
-
-		if self.cl.mobileTurretActivateCD >= self.cl.mobileTurretActivateMax then
-			self.cl.mobileTurretActivateCD = self.cl.mobileTurretActivateMax
-			self.cl.canFireMobileTurret = true
+		local cycles = self.cl.weaponData.mod1.up1.owned and 2 or 1
+		for i = 1, cycles * speedMult do
+			self.cl.turret.timer:tick()
 		end
 	else
-		self.cl.canFireMobileTurret = false
+		self.cl.turret.timer:reset()
 	end
+
+	self.cl.turret.canUse = self.cl.turret.timer:done()
 
 	--self.mod1 overheat
-	if self.cl.mobileTurretOverheatCD < 15 and self.cl.usingMod and self.fireCooldownTimer <= 0.0 or self.cl.mobileTurretOverheatCD < 15 and not self.cl.usingMod or self.cl.mobileTurretOverheatCD < 15 and self.cl.usingMod and self.cl.overheated then
-		self.cl.mobileTurretOverheatCD = self.cl.mobileTurretOverheatCD + increase
+	if self.cl.turret.overheatTimer.count > 0 and sm.game.getServerTick() % 10 == 0 and (not self.cl.usingMod or self.fireCooldownTimer <= 0.0 or self.cl.turret.overheated ) then
+		self.cl.turret.overheatTimer.count = math.max(self.cl.turret.overheatTimer.count - 1, 0)
 	end
 
-	if self.cl.mobileTurretOverheatCD >= 15 then
-		self.cl.mobileTurretOverheatCD = 15
-		self.cl.overheated = false
+	if self.cl.turret.overheatTimer:done() then
+		self.cl.turret.overheated = true
 	end
 
-	if self.cl.mobileTurretOverheatCD <= 0 then
-		self.cl.overheated = true
+	if self.cl.turret.overheatTimer.count == 0 then
+		self.cl.turret.overheated = false
 	end
 
 	local kills = 0
 	for pos, val in pairs(self.cl.playerData.kills) do
 		kills = kills + val
 	end
-	self.cl.shield.masteryKills = kills
+	self.cl.turret.masteryKills = kills
 
 	if self.cl.weaponData.mod1.up1.owned and self.cl.weaponData.mod1.up2.owned and not self.cl.weaponData.mod1.mastery.owned then
-		if self.cl.shield.canProgress and self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.overheated then
+		if self.cl.turret.canProgress and self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.turret.overheated then
 
-			if self.cl.shield.masteryKills >= 5 then
+			if self.cl.turret.masteryKills >= 5 then
 				self.cl.weaponData.mod1.mastery.progress = self.cl.weaponData.mod1.mastery.progress + 1
-				self.cl.shield.canProgress = false
-				self.network:sendToServer("sv_saveESMastery")
+				self.cl.turret.canProgress = false
+				self.network:sendToServer("sv_saveTurretMastery")
 				for pos, val in pairs(self.cl.playerData.kills) do
 					self.cl.playerData.kills[pos] = 0
 				end
 			end
-		elseif self.cl.currentWeaponMod == self.mod1 and (not self.cl.usingMod or self.cl.overheated) then
-			self.cl.shield.canProgress = true
+		elseif self.cl.currentWeaponMod == self.mod1 and (not self.cl.usingMod or self.cl.turret.overheated) then
+			self.cl.turret.canProgress = true
 			for pos, val in pairs(self.cl.playerData.kills) do
 				self.cl.playerData.kills[pos] = 0
 			end
 		end
 	end
 
-	--self.mod2
+	--mod2
 	if self.cl.currentWeaponMod == self.mod2 and self.cl.shield.active and self.cl.shield.canUse then
 		self.cl.shield.timer:tick()
 		if self.cl.shield.timer:done() then
@@ -310,7 +305,7 @@ function Chaingun:client_onFixedUpdate( dt )
 			self.cl.shield.active = false
 			self.cl.playerData.isInvincible = false
 
-			--if self.cl.playerData.damage >= 500 then
+			if self.cl.playerData.damage >= 500 then
 				self.network:sendToServer("sv_shootShield",
 					{
 						pos = self:calculateFirePosition(),
@@ -319,9 +314,9 @@ function Chaingun:client_onFixedUpdate( dt )
 						rot = sm.camera.getRotation()
 					}
 				)
-				
+
 				sm.audio.play( "Retrofmblip" )
-			--end
+			end
 
 			self.network:sendToServer("sv_stopShield")
 		end
@@ -331,7 +326,7 @@ function Chaingun:client_onFixedUpdate( dt )
 		for i = 1, speedMult do
 			self.cl.shield.timer.count = self.cl.shield.timer.count - 1
 		end
-		
+
 		if self.cl.shield.timer.count <= 0 then
 			self.cl.shield.timer:reset()
 			self.cl.shield.canUse = true
@@ -340,16 +335,16 @@ function Chaingun:client_onFixedUpdate( dt )
 
 	if self.cl.currentWeaponMod == self.mod2 then
 		self.tool:setMovementSlowDown( self.cl.shield.active )
-	elseif self.cl.usingMod and (not self.cl.trMobility or self.cl.currentWeaponMod == "poor") then
+	elseif self.cl.usingMod and (not self.cl.weaponData.mod1.up2.owned or self.cl.currentWeaponMod == "poor") then
 		self.tool:setMovementSlowDown( self.cl.usingMod )
 	else
 		self.tool:setMovementSlowDown( false )
 	end
 end
 
-function Chaingun:sv_saveESMastery()
+function Chaingun:sv_saveTurretMastery()
 	if self.cl.weaponData.mod1.mastery.progress >= self.cl.weaponData.mod1.mastery.max then
-		sm.event.sendToPlayer( self.cl.owner, "sv_displayMsg", "#ff9d00"..self.cl.weaponData.mod1.mastery.name.." #ffffffunlocked!" )
+		sm.event.sendToPlayer( self.cl.owner, "sv_displayMsg", unlockMsgWrap(self.cl.weaponData.mod1.mastery.name) )
 		self.cl.weaponData.mod1.mastery.owned = true
 	end
 
@@ -371,14 +366,13 @@ function Chaingun.client_onUpdate( self, dt )
 
 	if self.cl.shield.active and self.tool:isEquipped() and self.cl.currentWeaponMod == self.mod2 then
 		local char = self.cl.owner.character
-        local lookDir = char:getDirection()
+        local dir = char:getDirection()
         local offset = char:isCrouching() and sm.vec3.zero() or sm.vec3.new(0,0,0.43)
-        local newPos = char:getTpBonePos( "jnt_spine2" ) + offset + lookDir * 0.55
+        local newPos = char:getTpBonePos( "jnt_spine2" ) + offset + dir * 0.55
 
         self.cl.shield.effect:setPosition( newPos )
-        self.cl.shield.effect:setRotation( sm.quat.fromEuler( lookDir * 90 ) )
+        self.cl.shield.effect:setRotation( se.quat.lookRot(dir:rotate(math.rad(90), dir:cross(up)), dir) )
 	end
-	
 
 	-- First person animation	
 	local isSprinting =  self.tool:isSprinting() 
@@ -584,16 +578,15 @@ function Chaingun.client_onUpdate( self, dt )
 
 	self.tool:updateCamera( 2.8, 30.0, sm.vec3.new( 0.65, 0.0, 0.05 ), self.aimWeight )
 	self.tool:updateFpCamera( 30.0, sm.vec3.new( 0.0, 0.0, 0.0 ), self.aimWeight, bobbing )
-	
+
 	self:cl_updateGatling( dt )
 end
 
 function Chaingun.client_onEquip( self, animate )
-	
 	if self.cl.currentWeaponMod ~= "poor" then
 		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
 	end
-	
+
 	if self.cl.shield.active and self.cl.currentWeaponMod == self.mod2 then
 		self.cl.shield.effect:start()
 	end
@@ -618,22 +611,14 @@ function Chaingun.client_onEquip( self, animate )
 end
 
 function Chaingun.client_onUnequip( self, animate )
-	--[[local data = {
-		mod = "none",
-		using = false,
-		ammo = 0,
-		recharge = 0
-	}
-	self.network:sendToServer( "sv_saveCurrentWpnData", data )]]
-	
 	if animate then
 		sm.audio.play( "PotatoRifle - Unequip", self.tool:getPosition() )
 	end
 
-	
+
 	self.cl.usingMod = false
 	self.cl.shield.effect:stop()
-	
+
 	self.windupEffect:stop()
 	self.wantEquipped = false
 	self.equipped = false
@@ -678,13 +663,13 @@ function Chaingun.onShoot( self, dir )
 	setTpAnimation( self.tpAnimations, self.aiming and "aimShoot" or "shoot", 10.0 )
 
 	if self.tool:isInFirstPersonView() then
-		if self.cl.modSwitch.active or self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.canFireMobileTurret or self.cl.overheated and self.cl.usingMod and self.cl.currentWeaponMod == self.mod1 then
+		if self.cl.modSwitch.active or self.cl.currentWeaponMod == self.mod1 and (self.cl.usingMod and not self.cl.turret.canUse or self.cl.turret.overheated and self.cl.usingMod) then
 			sm.audio.play( "PotatoRifle - NoAmmo" )
 		else
 			self.shootEffectFP:start()
 		end
 	else
-		if self.cl.modSwitch.active or self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.canFireMobileTurret or self.cl.overheated and self.cl.usingMod and self.cl.currentWeaponMod == self.mod1 then
+		if self.cl.modSwitch.active or self.cl.currentWeaponMod == self.mod1 and (self.cl.usingMod and not self.cl.turret.canUse or self.cl.turret.overheated and self.cl.usingMod) then
 			sm.audio.play( "PotatoRifle - NoAmmo" )
 		else
 			self.shootEffect:start()
@@ -693,7 +678,7 @@ function Chaingun.onShoot( self, dir )
 end
 
 function Chaingun.cl_updateGatling( self, dt )
-	local divide = 1/self.cl.spdMult
+	local divide = 1/self.cl.powerups.speedMultiplier.current
 
 	self.gatlingWeight = self.gatlingActive and ( self.gatlingWeight + self.gatlingBlendSpeedIn * dt ) or ( self.gatlingWeight - self.gatlingBlendSpeedOut * dt )
 	self.gatlingWeight = math.min( math.max( self.gatlingWeight, 0.0 ), 1.0 )
@@ -709,8 +694,10 @@ function Chaingun.cl_updateGatling( self, dt )
 
 	-- Update gatling animation
 	if self.tool:isLocal() then
+		--self.tool:updateFpAnimation( "spudgun_spinner_poke_fp", self.gatlingTurnFraction, divide, true )
 		self.tool:updateFpAnimation( "spudgun_spinner_shoot_fp", self.gatlingTurnFraction, divide, true )
 	end
+	--self.tool:updateAnimation( "spudgun_spinner_poke_tp", self.gatlingTurnFraction, divide )
 	self.tool:updateAnimation( "spudgun_spinner_shoot_tp", self.gatlingTurnFraction, divide )
 
 	if self.fireCooldownTimer <= 0.0 and self.gatlingWeight >= divide and self.gatlingActive then
@@ -777,9 +764,9 @@ function Chaingun.cl_fire( self )
 					fakePosition,
 					fakePositionSelf
 				)
-			elseif self.cl.canFireMobileTurret and not self.cl.overheated then
+			elseif self.cl.turret.canUse and not self.cl.turret.overheated then
 				if not self.cl.weaponData.mod1.mastery.owned then
-					self.cl.mobileTurretOverheatCD = self.cl.mobileTurretOverheatCD - 0.5
+					self.cl.turret.overheatTimer:tick()
 				end
 
 				for i = 1, 4 do
@@ -825,17 +812,17 @@ function Chaingun.cl_onSecondaryUse( self, state )
 			self.tpAnimations.animations.idle.time = 0
 
 			self:onAim( self.aiming )
-			if not self.cl.trMobility or self.cl.currentWeaponMod == "poor" then
+			if not self.cl.weaponData.mod1.up2.owned or self.cl.currentWeaponMod == "poor" then
 				self.tool:setMovementSlowDown( self.aiming )
 			end
 			self.network:sendToServer( "sv_n_onAim", self.aiming )
 		end
 	end
-	
+
 	if state ~= sm.tool.interactState.start or self.cl.shield.active then return end
 
 	if self.cl.currentWeaponMod == self.mod1 then
-		self.cl.mobileTurretActivateCD = 0
+		self.cl.turret.timer:reset()
 	elseif self.cl.currentWeaponMod == self.mod2 and self.cl.shield.canUse then
 		self.network:sendToServer("sv_startShield")
 		self.cl.playerData.isInvincible = true
@@ -844,7 +831,7 @@ end
 
 function Chaingun.client_onEquippedUpdate( self, primaryState, secondaryState )
 	self.cl.baseWeapon.onEquipped( self, primaryState, secondaryState )
-	
+
 	--[[local data = {
 		mod = self.cl.currentWeaponMod,	
 		using = self.cl.currentWeaponMod == self.mod2 and self.cl.shield.active or self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod or self.cl.currentWeaponMod == "poor" and self.cl.usingMod,
@@ -853,23 +840,15 @@ function Chaingun.client_onEquippedUpdate( self, primaryState, secondaryState )
 	}
 	self.network:sendToServer( "sv_saveCurrentWpnData", data )]]
 
-	if self.cl.modSwitch.active then
-		sm.gui.setProgressFraction(self.cl.modSwitch.timer.count/self.cl.modSwitch.timer.ticks)
-	end
-
-	if self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.canFireMobileTurret then
-		sm.gui.setProgressFraction(self.cl.mobileTurretActivateCD/self.cl.mobileTurretActivateMax)
-	elseif self.cl.mobileTurretOverheatCD < 15 and self.cl.currentWeaponMod == self.mod1 then
-		sm.gui.setProgressFraction(self.cl.mobileTurretOverheatCD*2/30)
+	if self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod and not self.cl.turret.canUse then
+		sm.gui.setProgressFraction(self.cl.turret.timer.count/self.cl.turret.timer.ticks)
+	elseif self.cl.turret.overheatTimer.count > 0 and self.cl.currentWeaponMod == self.mod1 then
+		sm.gui.setProgressFraction(self.cl.turret.overheatTimer.count/self.cl.turret.overheatTimer.ticks)
 	elseif self.cl.currentWeaponMod == self.mod2 and self.cl.shield.timer.count > 0 then
 		sm.gui.setProgressFraction(self.cl.shield.timer.count/self.cl.shield.timer.ticks)
 	end
 
-	if primaryState == sm.tool.interactState.start or primaryState == sm.tool.interactState.hold then
-		self.gatlingActive = true
-	else
-		self.gatlingActive = false
-	end
+	self.gatlingActive = primaryState == sm.tool.interactState.start or primaryState == sm.tool.interactState.hold
 
 	if secondaryState ~= self.prevSecondaryState then
 		self:cl_onSecondaryUse( secondaryState )

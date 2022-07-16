@@ -46,7 +46,26 @@ function FarmbotUnit.server_onCreate( self )
 		self.saved = {}
 	end
 	if self.saved.stats == nil then
-		self.saved.stats = { hp = 1600, maxhp = 1600 }
+		self.saved.stats = { hp = 1600, maxhp = 1600, gkState = false, cState = false, stunState = false, freezeState = false, onFire = false }
+	end
+
+	if self.saved.weakpoints == nil then
+		self.saved.weakpoints = {
+			{
+				name = "scythe",
+				destroyed = false,
+				bone = "r_arm05_jnt",
+				hp = 400,
+				maxhp = 400
+			},
+			{
+				name = "cannon",
+				destroyed = false,
+				bone = "l_arm02_jnt",
+				hp = 200,
+				maxhp = 200
+			}
+		}
 	end
 
 	if g_eventManager then
@@ -315,7 +334,45 @@ function FarmbotUnit.server_onDestroy( self )
 	print( "-- FarmbotUnit terminated --" )
 end
 
+
+
+function FarmbotUnit:sv_se_takeDamage( args )
+	self:sv_takeDamage( args.damage, args.impact, args.hitPos, nil, args.attacker )
+end
+
+function FarmbotUnit:sv_se_onExplosion( args )
+	self:sv_se_takeDamage( args )
+end
+
+function FarmbotUnit:sv_se_onProjectile( args )
+	self:sv_se_takeDamage( args )
+
+	for pos, weakpoint in pairs(self.saved.weakpoints) do
+		if (self.unit.character:getTpBonePos( weakpoint.bone ) - args.hitPos):length() <= 1.25 then
+			self:sv_destroyWeakpoint( { weakpoint = weakpoint, attacker = args.attacker, pos = args.hitPos } )
+		end
+	end
+end
+
+function FarmbotUnit:sv_destroyWeakpoint( args )
+	args.weakpoint.destroyed = true
+	args.weakpoint.hp = 0
+	if args.attacker then
+		sm.event.sendToPlayer( args.attacker, "sv_playSound", "Dancebass" )
+	end
+
+	sm.effect.playEffect( "PropaneTank - ExplosionSmall", args.pos )
+
+	print("Farmbot "..tostring(self.unit:getId()).."'s "..args.weakpoint.name.." has been broken!")
+	self.storage:save( self.saved )
+end
+
+
+
 function FarmbotUnit.server_onFixedUpdate( self, dt )
+	se.unitData[self.unit.character.id] = { unit = self.unit, data = self.saved, cCharge = 3 }
+	--if true then return end
+
 	if sm.exists( self.unit ) and not self.destroyed then
 		if self.saved.deathTickTimestamp and sm.game.getCurrentTick() >= self.saved.deathTickTimestamp then
 			self.unit:destroy()
@@ -441,7 +498,8 @@ function FarmbotUnit.updateAim( self, dt )
 end
 
 function FarmbotUnit.server_onUnitUpdate( self, dt )
-	
+	--if true then return end
+
 	if not sm.exists( self.unit ) then
 		return
 	end
@@ -715,7 +773,7 @@ function FarmbotUnit.server_onUnitUpdate( self, dt )
 	if self.lastAimPosition == nil and self.lastTargetPosition then
 		self.lastAimPosition = self.lastTargetPosition
 	end
-	local shouldShoot = ( inFireRange and atUnreachableHeight and self.canShootTarget )
+	local shouldShoot = ( inFireRange and atUnreachableHeight and self.canShootTarget and not self.saved.weakpoints[2].destroyed )
 
 	local done, result = self.currentState:isDone()
 	local abortState = 	( self.currentState ~= self.destroyedEventState and self.currentState ~= self.angryEventState and self.currentState ~= self.combatAttackState ) and
@@ -875,6 +933,29 @@ function FarmbotUnit.server_onProjectile( self, hitPos, hitTime, hitVelocity, _,
 				end
 			end
 		end
+
+		if type(attacker) == "Player" then
+			for pos, weakpoint in pairs(self.saved.weakpoints) do
+				local weakpointPos = self.unit.character:getTpBonePos( weakpoint.bone )
+
+				if (weakpointPos - hitPos):length() < 1.25 and not weakpoint.destroyed then
+					if isAnyOf(projectileUuid, { proj_pb, proj_ballista }) then
+						self:sv_destroyWeakpoint( {weakpoint = weakpoint, attacker = attacker, pos = weakpointPos } )
+					else
+						weakpoint.hp = weakpoint.hp - damage
+						sm.event.sendToPlayer( attacker, "sv_playSound", "Horn" )
+						print("Farmbot "..tostring(self.unit:getId()).."'s "..weakpoint.name.." has recieved "..damage.." damage! "..tostring(weakpoint.hp).." / "..tostring(weakpoint.maxhp).."HP")
+						if weakpoint.hp <= 0 then
+							self:sv_destroyWeakpoint( { weakpoint = weakpoint, attacker = attacker, pos = weakpointPos } )
+						end
+					end
+
+					--damage = damage * 1.25
+					self.storage:save( self.saved )
+				end
+			end
+		end
+
 		local impact = hitVelocity:normalize() * 6
 		self:sv_takeDamage( damage, impact, hitPos )
 	end

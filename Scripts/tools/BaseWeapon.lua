@@ -73,7 +73,6 @@ function BaseWeapon.cl_onCreate( self, weapon )
     end
 
 
-
     --bind common vanilla functions
     function self:calculateFpMuzzlePos()
         local fovScale = ( sm.camera.getFov() - 45 ) / 45
@@ -165,6 +164,8 @@ function BaseWeapon.cl_onCreate( self, weapon )
         return firePosition
     end
 
+    if self.bindDefaultFuncs ~= nil and not self.bindDefaultFuncs then return end
+
     function self:sv_n_onAim( aiming )
         self.network:sendToClients( "cl_n_onAim", aiming )
     end
@@ -182,22 +183,24 @@ function BaseWeapon.cl_onCreate( self, weapon )
         end
     end
 
-    function self:sv_n_onShoot( dir )
-        self.network:sendToClients( "cl_n_onShoot", dir )
+    function self:sv_n_onShoot( playEffect )
+        self.network:sendToClients( "cl_n_onShoot", playEffect )
     end
 
-    function self:cl_n_onShoot( dir )
+    function self:cl_n_onShoot( playEffect )
         if not self.tool:isLocal() and self.tool:isEquipped() then
-            self.onShoot( dir )
+            self.onShoot( playEffect )
         end
     end
 
-    function self:onShoot( dir )
+    function self:onShoot( playEffect )
         self.tpAnimations.animations.idle.time = 0
         self.tpAnimations.animations.shoot.time = 0
         self.tpAnimations.animations.aimShoot.time = 0
 
         setTpAnimation( self.tpAnimations, self.aiming and "aimShoot" or "shoot", 10.0 )
+
+        if playEffect == nil or not playEffect then return end
 
         if self.tool:isInFirstPersonView() then
             self.shootEffectFP:start()
@@ -224,6 +227,7 @@ function BaseWeapon.onModSwitch( self )
     if self.cl.weaponData.mod1.owned and self.cl.weaponData.mod2.owned then
         self.cl.currentWeaponMod = self.cl.currentWeaponMod == self.mod1 and self.mod2 or self.mod1
 		self.cl.modSwitch.active = true
+        self.cl.modSwitch.timer:reset()
 		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
 		sm.audio.play("PaintTool - ColorPick")
         self:updateModData()

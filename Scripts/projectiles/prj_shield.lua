@@ -1,6 +1,6 @@
 Shield = class()
 Shield.damage = 150
-Shield.speed = 0 --.6
+Shield.speed = 0.6
 Shield.maxLifeTime = 10 * 40
 
 function Shield:server_onCreate()
