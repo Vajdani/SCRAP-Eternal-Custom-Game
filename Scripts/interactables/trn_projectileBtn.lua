@@ -65,12 +65,10 @@ function ProjectileBtn:sv_toggle( toggle )
 		self.sv.canBeActivated = false
 		self.interactable.active = true
 		self.interactable.power = 1
-		print("Projectile Button "..self.shape:getId().." activated.")
 	else
 		self.sv.canBeActivated = true
 		self.interactable.active = false
 		self.interactable.power = 0
-		print("Projectile Button "..self.shape:getId().." deactivated.")
 	end
 
 	self.network:sendToClients( "cl_toggle", toggle )

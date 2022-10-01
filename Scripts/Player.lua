@@ -711,12 +711,16 @@ function Player:sv_activatePrimaryCharger()
 	self.sv.public.data.playerData.mmOP = true
 end
 
-function Player:sv_resetMoveSpeed()
-	self.player.character:setMovementSpeedFraction(1)
+function Player:sv_toggleSlam( toggle )
+	self.sv.public.data.playerData.hammerCharge = toggle and 0 or self.sv.public.data.playerData.hammerCharge
+	self.sv.public.data.playerData.isInvincible = toggle
+
+	self.network:sendToClient( self.player, "cl_toggleSlam", toggle )
 end
 
-function Player:sv_setSwimming( toggle )
-	self.player.character:setSwimming(toggle)
+function Player:cl_toggleSlam( toggle )
+	self.cl.public.data.playerData.hammerCharge = toggle and 0 or self.cl.public.data.playerData.hammerCharge
+	self.cl.public.data.playerData.isInvincible = toggle
 end
 
 function Player:sv_gkAnim( anim )
@@ -806,13 +810,6 @@ function Player:sv_reduceRecharge( args )
 	self.sv.flame.rechargeMax = (args.equipment == "flame" and self.sv.flame.rechargeMax * args.reduction > 0.1) and self.sv.flame.rechargeMax * args.reduction or self.sv.flame.rechargeMax
 end
 
-function Player.server_onRefresh( self )
-	self:sv_init()
-end
-
-function Player.sv_init( self ) end
-
-function Player.server_onDestroy( self ) end
 
 function Player:sv_onInteract( args )
 	if not args.state or self.sv.public.data.playerData.gkState then return end
@@ -1055,7 +1052,7 @@ function Player:sv_updateRunes( dt, moveDirs, currentMoveDir, pos, char, grounde
 		if self.sv.bloodFueledTimer:done() then
 			self.sv.bloodFueledTimer:reset()
 			self.sv.bloodFueled = false
-			self:sv_resetMoveSpeed()
+			self.player.character:setMovementSpeedFraction(1)
 		end
 	end
 
@@ -1068,7 +1065,6 @@ function Player:sv_updateRunes( dt, moveDirs, currentMoveDir, pos, char, grounde
 	--since you cant slow down time, Ill just make the character glide
 	if se.player.isEquippedRune( self.player, "Chrono Strike" ) then
 		local mouse1 = self.sv.public.input[sm.interactable.actions.attack]
-		print(mouse1)
 
 		if (self.sv.gliding and not grounded or not sm.physics.raycast(pos, pos - sm.vec3.new(0,0,2.5))) and mouse1 then
 			sm.physics.applyImpulse( char, (vel * -1) * se.vec3.num(20) + sm.vec3.new(75,75,0) * moveDirs[1].dir )
@@ -1203,7 +1199,7 @@ function Player.server_onFixedUpdate( self, dt )
 		if self.sv.spdMultTimer:done() then
 			self.sv.spdMultTimer:reset()
 			data.playerData.speedMultiplier = 1
-			self:sv_resetMoveSpeed()
+			self.player.character:setMovementSpeedFraction(1)
 			self.network:sendToClients("cl_disablePrp", "speedMultiplier")
 		end
 	end
@@ -1309,6 +1305,14 @@ function Player:sv_gkSnap( animType )
 end
 
 
+--random default stuff
+function Player.server_onRefresh( self )
+	self:sv_init()
+end
+
+function Player.sv_init( self ) end
+
+function Player.server_onDestroy( self ) end
 
 function Player.server_onProjectile( self, hitPos, hitTime, hitVelocity, projectileName, attacker, damage ) end
 
@@ -1388,6 +1392,8 @@ function Player.client_onReload( self ) end
 
 function Player.server_onShapeRemoved( self, removedShapes ) end
 
+
+--doom control callbacks
 function Player:sv_e_onJump( state )
 	if state ~= sm.tool.interactState.start then return end
 

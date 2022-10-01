@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Widget" skin="PanelEmpty" position_real="0 0 1 1" name="BackPanel">
+        <Property key="NeedKey" value="false"/>
+        <Property key="NeedMouse" value="false"/>
+        <Widget type="ImageBox" skin="ImageBox" position_real="0.47395833333333331 0.51388888888888884 0.052083333333333336 0.092592592592592587" name="image">
+            <Property key="ImageTexture" value="$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Gui/weapons/bfg/bfg_crosshair.png"/>
+            <Property key="Colour" value="1 1 1"/>
+        </Widget>
+        <Widget type="Canvas" skin="Canvas" position_real="0.3828125 0.53703703703703709 0.078125 0.046296296296296294" name="chargeSlider_1"/>
+        <Widget type="Canvas" skin="Canvas" position_real="0.5390625 0.53703703703703709 0.078125 0.046296296296296294" name="chargeSlider_2"/>
+        <Widget type="TextBox" skin="TextBox" position_real="0.48697916666666669 0.6157407407407407 0.026041666666666668 0.046296296296296294" name="number">
+            <Property key="TextAlign" value="Center"/>
+            <Property key="FontName" value="SM_HeaderLarge_Medium"/>
+        </Widget>
+    </Widget>
+    <CodeGeneratorSettings/>
+</MyGUI>

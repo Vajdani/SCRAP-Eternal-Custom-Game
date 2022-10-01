@@ -2,7 +2,10 @@ dofile "$GAME_DATA/Scripts/game/AnimationUtil.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 dofile "$SURVIVAL_DATA/Scripts/game/survival_shapes.lua"
 
+dofile "$CONTENT_DATA/Scripts/projectiles/prj_bfgBall.lua"
+
 BFG = class()
+BFG.delayLength = 40
 
 local renderables = {
 	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
@@ -23,13 +26,35 @@ function BFG.client_onCreate( self )
 	self.shootEffect = sm.effect.createEffect( "BFG Shoot" )
 	self.shootEffectFP = sm.effect.createEffect( "BFG Shoot" )
 
+	self.owner = self.tool:getOwner()
+
 	if not self.tool:isLocal() then return end
 
 	self.shootDelay = {
 		timer = Timer(),
 		active = false
 	}
-	self.shootDelay.timer:start( 40 )
+	self.shootDelay.timer:start( self.delayLength )
+
+	self.hud = sm.gui.createGuiFromLayout( "$CONTENT_DATA/Gui/weapons/bfg/crosshair.layout", false,
+		{
+			isHud = true,
+			isInteractive = false,
+			needsCursor = false,
+			hidesHotbar = false,
+			isOverlapped = false,
+			backgroundAlpha = 0,
+		}
+	)
+
+	self.hud:createHorizontalSlider( "chargeSlider_1", self.delayLength, 0, "", false )
+	self.hud:createHorizontalSlider( "chargeSlider_2", self.delayLength, 0, "", false )
+	self.hud:setVisible( "image", false )
+
+	self.projData = {
+		proj = nil,
+		tick = 0
+	}
 end
 
 function BFG.client_onRefresh( self )
@@ -147,6 +172,12 @@ function BFG.loadAnimations( self )
 end
 
 --SE
+function BFG:client_onDestroy()
+	if self.owner == sm.localPlayer.getPlayer() then
+		self.hud:close()
+	end
+end
+
 function BFG:client_onToggle()
 	local hit, result = sm.localPlayer.getRaycast( 25 )
 	if hit then
@@ -177,16 +208,36 @@ function BFG:sv_shootBall( args )
 	sm.container.spend( args.owner:getInventory(), se_ammo_argent, 30, true )
 	sm.container.endTransaction()
 
-	args.spawnTick = sm.game.getServerTick()
-	sm.scriptableObject.createScriptableObject(
+	local tick = sm.game.getServerTick()
+	args.spawnTick = tick
+	local projectile = sm.scriptableObject.createScriptableObject(
 		proj_bfgBall_sob,
 		args,
 		args.owner:getCharacter():getWorld()
 	)
+
+	self.network:sendToClient( self.tool:getOwner(), "cl_setProjectile", { proj = projectile, tick = tick } )
+end
+
+function BFG:cl_setProjectile( args )
+	self.projData = args
 end
 
 function BFG.client_onFixedUpdate( self, dt )
 	if not self.tool:isLocal() then return end
+
+	if self.tool:isEquipped() then
+		self.hud:setSliderPosition( "chargeSlider_1", self.shootDelay.timer.ticks - self.shootDelay.timer.count )
+		self.hud:setSliderPosition( "chargeSlider_2", self.shootDelay.timer.count )
+
+		if self.projData.proj ~= nil and not sm.exists(self.projData.proj) then self.projData = { proj = nil, tick = 0 } end
+
+		local projectileAlive = self.projData.proj ~= nil
+		self.hud:setVisible( "number", projectileAlive )
+		if projectileAlive then
+			self.hud:setText( "number", tostring(math.ceil( (BBall.maxLifeTime - (sm.game.getCurrentTick() - self.projData.tick))/40 )) )
+		end
+	end
 
 	if self.shootDelay.active then
 		self.shootDelay.timer:tick()
@@ -206,17 +257,12 @@ function BFG.client_onFixedUpdate( self, dt )
 			)
 
 			local fireMode = self.aiming and self.aimFireMode or self.normalFireMode
-
-			-- Timers
 			self.fireCooldownTimer = fireMode.fireCooldown
 			self.spreadCooldownTimer = math.min( self.spreadCooldownTimer + fireMode.spreadIncrement, fireMode.spreadCooldown )
 			self.sprintCooldownTimer = self.sprintCooldown
 
-			-- Send TP shoot over network and dircly to self
 			self:onShoot( dir )
 			self.network:sendToServer( "sv_n_onShoot", dir )
-
-			-- Play FP shoot animation
 			setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
 		end
 	end
@@ -440,6 +486,8 @@ function BFG.client_onEquip( self, animate )
 	setTpAnimation( self.tpAnimations, "pickup", 0.0001 )
 
 	if self.tool:isLocal() then
+		self.hud:open()
+
 		-- Sets BFG renderable, change this to change the mesh
 		self.tool:setFpRenderables( currentRenderablesFp )
 		swapFpAnimation( self.fpAnimations, "unequip", "equip", 0.2 )
@@ -455,8 +503,12 @@ function BFG.client_onUnequip( self, animate )
 	self.wantEquipped = false
 	self.equipped = false
 	setTpAnimation( self.tpAnimations, "putdown" )
-	if self.tool:isLocal() and self.fpAnimations.currentAnimation ~= "unequip" then
-		swapFpAnimation( self.fpAnimations, "equip", "unequip", 0.2 )
+	if self.tool:isLocal() then
+		self.hud:close()
+
+		if self.fpAnimations.currentAnimation ~= "unequip" then
+			swapFpAnimation( self.fpAnimations, "equip", "unequip", 0.2 )
+		end
 	end
 end
 

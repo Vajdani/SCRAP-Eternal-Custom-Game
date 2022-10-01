@@ -1,7 +1,7 @@
 --[[
-    Thanks to Brent Batch for the homing missile direction code(line 104)
+    Thanks to Brent Batch for the homing missile direction code(line 82)
     I am too big of a dumbass to figure it out myself
-    https://steamcommunity.com/sharedfiles/filedetails/?id=1995094956, found in skull.lua at line 82
+    https://steamcommunity.com/sharedfiles/filedetails/?id=1995094956, found in skull.lua at line 104
 ]]
 
 dofile "$CONTENT_DATA/Scripts/se_util.lua"

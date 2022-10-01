@@ -346,7 +346,10 @@ end
 
 function FarmbotUnit:sv_se_onProjectile( args )
 	self:sv_se_takeDamage( args )
+	self:sv_checkWeakPoints( args )
+end
 
+function FarmbotUnit:sv_checkWeakPoints(args)
 	for pos, weakpoint in pairs(self.saved.weakpoints) do
 		if (self.unit.character:getTpBonePos( weakpoint.bone ) - args.hitPos):length() <= 1.25 then
 			self:sv_destroyWeakpoint( { weakpoint = weakpoint, attacker = args.attacker, pos = args.hitPos } )
@@ -364,7 +367,7 @@ function FarmbotUnit:sv_destroyWeakpoint( args )
 	sm.effect.playEffect( "PropaneTank - ExplosionSmall", args.pos )
 
 	print("Farmbot "..tostring(self.unit:getId()).."'s "..args.weakpoint.name.." has been broken!")
-	self.storage:save( self.saved )
+	--self.storage:save( self.saved )
 end
 
 

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Widget" skin="PanelEmpty" position="0 0 1920 1080" name="BackPanel">
+        <Property key="NeedKey" value="false"/>
+        <Property key="NeedMouse" value="false"/>
+        <Widget type="ImageBox" skin="ImageBox" position="910 555 100 100" name="image">
+            <Property key="ImageTexture" value="$CONTENT_33b6dc13-6b98-4978-93e8-762256591a52/Gui/weapons/bfg/bfg_crosshair.png"/>
+            <Property key="Colour" value="1 1 1"/>
+        </Widget>
+        <Widget type="Canvas" skin="Canvas" position="735 580 150 50" name="chargeSlider_1"/>
+        <Widget type="Canvas" skin="Canvas" position="1035 580 150 50" name="chargeSlider_2"/>
+        <Widget type="TextBox" skin="TextBox" position="935 665 50 50" name="number">
+            <Property key="TextAlign" value="Center"/>
+            <Property key="FontName" value="SM_HeaderLarge_Medium"/>
+            <Property key="Caption" value="0"/>
+        </Widget>
+    </Widget>
+    <CodeGeneratorSettings/>
+</MyGUI>

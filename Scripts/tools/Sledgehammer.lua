@@ -7,7 +7,6 @@ if I ever make a haybot pitchfork weapon, it's mod will be the throw mod that th
 dofile "$GAME_DATA/Scripts/game/AnimationUtil.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 
-local hammerUUID = sm.uuid.new("bb641a4f-e391-441c-bc6d-0ae21a069476")
 local slamDashAmount = 1250
 local weakUnits = {
 	"48c03f69-3ec8-454c-8d1a-fa09083363b1",
@@ -20,6 +19,7 @@ local weakUnits = {
 }
 
 Sledgehammer = class()
+Sledgehammer.baseDamage = 20
 
 local renderables = {
 	"$GAME_DATA/Character/Char_Tools/Char_sledgehammer/char_sledgehammer.rend"
@@ -49,44 +49,37 @@ function Sledgehammer:server_onCreate()
 	self.sv.ownerChar = self.sv.owner.character
 	self.sv.hammerStunArea = sm.areaTrigger.createBox(sm.vec3.new(6,6,6), self.sv.ownerChar.worldPosition, sm.quat.identity(), sm.areaTrigger.filter.character + sm.areaTrigger.filter.dynamicBody )
 
-	self.inHammerState = false
-	self.invincibiltyCD = false
-	self.invincibiltyCDcount = 0.25
-	self.slamStateCheck = 0.1
-	self.slamDashCount = 0
+	self.sv.slamming = false
+	self.sv.slamStateCheck = 0.1
+	self.sv.slamDashCount = 0
 end
 
 function Sledgehammer:server_onFixedUpdate( dt )
+	if not sm.exists(self.sv.ownerChar) then
+		self.sv.ownerChar = self.sv.owner.character
+		return
+	end
+
 	self.sv.hammerStunArea:setWorldPosition( self.sv.ownerChar.worldPosition )
 
-	if self.slamStateCheck < 0.1 then
-		self.slamStateCheck = self.slamStateCheck + dt
-		if self.slamStateCheck > 0.1 then
-			self.slamStateCheck = 0.1
+	if self.sv.slamStateCheck < 0.1 then
+		self.sv.slamStateCheck = self.sv.slamStateCheck + dt
+		if self.sv.slamStateCheck > 0.1 then
+			self.sv.slamStateCheck = 0.1
 		end
 	end
 
-	if self.inHammerState and self.slamStateCheck == 0.1 then
-	 	if self.playerVel.z < 2.5 and self.slamDashCount > 0 then
+	if self.sv.slamming and self.sv.slamStateCheck == 0.1 then
+	 	if self.sv.ownerChar.velocity.z < 2.5 and self.sv.slamDashCount > 0 then
 			sm.physics.applyImpulse(self.sv.ownerChar, sm.vec3.new(0, 0, -slamDashAmount) + self.sv.ownerChar:getDirection() * sm.vec3.new(slamDashAmount, slamDashAmount, 0), false, nil)
-			self.slamDashCount = 0 --self.slamDashCount - dt
+			self.sv.slamDashCount = 0 --self.sv.slamDashCount - dt
 		end
 
-		if self.sv.ownerChar:isOnGround() then
+		if se.player.isOnGround( self.sv.owner ) then
 			self:sv_onLand()
 			--self:sv_explode(self.playerPos)
 
-			self.inHammerState = false
-			self.invincibiltyCD = true
-		end
-	end
-
-	if self.invincibiltyCD then
-		self.invincibiltyCDcount = self.invincibiltyCDcount - dt
-		if self.invincibiltyCDcount <= 0 then
-			self.invincibiltyCDcount = 0.25
-			self.invincibiltyCD = false
-			self.data.isInvincible = false
+			self.sv.slamming = false
 		end
 	end
 end
@@ -100,14 +93,6 @@ function Sledgehammer.client_onCreate( self )
 	self.cl.baseWeapon.cl_onCreate( self, "hammer" )
 
 	if not self.tool:isLocal() then return end
-
-	self.dmgMult = 1
-	self.spdMult = 1
-	self.berserk = false
-	self.Damage = 20
-
-	self.data = sm.playerInfo[self.cl.owner:getId()].weaponData.hammer
-	self.playerData = sm.playerInfo[self.cl.owner:getId()].playerData
 end
 
 function Sledgehammer.client_onRefresh( self )
@@ -237,23 +222,13 @@ function Sledgehammer.loadAnimations( self )
 
 end
 
-function Sledgehammer.client_onFixedUpdate( self, dt )
-	self.dmgMult = self.playerData.damageMultiplier
-	self.spdMult = self.playerData.speedMultiplier
-	self.berserk = self.playerData.berserk
-
-	self.Damage = 20 --nice fix there bro
-	local multVal = self.berserk and self.dmgMult * 2 or self.dmgMult
-	self.Damage = self.Damage * multVal
-end
-
 function Sledgehammer.client_onReload( self )
 	local char = self.cl.owner.character
 	local pos = char.worldPosition
 
-	if self.playerData.hammerCharge >= 1 and not sm.physics.raycast( pos, pos + sm.vec3.new(0,0,2.5)) and not char:isSwimming() and not char:isDiving() then
+	if self.cl.ownerData.data.playerData.hammerCharge >= 1 and  not sm.physics.raycast( pos, pos + sm.vec3.new(0,0,2.5)) and not char:isSwimming() and not char:isDiving() then
 		self.network:sendToServer("sv_onSlam")
-	elseif self.playerData.hammerCharge < 1 then
+	elseif self.cl.ownerData.data.playerData.hammerCharge < 1 then
 		sm.gui.displayAlertText("You dont have a slam charge yet.", 2.5)
 		sm.audio.play( "RaftShark" )
 	else
@@ -269,24 +244,25 @@ function Sledgehammer.sv_explode( self, pos )
 end
 
 function Sledgehammer:sv_onLand()
-	local pos = self.sv.owner.worldPosition
+	local pos = self.sv.ownerChar.worldPosition
 
 	for i, object in pairs(self.sv.hammerStunArea:getContents()) do
 		if type(object) == "Body" then
 			sm.physics.applyImpulse( object, ( object:getCenterOfMassPosition() - pos ):normalize() * 20 )
-			--print("Applied impulse to:", object)
 		elseif type(object) == "Character" then
 			if sm.exists(object) and not object:isPlayer() then
-				if isAnyOf(tostring(object:getCharacterType()), weakUnits) then
-					sm.event.sendToUnit( object:getUnit(), "sv_stun", { deadly = true, playerPos = pos, player = self.sv.owner } )
-					--print( "Killed unit", object:getId() )
-				else
-					sm.event.sendToUnit( object:getUnit(), "sv_stun", { deadly = false, playerPos = pos, player = self.sv.owner } )
-					--print( "Froze unit", object:getId() )
-				end
+				sm.event.sendToUnit( object:getUnit(), "sv_stun",
+					{
+						deadly = isAnyOf(tostring(object:getCharacterType()), weakUnits),
+						playerPos = pos,
+						player = self.sv.owner
+					}
+				)
 			end
 		end
 	end
+
+	sm.event.sendToPlayer( self.sv.owner, "sv_toggleSlam", false )
 
 	self.network:sendToClients( "cl_onLand" )
 end
@@ -296,6 +272,8 @@ function Sledgehammer:cl_onLand()
 	setTpAnimation( self.tpAnimations, "sledgehammer_attack1", 0.0 )
 	sm.effect.playEffect( "PropaneTank - ExplosionSmall", self.cl.owner.character.worldPosition )
 	sm.audio.play( "Sledgehammer - Swing" )
+
+	if self.tool:isLocal() then sm.tool.forceTool( nil ) end
 end
 
 function Sledgehammer:sv_onSlam()
@@ -306,11 +284,11 @@ function Sledgehammer:sv_onSlam()
 		sm.physics.applyImpulse(self.sv.ownerChar, sm.vec3.new(0, 0, -slamDashAmount) + self.sv.ownerChar:getDirection() * sm.vec3.new(slamDashAmount, slamDashAmount, 0))
 	end
 
-	self.playerData.hammerCharge = self.playerData.hammerCharge - 1
-	self.slamStateCheck = 0
-	self.slamDashCount = 1
-	self.data.isInvincible = true
-	self.inHammerState = true
+	sm.event.sendToPlayer( self.sv.owner, "sv_toggleSlam", true )
+
+	self.sv.slamStateCheck = 0
+	self.sv.slamDashCount = 1
+	self.sv.slamming = true
 
 	self.network:sendToClients("cl_onSlam")
 end
@@ -318,14 +296,12 @@ end
 function Sledgehammer:cl_onSlam()
 	setFpAnimation( self.fpAnimations, "guardIdle", 0.25 )
 	setTpAnimation( self.tpAnimations, "guardIdle", 0.25 )
+
+	if self.tool:isLocal() then sm.tool.forceTool( self.tool ) end
 end
 
 function Sledgehammer.client_onUpdate( self, dt )
-	--Why the fuck can you scroll off? The tool stays equipped but you can scroll off. Such shit
-	--also buggy apparently
-	--[[if self.inHammerState then
-		sm.tool.forceTool( self.tool )
-	end]]
+	local increase = dt * self.cl.powerups.speedMultiplier.current
 
 	if sm.exists(self.tool) then
 		if not self.animationsLoaded then
@@ -333,20 +309,20 @@ function Sledgehammer.client_onUpdate( self, dt )
 		end
 
 		--synchronized update
-		self.attackCooldownTimer = math.max( self.attackCooldownTimer - (dt*self.spdMult), 0.0 )
+		self.attackCooldownTimer = math.max( self.attackCooldownTimer - (increase), 0.0 )
 
 		--standard third person updateAnimation
-		updateTpAnimations( self.tpAnimations, self.equipped, (dt*self.spdMult) )
+		updateTpAnimations( self.tpAnimations, self.equipped, (increase) )
 
 		--update
 		if self.isLocal then
 			if self.fpAnimations.currentAnimation == self.swings[self.currentSwing] then
-				self:updateFreezeFrame(self.swings[self.currentSwing], (dt*self.spdMult))
+				self:updateFreezeFrame(self.swings[self.currentSwing], (increase))
 			end
 
 			local preAnimation = self.fpAnimations.currentAnimation
 
-			updateFpAnimations( self.fpAnimations, self.equipped, (dt*self.spdMult) )
+			updateFpAnimations( self.fpAnimations, self.equipped, (increase) )
 
 			if preAnimation ~= self.fpAnimations.currentAnimation then
 
@@ -474,29 +450,21 @@ function Sledgehammer.client_handleEvent( self, params )
 	end
 end
 
---function Sledgehammer.sv_n_toggleTumble( self )
---	local character = self.tool:getOwner().character
---	character:setTumbling( not character:isTumbling() )
---end
-
 function Sledgehammer.client_onEquippedUpdate( self, primaryState, secondaryState )
-	--HACK Enter/exit tumble state when hammering
-	--if primaryState == sm.tool.interactState.start then
-	--	self.network:sendToServer( "sv_n_toggleTumble" )
-	--end
+	sm.gui.setProgressFraction(self.cl.ownerData.data.playerData.hammerCharge / 1)
 
 	if self.pendingRaycastFlag then
 		local time = 0.0
 		local frameTime = 0.0
 		if self.fpAnimations.currentAnimation == self.swings[self.currentSwing] then
 			time = self.fpAnimations.animations[self.swings[self.currentSwing]].time
-			frameTime = self.swingFrames[self.currentSwing] * self.spdMult
+			frameTime = self.swingFrames[self.currentSwing] * self.cl.powerups.speedMultiplier.current
 		end
 		if time >= frameTime and frameTime ~= 0 then
 			self.pendingRaycastFlag = false
 			local raycastStart = sm.localPlayer.getRaycastStart()
 			local direction = sm.localPlayer.getDirection()
-			sm.melee.meleeAttack( "Sledgehammer", self.Damage, raycastStart, direction * Range, self.tool:getOwner() )
+			sm.melee.meleeAttack( "Sledgehammer", self.baseDamage * self.cl.powerups.damageMultiplier.current, raycastStart, direction * Range, self.tool:getOwner() )
 			local success, result = sm.localPlayer.getRaycast( Range, raycastStart, direction )
 			if success then
 				self.freezeTimer = self.freezeDuration
@@ -506,7 +474,7 @@ function Sledgehammer.client_onEquippedUpdate( self, primaryState, secondaryStat
 
 	--Start attack?
 	self.startedSwinging = ( self.startedSwinging or primaryState == sm.tool.interactState.start ) and primaryState ~= sm.tool.interactState.stop and primaryState ~= sm.tool.interactState.null
-	if primaryState == sm.tool.interactState.start and self.inHammerState == false or ( primaryState == sm.tool.interactState.hold and self.startedSwinging ) and self.inHammerState == false then 
+	if primaryState == sm.tool.interactState.start and self.sv.slamming == false or ( primaryState == sm.tool.interactState.hold and self.startedSwinging ) and self.sv.slamming == false then 
 
 		--Check if we are currently playing a swing
 		if self.fpAnimations.currentAnimation == self.swings[self.currentSwing] then
@@ -551,9 +519,6 @@ function Sledgehammer.client_onEquippedUpdate( self, primaryState, secondaryStat
 	--return primaryState ~= sm.tool.interactState.null or secondaryState ~= sm.tool.interactState.null
 
 	--Secondary destruction
-
-	sm.gui.setProgressFraction(self.playerData.hammerCharge / 1)
-
 	return true, false
 end
 
@@ -601,8 +566,7 @@ function Sledgehammer.client_onUnequip( self, animate )
 end
 
 function Sledgehammer:sv_onUnequip()
-	self.inHammerState = false
-	self.data.isInvincible = false
+	self.sv.slamming = false
 end
 
 function Sledgehammer.sv_updateBlocking( self, isBlocking )

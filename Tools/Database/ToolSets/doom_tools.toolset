@@ -1,11 +1,11 @@
 {
    "toolList" : [
       {
-         "name" : "Spudgun",
+         "name" : "Heavy Cannon",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {
-            "class" : "PotatoRifle",
+            "class" : "HCannon",
             "data" : {},
             "file" : "$CONTENT_DATA/Scripts/tools/PotatoRifle.lua"
          },
@@ -23,7 +23,7 @@
          "uuid" : "117344bd-c628-485a-8e89-ab51d57e8528"
       },
       {
-         "name" : "Gatling gun",
+         "name" : "Chaingun",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_spinner_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {
@@ -34,7 +34,7 @@
          "uuid" : "d48f73b3-521a-4f60-b4d3-0ff08b145cff"
       },
       {
-         "name" : "wpn_supershotgun",
+         "name" : "Super Shotgun",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {
@@ -45,7 +45,7 @@
          "uuid" : "8378e3ed-ded9-4a64-9887-76c3b295bc86"
       },
       {
-         "name" : "wpn_ballista",
+         "name" : "Ballista",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {
@@ -56,7 +56,7 @@
          "uuid" : "465b2e4e-e9ff-42bc-aab1-f256663d1c31"
       },
       {
-         "name" : "wpn_plasmarifle",
+         "name" : "Plasma Rifle",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {
@@ -67,7 +67,7 @@
          "uuid" : "b17f2fa7-1f04-40b5-8f9d-65a40bbf45c0"
       },
       {
-         "name" : "wpn_rocketlauncher",
+         "name" : "Rocket Launcher",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {
@@ -78,7 +78,7 @@
          "uuid" : "25417b29-546d-4a9d-9766-f6e0d3b82f0f"
       },
       {
-         "name" : "wpn_bfg",
+         "name" : "Big Fucking Gun",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {
@@ -89,7 +89,7 @@
          "uuid" : "2cc2e981-4261-443b-b925-051ea94707ab"
       },
       {
-         "name" : "wpn_unmaykr",
+         "name" : "Unmaykr",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_spudgun_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {
@@ -100,7 +100,7 @@
          "uuid" : "30baecf1-d083-4785-932c-4f2272494b5a"
       },
       {
-         "name" : "wpn_berserk",
+         "name" : "Berserk",
          "previewRenderable" : "$GAME_DATA/Character/Char_Tools/char_sledgehammer_preview.rend",
          "previewRotation" : [ 1, 0, 0, 0, 0, -1, 0, 1, 0 ],
          "script" : {

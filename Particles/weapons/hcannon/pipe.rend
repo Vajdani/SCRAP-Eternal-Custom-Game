@@ -1,0 +1,25 @@
+{
+    "lodList": [
+        {
+            "subMeshList": [
+                {
+                    "textureList": [
+                        "$GAME_DATA/Objects/Textures/industrial/obj_atlas_generic_dif.tga",
+                        "$GAME_DATA/Objects/Textures/industrial/obj_atlas_generic_asg.tga",
+                        "$GAME_DATA/Objects/Textures/industrial/obj_atlas_generic_nor.tga",
+                        "$GAME_DATA/Objects/Textures/fittings/obj_fittings_small_pipe_ao.tga"
+                    ],
+                    "material": "DifAsgNorAo"
+                }
+            ],
+            "mesh": "$GAME_DATA/Objects/Mesh/fittings/small_2way_pipe.fbx",
+            "includes": [
+                "POSITION",
+                "UV0",
+                "UV1",
+                "NORMAL",
+                "TANGENTS"
+            ]
+	    }
+    ]
+}

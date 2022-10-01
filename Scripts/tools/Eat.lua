@@ -184,7 +184,7 @@ function Eat.client_onUpdate( self, dt )
 	local isSprinting =  self.tool:isSprinting()
 	local isCrouching =  self.tool:isCrouching()
 	local isOnGround =  self.tool:isOnGround()
-	
+
 	if self.tool:isLocal() then
 		if self.equipped and self.eating == false then
 			if isSprinting and self.fpAnimations.currentAnimation ~= "sprintInto" and self.fpAnimations.currentAnimation ~= "sprintIdle" then
@@ -204,7 +204,6 @@ function Eat.client_onUpdate( self, dt )
 	end
 
 	-- Update the equipped item for the clients that do not own the tool
-	print(self.activeItem)
 	if not self.tool:isLocal() and self.activeItem ~= self.desiredActiveItem and self.tool:isEquipped() then
 		self.activeItem = self.desiredActiveItem
 		self:cl_updateActiveFood()
@@ -217,7 +216,7 @@ function Eat.client_onUpdate( self, dt )
 		end
 		return
 	end
-	
+
 	if self.tool:isLocal() then
 		local activeItem = sm.localPlayer.getActiveItem()
 		if self.activeItem ~= activeItem then

@@ -2,78 +2,75 @@ dofile "$GAME_DATA/Scripts/game/AnimationUtil.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 dofile "$SURVIVAL_DATA/Scripts/game/survival_shapes.lua"
 
---SE
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
---SE
 
-PotatoRifle = class()
+HCannon = class()
 
-local mod_prec = "Precision Bolt"
-local mod_missile = "Micro Missiles"
 local effectRot = sm.vec3.new( 0, 1, 0 )
-
-local renderables = {
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_basic/char_spudgun_barrel_basic.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
-	"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+HCannon.mod1 = "Precision Bolt"
+HCannon.mod2 = "Micro Missiles"
+HCannon.renderables = {
+	poor = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_basic/char_spudgun_barrel_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	},
+	["Precision Bolt"] = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_basic/char_spudgun_barrel_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	},
+	["Micro Missiles"] = {
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Base/char_spudgun_base_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Barrel/Barrel_basic/char_spudgun_barrel_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Sight/Sight_basic/char_spudgun_sight_basic.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Stock/Stock_broom/char_spudgun_stock_broom.rend",
+		"$GAME_DATA/Character/Char_Tools/Char_spudgun/Tank/Tank_basic/char_spudgun_tank_basic.rend"
+	}
 }
+HCannon.renderablesTp = {
+	"$GAME_DATA/Character/Char_Male/Animations/char_male_tp_spudgun.rend",
+	"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_tp_animlist.rend"
+}
+HCannon.renderablesFp = {
+	"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_fp_animlist.rend"
+}
+HCannon.baseDamage = 20
+HCannon.pbDamage = 168
+HCannon.pbRange = 250
 
-local renderablesTp = {"$GAME_DATA/Character/Char_Male/Animations/char_male_tp_spudgun.rend", "$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_tp_animlist.rend"}
-local renderablesFp = {"$GAME_DATA/Character/Char_Tools/Char_spudgun/char_spudgun_fp_animlist.rend"}
+for k, v in pairs(HCannon.renderables) do
+	sm.tool.preloadRenderables( v )
+end
+sm.tool.preloadRenderables( HCannon.renderablesTp )
+sm.tool.preloadRenderables( HCannon.renderablesFp )
 
-sm.tool.preloadRenderables( renderables )
-sm.tool.preloadRenderables( renderablesTp )
-sm.tool.preloadRenderables( renderablesFp )
-
-function PotatoRifle:server_onCreate()
+function HCannon:server_onCreate()
 	self.sv = {}
-	self.sv.player = self.tool:getOwner()
-	self.sv.data = self.sv.player:getPublicData()
+	self.sv.owner = self.tool:getOwner()
+	self.sv.data = self.sv.owner:getPublicData()
 end
 
-function PotatoRifle.client_onCreate( self )
+function HCannon.client_onCreate( self )
 	self.shootEffect = sm.effect.createEffect( "SpudgunBasic - BasicMuzzel" )
 	self.shootEffectFP = sm.effect.createEffect( "SpudgunBasic - FPBasicMuzzel" )
 
-	--SE
-	if not self.tool:isLocal() then return end
-	--General stuff
 	self.cl = {}
+	self.cl.baseWeapon = BaseWeapon()
+	self.cl.baseWeapon.cl_onCreate( self, "hcannon" )
 
-	self.cl.player = sm.localPlayer.getPlayer()
-	self.cl.lookDir = sm.vec3.zero()
-	self.cl.playerChar = self.cl.player:getCharacter()
+	if not self.tool:isLocal() then return end
 
-	self.cl.allData = self.cl.player:getClientPublicData().data
-	self.cl.weaponData = self.cl.allData.weaponData.hcannon
-
-	self.cl.damage = 20
-	self.cl.ammoCost = 1
 	self.cl.fireCounter = 0
-	self.cl.isFiring = false
-	self.cl.usingMod = false
 
-	--Mod switch
-	if self.cl.weaponData.mod1.owned then
-		self.cl.currentWeaponMod = mod_prec
-	elseif self.cl.weaponData.mod2.owned then
-		self.cl.currentWeaponMod = mod_missile
-	else
-		self.cl.currentWeaponMod = "poor"
-	end
-
-	self.cl.modSwitchCount = 0
-	self.cl.afterModCD = false
-	self.cl.afterModCDCount = 1
-
-	--mod_prec
+	--mod1
 	self.cl.fireCharge = 2
-	self.cl.precMobility = false
-	self.cl.precRechargeMultipler = 1
 
-	--mod_missile
+	--mod2
 	self.cl.missiles = {}
 	self.cl.microMissileCounter = 0
 	self.cl.missileRecharge = 2.5
@@ -83,18 +80,12 @@ function PotatoRifle.client_onCreate( self )
 	self.cl.explosionDamage = 3
 	self.cl.mmActiavteCD = 1
 	self.cl.canFireMM = false
-	self.cl.canFireMMBypass = false
 
 	self.cl.mmMasteryStick = 0
 	self.cl.mmMCanProgress = true
-	--SE
 end
 
-function PotatoRifle.client_onRefresh( self )
-	self:loadAnimations()
-end
-
-function PotatoRifle.loadAnimations( self )
+function HCannon.loadAnimations( self )
 
 	self.tpAnimations = createTpAnimations(
 		self.tool,
@@ -204,118 +195,69 @@ function PotatoRifle.loadAnimations( self )
 
 end
 
---SE
-function PotatoRifle:server_onFixedUpdate()
+function HCannon:server_onFixedUpdate()
 
 end
 
-function PotatoRifle.client_onFixedUpdate( self, dt )
-	if not self.tool:isLocal() or self.cl.allData == nil then return end
+function HCannon.client_onFixedUpdate( self, dt )
+	if not self.tool:isLocal() then return end
 
-	self.cl.playerChar = self.cl.player:getCharacter()
-	local playerData = self.cl.allData.playerData
-	self.cl.weaponData = self.cl.allData.weaponData.hcannon
-	self.cl.mmOP = playerData.mmOP
+	self.cl.baseWeapon.cl_onFixed( self )
+	self.cl.mmOP = self.cl.ownerData.data.playerData.mmOP
 
 	--upgrades
-	self.cl.precMobility = self.cl.weaponData.mod1.up1.owned and true or false
-	self.cl.precRechargeMultipler = self.cl.weaponData.mod1.up2.owned and 2 or 1
+
 	self.cl.missileRechargeMax = self.cl.weaponData.mod2.up1.owned and 1.5 or 2.5
-	self.cl.canFireMMBypass = self.cl.weaponData.mod2.up2.owned and true or false
-	if self.cl.canFireMMBypass then
-		self.cl.canFireMM = true
-	end
+	self.cl.canFireMM = self.cl.weaponData.mod2.up2.owned or self.cl.mmActiavteCD >= 1
 	self.cl.explosionDamage = self.cl.mmOP and 5 or 3
 
-	--main
-	if self.cl.usingMod and self.cl.currentWeaponMod == mod_prec then
-		self.cl.ammoCost = 6
-	elseif self.cl.usingMod and self.cl.currentWeaponMod == mod_missile then
-		self.cl.ammoCost = 3
-	else
-		self.cl.ammoCost = 1
-	end
+	local increase = dt * self.cl.powerups.speedMultiplier.current
 
-	self.cl.damage = self.cl.usingMod and self.cl.currentWeaponMod == mod_prec and 168 or 20
-
-	--powerup
-	local powerupData = self.tool:getOwner():getClientPublicData().powerup
-	self.cl.damage = self.cl.damage * powerupData.damageMultiplier.current
-	local increase = dt * powerupData.speedMultiplier.current
-
-	if self.cl.afterModCD then
-		self.cl.afterModCDCount = self.cl.afterModCDCount + increase*1.75
-
-		if self.cl.afterModCDCount >= 1 then
-			self.cl.afterModCDCount = 1
-			self.cl.afterModCD= false
-		end
-	end
-
-	if self.cl.fireCharge < 2 then
-		self.cl.fireCharge = self.cl.fireCharge + increase * self.cl.precRechargeMultipler
-		if self.cl.fireCharge > 2 then
-			self.cl.fireCharge = 2
-		end
-	end
-
-	if (self.cl.currentWeaponMod == "poor" and self.cl.isFiring or not self.cl.usingMod and not self.cl.afterModCD and self.cl.isFiring) and not self.cl.playerChar:isSwimming() and not self.cl.playerChar:isDiving() and self.tool:isEquipped() then
+	local char = self.cl.owner.character
+	local inWater = char:isSwimming() or char:isDiving()
+	if self.cl.isFiring and (self.cl.currentWeaponMod == "poor" or not self.cl.usingMod and not self.cl.modSwitch.active) and not inWater and self.tool:isEquipped() then
 		self.cl.fireCounter = self.cl.fireCounter + increase
 		if (self.cl.fireCounter/0.25) > 1 then
 			if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), obj_plantables_potato, 1 ) then
-				self:shootProjectile( projectile_potato, self.cl.damage )
+				self:shootProjectile( projectile_potato, self.baseDamage * self.cl.powerups.damageMultiplier.current )
 			else
 				sm.audio.play( "PotatoRifle - NoAmmo" )
 			end
-		end
 
-		if self.cl.fireCounter > 0.25 then
 			self.cl.fireCounter = 0
 		end
 	else
 		self.cl.fireCounter = 0
 	end
 
-	if self.cl.currentWeaponMod == mod_missile and self.cl.usingMod and not self.cl.afterModCD then
-		if self.cl.mmActiavteCD < 1 then
-			self.cl.mmActiavteCD = self.cl.mmActiavteCD + increase*2
-		end
-
-		if self.cl.mmActiavteCD >= 1 then
-			self.cl.mmActiavteCD = 1
-			self.cl.canFireMM = true
-		end
-	elseif not self.cl.canFireMMBypass then
-		self.cl.canFireMM = false
+	if self.cl.currentWeaponMod == self.mod2 and self.cl.usingMod and not self.cl.modSwitch.active then
+		self.cl.mmActiavteCD = sm.util.clamp(self.cl.mmActiavteCD + increase*2, 0, 1)
+	else
+		self.cl.mmActiavteCD = 0
 	end
 
-	if self.cl.usingMod and self.cl.currentWeaponMod == mod_missile and not self.cl.afterModCD and self.cl.isFiring and (self.cl.canFireMMBypass or self.cl.canFireMM) and not self.cl.playerChar:isSwimming() and not self.cl.playerChar:isDiving() and self.tool:isEquipped()  then
+	if self.cl.currentWeaponMod == self.mod2 and self.cl.usingMod and not self.cl.modSwitch.active and self.cl.isFiring and self.cl.canFireMM and not inWater and self.tool:isEquipped()  then
 		self.cl.microMissileCounter = self.cl.microMissileCounter + increase
 		if (self.cl.microMissileCounter/0.25) > 1 then
-
 			if (not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), obj_plantables_potato, 3 )) and self.cl.microMissileAmmo > 0 then
 				local spreadAngleZ = math.random(-5,5)
 				local spreadAngleY = math.random(-4,4)
-				local dir = sm.vec3.rotate( self.cl.lookDir, math.rad(spreadAngleZ), sm.camera.getUp() )
+				local aimDir = sm.localPlayer.getDirection()
+				local dir = sm.vec3.rotate( aimDir, math.rad(spreadAngleZ), sm.camera.getUp() )
 				dir = sm.vec3.rotate( dir, math.rad(spreadAngleY), sm.camera.getRight() )
 
-				self:cl_shootMissile({ pos = self:calculateFirePosition() + self.cl.lookDir * 0.5, dir = dir })
+				self:cl_shootMissile({ pos = self:calculateFirePosition() + aimDir * 0.5, dir = dir })
 				if not self.cl.weaponData.mod2.mastery.owned then
 					self.cl.microMissileAmmo = self.cl.microMissileAmmo - 1
 				end
 
-				-- Send TP shoot over network and dircly to self
 				self:onShoot( dir )
 				self.network:sendToServer( "sv_n_onShoot", dir )
-
-				-- Play FP shoot animation
 				setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
 			else
 				sm.audio.play( "PotatoRifle - NoAmmo" )
 			end
-		end
 
-		if self.cl.microMissileCounter > 0.25 then
 			self.cl.microMissileCounter = 0
 		end
 	else
@@ -323,16 +265,11 @@ function PotatoRifle.client_onFixedUpdate( self, dt )
 	end
 
 	if sm.container.canSpend( sm.localPlayer.getInventory(), obj_plantables_potato, 3 * (self.cl.microMissileAmmo + 1) ) then
-		if self.cl.microMissileAmmo < 12 or self.cl.microMissileAmmo < 12 and self.cl.currentWeaponMod == mod_prec and not self.cl.isFiring then
-			if self.cl.missileRecharge < self.cl.missileRechargeMax and self.cl.microMissileAmmo < 12 then
+		if self.cl.microMissileAmmo < 12 and (self.cl.currentWeaponMod ~= self.mod2 or not self.cl.isFiring) then
+			if self.cl.missileRecharge < self.cl.missileRechargeMax then
 				self.cl.missileRecharge = self.cl.missileRecharge + increase
-			end
-
-			if (self.cl.missileRecharge/self.cl.missileRechargeMax) > 1 then
+			else
 				self.cl.microMissileAmmo = self.cl.microMissileAmmo + 1
-			end
-
-			if self.cl.microMissileAmmo < 12 and self.cl.missileRecharge >= self.cl.missileRechargeMax then
 				self.cl.missileRecharge = 0
 			end
 		end
@@ -343,11 +280,10 @@ function PotatoRifle.client_onFixedUpdate( self, dt )
 		self.cl.mmMCanProgress = true
 	end
 
-	if self.cl.weaponData.mod2.up1.owned and self.cl.weaponData.mod2.up2.owned and self.cl.weaponData.mod2.up3.owned and not self.cl.weaponData.mod2.mastery.owned then
-		if self.cl.mmMCanProgress and self.cl.microMissileAmmo > 0 then
+	if self.cl.weaponData.mod2.up1.owned and self.cl.weaponData.mod2.up2.owned and self.cl.weaponData.mod2.up3.owned and not self.cl.weaponData.mod2.mastery.owned and self.cl.mmMCanProgress then
+		if self.cl.microMissileAmmo > 0 then
 			if self.cl.mmMasteryStick >= 3 then
 				self.cl.mmMasteryStick = 0
-				self.cl.weaponData.mod2.mastery.progress = self.cl.weaponData.mod2.mastery.progress + 1
 				self.cl.mmMCanProgress = false
 				self.network:sendToServer("sv_saveMMMastery")
 			end
@@ -356,9 +292,14 @@ function PotatoRifle.client_onFixedUpdate( self, dt )
 			self.cl.mmMasteryStick = 0
 		end
 	end
+
+	if self.cl.fireCharge < 2 then
+		local mult = self.cl.weaponData.mod1.up2.owned and 2 or 1
+		self.cl.fireCharge = sm.util.clamp(self.cl.fireCharge + increase * mult, 0, 2)
+	end
 end
 
-function PotatoRifle:cl_shootMissile( args )
+function HCannon:cl_shootMissile( args )
 	local missile = {}
 
 	missile = {effect = sm.effect.createEffect("Rocket"), pos = args.pos, dir = args.dir, lifeTime = 0, explodeCD = 0, exploded = false, attached = false, attachedTarget = nil, attachPos = sm.vec3.zero(), attachDir = sm.vec3.zero()}
@@ -371,40 +312,25 @@ function PotatoRifle:cl_shootMissile( args )
 	self.network:sendToServer("sv_shootMissile")
 end
 
-function PotatoRifle:sv_shootMissile()
+function HCannon:sv_shootMissile()
 	sm.container.beginTransaction()
-	sm.container.spend( self.cl.player:getInventory(), obj_plantables_potato, 3, true )
+	sm.container.spend( self.cl.owner:getInventory(), obj_plantables_potato, 3, true )
 	sm.container.endTransaction()
 end
 
-function PotatoRifle.client_onReload( self )
-	if self.cl.weaponData.mod1.owned and self.cl.weaponData.mod2.owned then
-		self.cl.modSwitchCount = self.cl.modSwitchCount + 1
-		if self.cl.modSwitchCount % 2 == 0 then
-			self.cl.currentWeaponMod = mod_prec
-		else
-			self.cl.currentWeaponMod = mod_missile
-		end
-		self.cl.afterModCDCount = 0
-		self.cl.afterModCD= true
-		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
-		sm.audio.play("PaintTool - ColorPick")
-	elseif self.cl.weaponData.mod1.owned or self.cl.weaponData.mod2.owned or self.cl.currentWeaponMod == "poor" then
-		sm.audio.play("Button off")
-	end
+function HCannon.client_onReload( self )
+	self.cl.baseWeapon.onModSwitch( self )
 
 	return true
 end
 
-function PotatoRifle.shootProjectile( self, projectileType, projectileDamage)
+function HCannon.shootProjectile( self, projectileType, projectileDamage)
 	if self.tool:getOwner().character == nil then
         return
     end
 
     local firstPerson = self.tool:isInFirstPersonView()
-
     local dir = sm.localPlayer.getDirection()
-
     local firePos = self:calculateFirePosition()
     local fakePosition = self:calculateTpMuzzlePos()
     local fakePositionSelf = fakePosition
@@ -446,36 +372,51 @@ function PotatoRifle.shootProjectile( self, projectileType, projectileDamage)
         sm.projectile.projectileAttack( projectileType, projectileDamage, firePos, dir * fireMode.fireVelocity, owner, fakePosition, fakePositionSelf )
     end
 
-    -- Send TP shoot over network and dircly to self
     self:onShoot( dir )
     self.network:sendToServer( "sv_n_onShoot", dir )
-
-    -- Play FP shoot animation
     setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
 end
 
-function PotatoRifle:sv_saveCurrentWpnData( data )
-	sm.event.sendToPlayer( self.cl.player, "sv_saveWPData", data )
-end
-
-function PotatoRifle:sv_missileExplode( pos )
+function HCannon:sv_missileExplode( pos )
 	sm.physics.explode( pos, self.cl.explosionDamage, 2.5, 2.0, 7.5, "PropaneTank - ExplosionSmall" )
 end
 
-function PotatoRifle:sv_saveMMMastery()
-	if self.cl.weaponData.mod2.mastery.progress >= self.cl.weaponData.mod2.mastery.max then
-		sm.event.sendToPlayer( self.cl.player, "sv_displayMsg", "#ff9d00"..self.cl.weaponData.mod2.mastery.name.." #ffffffunlocked!" )
-		self.cl.weaponData.mod2.mastery.owned = true
+function HCannon:sv_onPBHit( args )
+	local unit = args.char:getUnit()
+
+	sm.event.sendToUnit(
+		unit,
+		"sv_se_takeDamage",
+		{
+			damage = self.pbDamage,
+			impact = sm.vec3.one(),
+			hitPos = args.hitPos,
+			attacker = self.sv.owner
+		}
+	)
+	sm.event.sendToUnit(
+		unit,
+		"sv_checkWeakPoints",
+		{
+			hitPos = args.hitPos,
+			attacker = self.sv.owner
+		}
+	)
+end
+
+function HCannon:sv_saveMMMastery()
+	self.sv.data.weaponData.hcannon.mod2.mastery.progress = self.sv.data.weaponData.hcannon.mod2.mastery.progress + 1
+
+	local mastery = self.sv.data.weaponData.hcannon.mod2.mastery
+	if mastery.progress >= mastery.max then
+		sm.event.sendToPlayer( self.sv.owner, "sv_displayMsg", "#ff9d00"..mastery.name.." #ffffffunlocked!" )
+		self.sv.data.weaponData.hcannon.mod2.mastery = true
 	end
 
-	sm.event.sendToPlayer(self.cl.player, "sv_save")
+	sm.event.sendToPlayer(self.sv.owner, "sv_save")
 end
---SE
 
-function PotatoRifle.client_onUpdate( self, dt )
-	--SE
-	self.cl.lookDir = self.cl.playerChar:getDirection()
-
+function HCannon.client_onUpdate( self, dt )
 	local missileInc = self.cl.mmOP and dt * 2 or dt
 	local increase = dt * self.tool:getOwner():getClientPublicData().powerup.speedMultiplier.current
 	local fpsAdjust = dt * 50
@@ -515,7 +456,7 @@ function PotatoRifle.client_onUpdate( self, dt )
 			end
 		else
 			if missile.dir.z > -1 then
-				missile.dir = missile.dir - sm.vec3.new(0, 0, 10) * 0.001
+				missile.dir = missile.dir - sm.vec3.new(0, 0, 0.005)
 			end
 			local hit, result = sm.physics.raycast( missile.pos, missile.pos + missile.dir * 0.6 * fpsAdjust )
 			if hit then
@@ -543,7 +484,6 @@ function PotatoRifle.client_onUpdate( self, dt )
 			missile.effect:setRotation( sm.vec3.getRotation(effectRot, missile.dir) )
 		end
 	end
-	--SE
 
 	-- First person animation
 	local isSprinting =  self.tool:isSprinting()
@@ -663,13 +603,6 @@ function PotatoRifle.client_onUpdate( self, dt )
 
 	local playerDir = self.tool:getDirection()
 	local angle = math.asin( playerDir:dot( sm.vec3.new( 0, 0, 1 ) ) ) / ( math.pi / 2 )
-	local linareAngle = playerDir:dot( sm.vec3.new( 0, 0, 1 ) )
-
-	local linareAngleDown = clamp( -linareAngle, 0.0, 1.0 )
-
-	local down = clamp( -angle, 0.0, 1.0 )
-	local fwd = ( 1.0 - math.abs( angle ) )
-	local up = clamp( angle, 0.0, 1.0 )
 
 	local crouchWeight = self.tool:isCrouching() and 1.0 or 0.0
 	local normalWeight = 1.0 - crouchWeight
@@ -762,12 +695,10 @@ function PotatoRifle.client_onUpdate( self, dt )
 	self.tool:updateFpCamera( 30.0, sm.vec3.new( 0.0, 0.0, 0.0 ), self.aimWeight, bobbing )
 end
 
-function PotatoRifle.client_onEquip( self, animate )
-	--SE
+function HCannon.client_onEquip( self, animate )
 	if self.cl.currentWeaponMod ~= "poor" then
 		sm.gui.displayAlertText("Current weapon mod: #ff9d00" .. self.cl.currentWeaponMod, 2.5)
 	end
-	--SE
 
 	if animate then
 		sm.audio.play( "PotatoRifle - Equip", self.tool:getPosition() )
@@ -779,35 +710,20 @@ function PotatoRifle.client_onEquip( self, animate )
 	self.aimWeight = math.max( cameraWeight, cameraFPWeight )
 	self.jointWeight = 0.0
 
-	local currentRenderablesTp = {}
-	local currentRenderablesFp = {}
-
-	for k,v in pairs( renderablesTp ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
-	for k,v in pairs( renderablesFp ) do currentRenderablesFp[#currentRenderablesFp+1] = v end
-	for k,v in pairs( renderables ) do currentRenderablesTp[#currentRenderablesTp+1] = v end
-	for k,v in pairs( renderables ) do currentRenderablesFp[#currentRenderablesFp+1] = v end
-	self.tool:setTpRenderables( currentRenderablesTp )
-
-	self:loadAnimations()
+	self:updateRenderables()
 
 	setTpAnimation( self.tpAnimations, "pickup", 0.0001 )
-
 	if self.tool:isLocal() then
-		-- Sets PotatoRifle renderable, change this to change the mesh
-		self.tool:setFpRenderables( currentRenderablesFp )
 		swapFpAnimation( self.fpAnimations, "unequip", "equip", 0.2 )
 	end
 end
 
-function PotatoRifle.client_onUnequip( self, animate )	
+function HCannon.client_onUnequip( self, animate )
 	if animate then
 		sm.audio.play( "PotatoRifle - Unequip", self.tool:getPosition() )
 	end
 
-	--SE
-	self.cl.usingMod = false
 	self.cl.fireCharge = 2
-	--SE
 	self.wantEquipped = false
 	self.equipped = false
 	setTpAnimation( self.tpAnimations, "putdown" )
@@ -816,59 +732,56 @@ function PotatoRifle.client_onUnequip( self, animate )
 	end
 end
 
-function PotatoRifle.sv_n_onAim( self, aiming )
+function HCannon.sv_n_onAim( self, aiming )
 	self.network:sendToClients( "cl_n_onAim", aiming )
 end
 
-function PotatoRifle.cl_n_onAim( self, aiming )
+function HCannon.cl_n_onAim( self, aiming )
 	if not self.tool:isLocal() and self.tool:isEquipped() then
 		self:onAim( aiming )
 	end
 end
 
-function PotatoRifle.onAim( self, aiming )
+function HCannon.onAim( self, aiming )
 	self.aiming = aiming
 	if self.tpAnimations.currentAnimation == "idle" or self.tpAnimations.currentAnimation == "aim" or self.tpAnimations.currentAnimation == "relax" and self.aiming then
 		setTpAnimation( self.tpAnimations, self.aiming and "aim" or "idle", 5.0 )
 	end
 end
 
-function PotatoRifle.sv_n_onShoot( self, dir )
+function HCannon.sv_n_onShoot( self, dir )
 	self.network:sendToClients( "cl_n_onShoot", dir )
 end
 
-function PotatoRifle.cl_n_onShoot( self, dir )
+function HCannon.cl_n_onShoot( self, dir )
 	if not self.tool:isLocal() and self.tool:isEquipped() then
 		self:onShoot( dir )
 	end
 end
 
-function PotatoRifle.onShoot( self, dir )
-
+function HCannon.onShoot( self, dir )
 	self.tpAnimations.animations.idle.time = 0
 	self.tpAnimations.animations.shoot.time = 0
 	self.tpAnimations.animations.aimShoot.time = 0
 
 	setTpAnimation( self.tpAnimations, self.aiming and "aimShoot" or "shoot", 10.0 )
 
-	--SE
 	if self.tool:isInFirstPersonView() then
-		if self.cl.afterModCD or self.cl.usingMod and self.cl.fireCharge < 2 and self.cl.currentWeaponMod == mod_prec or self.cl.usingMod and self.cl.microMissileAmmo == 0 and self.cl.currentWeaponMod == mod_missile or self.cl.usingMod and not self.cl.canFireMM and self.cl.currentWeaponMod == mod_missile then
+		if self.cl.modSwitch.active or self.cl.usingMod and self.cl.fireCharge < 2 and self.cl.currentWeaponMod == self.mod1 or self.cl.usingMod and self.cl.microMissileAmmo == 0 and self.cl.currentWeaponMod == self.mod2 or self.cl.usingMod and not self.cl.canFireMM and self.cl.currentWeaponMod == self.mod2 then
 			sm.audio.play( "PotatoRifle - NoAmmo" )
 		else
 			self.shootEffectFP:start()
 		end
 	else
-		if self.cl.afterModCD or self.cl.usingMod and self.cl.fireCharge < 2 and self.cl.currentWeaponMod == mod_prec or self.cl.usingMod and self.cl.microMissileAmmo == 0 and self.cl.currentWeaponMod == mod_missile or self.cl.usingMod and not self.cl.canFireMM and self.cl.currentWeaponMod == mod_missile then
+		if self.cl.modSwitch.active or self.cl.usingMod and self.cl.fireCharge < 2 and self.cl.currentWeaponMod == self.mod1 or self.cl.usingMod and self.cl.microMissileAmmo == 0 and self.cl.currentWeaponMod == self.mod2 or self.cl.usingMod and not self.cl.canFireMM and self.cl.currentWeaponMod == self.mod2 then
 			sm.audio.play( "PotatoRifle - NoAmmo" )
 		else
 			self.shootEffect:start()
 		end
 	end
-	--SE
 end
 
-function PotatoRifle.calculateFirePosition( self )
+function HCannon.calculateFirePosition( self )
 	local crouching = self.tool:isCrouching()
 	local firstPerson = self.tool:isInFirstPersonView()
 	local dir = sm.localPlayer.getDirection()
@@ -895,7 +808,7 @@ function PotatoRifle.calculateFirePosition( self )
 	return firePosition
 end
 
-function PotatoRifle.calculateTpMuzzlePos( self )
+function HCannon.calculateTpMuzzlePos( self )
 	local crouching = self.tool:isCrouching()
 	local dir = sm.localPlayer.getDirection()
 	local pitch = math.asin( dir.z )
@@ -929,7 +842,7 @@ function PotatoRifle.calculateTpMuzzlePos( self )
 	return fakePosition
 end
 
-function PotatoRifle.calculateFpMuzzlePos( self )
+function HCannon.calculateFpMuzzlePos( self )
 	local fovScale = ( sm.camera.getFov() - 45 ) / 45
 
 	local up = sm.localPlayer.getUp()
@@ -958,54 +871,68 @@ function PotatoRifle.calculateFpMuzzlePos( self )
 	return self.tool:getFpBonePos( "pejnt_barrel" ) + sm.vec3.lerp( muzzlePos45, muzzlePos90, fovScale )
 end
 
-function PotatoRifle.cl_onPrimaryUse( self, state )
+function HCannon.cl_onPrimaryUse( self, state )
 	if self.tool:getOwner().character == nil then
 		return
 	end
 
 	if self.fireCooldownTimer <= 0.0 and state == sm.tool.interactState.start then
+		local ammoCost = 1
+		if self.cl.usingMod and self.cl.currentWeaponMod == self.mod1 then
+			ammoCost = 6
+		elseif self.cl.usingMod and self.cl.currentWeaponMod == self.mod2 then
+			ammoCost = 3
+		end
 
-		if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), obj_plantables_potato, self.cl.ammoCost ) then
+		if not sm.game.getEnableAmmoConsumption() or sm.container.canSpend( sm.localPlayer.getInventory(), obj_plantables_potato, ammoCost ) then
 
 			local fireMode = self.aiming and self.aimFireMode or self.normalFireMode
 			local owner = self.tool:getOwner()
 
-			if owner and not self.cl.usingMod and not self.cl.afterModCD or owner and self.cl.currentWeaponMod == "poor" then
+			if owner and not self.cl.usingMod and not self.cl.modSwitch.active or owner and self.cl.currentWeaponMod == "poor" then
 				self.aimFireMode.fireVelocity = 130
 				self.aimFireMode.spreadIncrement = 1.3
 				self.aimFireMode.spreadMinAngle = 0
 				self.aimFireMode.spreadMaxAngle = 8
 
-				self:shootProjectile( projectile_potato, self.cl.damage )
-				self.fireCooldownTimer = fireMode.fireCooldown
-			elseif owner and self.cl.usingMod and self.cl.currentWeaponMod == mod_prec and not self.cl.afterModCD and self.cl.fireCharge == 2  then
-				self.aimFireMode.fireVelocity =  130
+				self:shootProjectile( projectile_potato, self.baseDamage * self.cl.powerups.damageMultiplier.current )
+			elseif owner and self.cl.usingMod and self.cl.currentWeaponMod == self.mod1 and not self.cl.modSwitch.active and self.cl.fireCharge == 2  then
+				--[[self.aimFireMode.fireVelocity =  130
 				self.aimFireMode.spreadIncrement = 0
 				self.aimFireMode.spreadMinAngle = 0
 				self.aimFireMode.spreadMaxAngle = 0
 
-				self:shootProjectile( proj_pb, self.cl.damage )
+				self:shootProjectile( proj_pb, self.pbDamage * self.cl.powerups.damageMultiplier.current )]]
+
+				local hit, result = sm.localPlayer.getRaycast(self.pbRange)
+				if hit then
+					local char = result:getCharacter()
+					if char then
+						self.network:sendToServer("sv_onPBHit", { char = char, hitPos = result.pointWorld })
+					end
+				end
+
 				self.cl.fireCharge = 0
-				self.fireCooldownTimer = fireMode.fireCooldown
-			elseif owner and self.cl.usingMod and self.cl.currentWeaponMod == mod_missile and not self.cl.afterModCD and self.cl.microMissileAmmo > 0 and (self.cl.canFireMMBypass or self.cl.canFireMM) then
-				self:cl_shootMissile({ pos = self:calculateFirePosition() + self.cl.lookDir, dir = self.cl.lookDir })
+
+				self:onShoot()
+				self.network:sendToServer( "sv_n_onShoot" )
+				setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
+			elseif owner and self.cl.usingMod and self.cl.currentWeaponMod == self.mod2 and not self.cl.modSwitch.active and self.cl.microMissileAmmo > 0 and self.cl.canFireMM then
+				local dir = sm.localPlayer.getDirection()
+				self:cl_shootMissile({ pos = self:calculateFirePosition() + dir, dir = dir })
 
 				if not self.cl.weaponData.mod2.mastery.owned then
 					self.cl.microMissileAmmo = self.cl.microMissileAmmo - 1
 				end
 				self.cl.missileRecharge = 0
 
-				self.fireCooldownTimer = fireMode.fireCooldown * 2
-				-- Send TP shoot over network and dircly to self
-				self:onShoot( self.cl.lookDir )
-				self.network:sendToServer( "sv_n_onShoot", self.cl.lookDir )
-
-				-- Play FP shoot animation
+				self:onShoot()
+				self.network:sendToServer( "sv_n_onShoot" )
 				setFpAnimation( self.fpAnimations, self.aiming and "aimShoot" or "shoot", 0.05 )
-			end 
-			--SE
+			end
 
 			-- Timers
+			self.fireCooldownTimer = fireMode.fireCooldown
 			self.spreadCooldownTimer = math.min( self.spreadCooldownTimer + fireMode.spreadIncrement, fireMode.spreadCooldown )
 			self.sprintCooldownTimer = self.sprintCooldown
 		else
@@ -1016,86 +943,31 @@ function PotatoRifle.cl_onPrimaryUse( self, state )
 	end
 end
 
-function PotatoRifle.cl_onSecondaryUse( self, state )
-	if state == sm.tool.interactState.start and not self.cl.usingMod --[[self.aiming]] then
-		--SE
-		self.cl.usingMod = true
-		if self.cl.currentWeaponMod == mod_prec or self.cl.currentWeaponMod == "poor" then
-			self.aiming = true
-			self.tpAnimations.animations.idle.time = 0
-			self:onAim( self.cl.usingMod )
-			if not self.cl.precMobility or self.cl.currentWeaponMod == "poor" then
-				self.tool:setMovementSlowDown( self.cl.usingMod )
-			end
-			self.network:sendToServer( "sv_n_onAim", self.cl.usingMod )
-		end
-		--SE
+function HCannon.cl_onSecondaryUse( self, state )
+	if self.cl.currentWeaponMod == self.mod2 then return end
 
-		--[[self.aiming = true
-		self.tpAnimations.animations.idle.time = 0
+	self.aiming = state == sm.tool.interactState.start or state == sm.tool.interactState.hold
 
-		self:onAim( self.aiming )
+	self.tpAnimations.animations.idle.time = 0
+	self:onAim( self.aiming )
+	if not self.cl.weaponData.mod1.up1.owned or self.cl.currentWeaponMod == "poor" then
 		self.tool:setMovementSlowDown( self.aiming )
-		self.network:sendToServer( "sv_n_onAim", self.aiming )]]
 	end
-
-	if self.cl.usingMod --[[self.aiming]] and (state == sm.tool.interactState.stop or state == sm.tool.interactState.null) then
-		--SE
-		self.cl.usingMod = false
-		if self.cl.currentWeaponMod == mod_prec or self.cl.currentWeaponMod == "poor" then
-			self.aiming = false
-			self.tpAnimations.animations.idle.time = 0
-			self:onAim( self.cl.usingMod )
-			if not self.cl.precMobility or self.cl.currentWeaponMod == "poor" then
-				self.tool:setMovementSlowDown( self.cl.usingMod )
-			end
-			self.network:sendToServer( "sv_n_onAim", self.cl.usingMod )
-		end
-		--SE
-
-		--[[self.aiming = false
-		self.tpAnimations.animations.idle.time = 0
-
-		self:onAim( self.aiming )
-		self.tool:setMovementSlowDown( self.aiming )
-		self.network:sendToServer( "sv_n_onAim", self.aiming )]]
-	end
-
-	if self.cl.currentWeaponMod == mod_missile and not self.cl.canFireMMBypass then
-		self.cl.mmActiavteCD = 0
-	elseif self.cl.canFireMMBypass then
-		self.cl.mmActiavteCD = 1
-	end
+	self.network:sendToServer( "sv_n_onAim", self.aiming )
 end
 
-function PotatoRifle.client_onEquippedUpdate( self, primaryState, secondaryState )
-	--SE
-	local data = {
-		mod = self.cl.currentWeaponMod,
-		using = self.cl.usingMod,
-		ammo = 0,
-		recharge = 0
-	}
-	self.network:sendToServer( "sv_saveCurrentWpnData", data )
+function HCannon.client_onEquippedUpdate( self, primaryState, secondaryState )
+	self.cl.baseWeapon.onEquipped( self, primaryState, secondaryState )
 
-	if self.cl.fireCharge < 2 and self.cl.usingMod and self.cl.currentWeaponMod == mod_prec then
+	if self.cl.currentWeaponMod == self.mod1 and self.cl.usingMod then
 		sm.gui.setProgressFraction(self.cl.fireCharge / 2)
+	elseif self.cl.currentWeaponMod == self.mod2 and self.cl.usingMod then
+		if self.cl.canFireMM then
+			sm.gui.setProgressFraction(self.cl.microMissileAmmo / 12)
+		else
+			sm.gui.setProgressFraction(self.cl.mmActiavteCD)
+		end
 	end
-
-	if self.cl.currentWeaponMod == mod_missile and self.cl.canFireMM and self.cl.usingMod then
-		sm.gui.setProgressFraction(self.cl.microMissileAmmo / 12)
-	end
-
-	if self.cl.currentWeaponMod == mod_missile and self.cl.usingMod and not self.cl.canFireMM then
-		sm.gui.setProgressFraction(self.cl.mmActiavteCD / 1)
-	end
-
-	if self.cl.afterModCD then
-		sm.gui.setProgressFraction(self.cl.afterModCDCount/1)
-	end
-
-	self.cl.isFiring = (primaryState == sm.tool.interactState.start or primaryState == sm.tool.interactState.hold) and true or false
-	--SE
 
 	if primaryState ~= self.prevPrimaryState then
 		self:cl_onPrimaryUse( primaryState )

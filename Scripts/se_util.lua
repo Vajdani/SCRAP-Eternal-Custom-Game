@@ -570,6 +570,10 @@ function Line:update( startPos, endPos, dt, spinSpeed )
     end
 end
 
+function Line:stop()
+	self.effect:stop()
+end
+
 
 CurvedLine = class()
 function CurvedLine:init( thickness, colours, steps, bendStart, soundEffect )

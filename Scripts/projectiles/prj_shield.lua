@@ -20,8 +20,6 @@ function Shield:server_onFixedUpdate()
     local tick = sm.game.getServerTick()
     local hit, result = sm.physics.raycast( self.cl.pos, self.cl.pos + self.cl.dir )
 
-    print(tick - self.params.spawnTick, self.maxLifeTime)
-
     if (hit and result:getCharacter() == nil) or tick - self.params.spawnTick >= self.maxLifeTime then
         self.scriptableObject:destroy()
         return

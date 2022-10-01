@@ -4,7 +4,7 @@ BBall = class()
 BBall.damageFrequency = 4
 BBall.damage = 25
 BBall.speed = 0.2
-BBall.maxLifeTime = 7.5 * 40
+BBall.maxLifeTime = 8 * 40
 
 function BBall:server_onCreate()
     self.sv = {}
@@ -69,29 +69,21 @@ function BBall:client_onUpdate( dt )
     local triggerContents = self.cl.trigger:getContents()
     for k, char in pairs(triggerContents) do
         if sm.exists(char) and not char:isPlayer() and self.cl.beams[k] == nil then
-            local effect = sm.effect.createEffect("ShapeRenderable")
-            effect:setParameter("uuid", sm.uuid.new("628b2d61-5ceb-43e9-8334-a4135566df7a"))
-            effect:setParameter("color", sm.color.new(0, 1, 0, 1))
-            self.cl.beams[k] = { char = char, effect = effect }
+            self.cl.beams[k] = {
+                char = char,
+                effect = Line()
+            }
+
+            self.cl.beams[k].effect:init( 0.05, sm.color.new(0, 1, 0) )
         end
     end
 
     for k, beam in pairs(self.cl.beams) do
         if sm.exists(beam.char) then
-            local hit, result = sm.physics.raycast(self.cl.pos, beam.char:getWorldPosition(), sm.areaTrigger.filter.character)
+            local charPos = beam.char:getWorldPosition()
+            local hit, result = sm.physics.raycast(self.cl.pos, charPos, sm.areaTrigger.filter.character)
             if isAnyOf(beam.char, triggerContents) and hit and result:getCharacter() == beam.char then
-                local charPos = beam.char:getWorldPosition()
-                local delta = (self.cl.pos - charPos)
-                local rot = sm.vec3.getRotation(sm.vec3.new(0, 0, 1), delta)
-                local distance = sm.vec3.new(0.05, 0.05, delta:length())
-
-                beam.effect:setPosition(charPos + delta * 0.5)
-                beam.effect:setScale(distance)
-                beam.effect:setRotation(rot)
-
-                if not beam.effect:isPlaying() then
-                    beam.effect:start()
-                end
+                beam.effect:update( self.cl.pos, charPos, dt, 100 )
             else
                 beam.effect:stop()
             end
@@ -104,7 +96,7 @@ end
 
 function BBall:client_onDestroy()
     for k, beam in pairs(self.cl.beams) do
-        beam.effect:destroy()
+        beam.effect:stop()
     end
 
     self.cl.effect:destroy()

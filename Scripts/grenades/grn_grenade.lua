@@ -33,7 +33,6 @@ end
 
 function Grenade:sv_destroy()
 	se.physics.explode( self.shape:getWorldPosition(), 30 * self.multiplier, 10 * self.multiplier, 15 * self.multiplier, 50 * self.multiplier, "PropaneTank - ExplosionSmall", nil, self.player, true )
-	print("Grenade", self.grenadeID, "destroyed.")
 	self.shape:destroyPart()
 end
 

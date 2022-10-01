@@ -41,7 +41,6 @@ function ImploBomb:server_onCollision( other, pos, velocity, otherVelocity, norm
 end
 
 function ImploBomb:sv_destroy()
-	print("ImploBomb", self.sv.grenadeID, "destroyed.")
 	self.shape:destroyPart()
 end
 
@@ -56,11 +55,11 @@ function ImploBomb:client_onCreate()
 	local up = self.shape:getRight()
 	local dirs = {
         at,
-        at * -1,
+        -at,
         right,
-        right * -1,
+        -right,
         up,
-        up * -1
+        -up
     }
 
     for i = 1, 6 do

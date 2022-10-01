@@ -23,7 +23,6 @@ function IceBomb:sv_freezeUnits( trigger, result )
 end
 
 function IceBomb:sv_destroy()
-	print("IceBomb", self.bombID, "destroyed.")
 	if sm.exists(self.freezeArea) then
 		sm.areaTrigger.destroy( self.freezeArea )
 	end
