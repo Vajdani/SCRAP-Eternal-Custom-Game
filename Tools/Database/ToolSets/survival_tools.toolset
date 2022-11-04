@@ -19,7 +19,7 @@
          "script" : {
             "class" : "Eat",
             "data" : {},
-            "file" : "$SURVIVAL_DATA/Scripts/game/tools/Eat.lua"
+            "file" : "$CONTENT_DATA/Scripts/tools/Eat.lua"
          },
          "uuid" : "2bff990a-0e74-43c7-b7dc-889b3a086fa3"
       }

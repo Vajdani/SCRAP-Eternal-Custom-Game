@@ -540,7 +540,7 @@ function Eat.client_onEquippedUpdate( self, primaryState, secondaryState, forceB
 	if forceBuildActive and not self.eating then
 		return false, false
 	else
-		local keyBindingText =  sm.gui.getKeyBinding( "Create" )
+		local keyBindingText =  sm.gui.getKeyBinding( "Create", true )
 		sm.gui.setInteractionText( "", keyBindingText, "#{INTERACTION_EAT}" )
 	end
 	return true, false
