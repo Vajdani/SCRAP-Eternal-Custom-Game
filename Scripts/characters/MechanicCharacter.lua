@@ -95,7 +95,6 @@ function MechanicCharacter.client_onGraphicsLoaded( self )
 		weight = 0,
 		looping = true
 	}
-	
 
 	self.animations.punch = {
 		info = self.character:getAnimationInfo( "punch" ),
@@ -129,23 +128,23 @@ function MechanicCharacter.client_onGraphicsLoaded( self )
 			time = 0,
 			weight = 0
 		}
-		
+
 		self.FPanimations.punch = {
-			info = sm.localPlayer.getFpAnimationInfo( "punch" ),
+			info = sm.localPlayer.getFpAnimationInfo( "punch_fp" ),
 			time = 0,
 			weight = 0
 		}
 		self.FPanimations.parry = {
-			info = sm.localPlayer.getFpAnimationInfo( "parry" ),
+			info = sm.localPlayer.getFpAnimationInfo( "parry_fp" ),
 			time = 0,
 			weight = 0
 		}
 		self.FPanimations.normalPunch = {
-			info = sm.localPlayer.getFpAnimationInfo( "normalPunch" ),
+			info = sm.localPlayer.getFpAnimationInfo( "normalPunch_fp" ),
 			time = 0,
 			weight = 0
 		}
-		
+
 		self.currentFPAnimation = ""
 	end
 	self.animationsLoaded = true
@@ -405,7 +404,7 @@ function MechanicCharacter.cl_handleEvent( self, event )
 			sm.effect.playEffect( "Character - Hit", self.character.worldPosition )
 		
 		elseif event == "punch" then
-			--print("Recieved blood punch event")
+			print("Recieved blood punch event")
 			self.canBloodPunch = true
 			self.currentAnimation = "punch"
 			self.animations.punch.time = 0
@@ -414,7 +413,7 @@ function MechanicCharacter.cl_handleEvent( self, event )
 				self.FPanimations.punch.time = 0
 			end
 		elseif event == "parry" then
-			--print("Recieved parry event")
+			print("Recieved parry event")
 			self.currentAnimation = "parry"
 			self.animations.parry.time = 0
 			if self.isLocal then
@@ -422,7 +421,7 @@ function MechanicCharacter.cl_handleEvent( self, event )
 				self.FPanimations.parry.time = 0
 			end
 		elseif event == "normalPunch" then
-			--print("Recieved normalPunch event")
+			print("Recieved normalPunch event")
 			self.canNormalPunch = true
 			self.currentAnimation = "normalPunch"
 			self.animations.normalPunch.time = 0

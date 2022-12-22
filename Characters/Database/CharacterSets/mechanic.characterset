@@ -3,10 +3,8 @@
 		{
 			"uuid": "00000000-0000-0000-0000-000000000000",
 			"renderables":
-			[
-				"$CONTENT_DATA/Characters/Char_Male/Anims/char_male_fp.rend",
-				"$CONTENT_DATA/Characters/Char_Male/Anims/char_male_tp.rend",
-
+			[				
+				"$GAME_DATA/Character/Char_Male/Animations/char_male_tp.rend",
 				"$GAME_DATA/Character/Char_Male/Animations/char_male_tp_swim.rend",
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_head.rend",
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_chest.rend",
@@ -14,7 +12,9 @@
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_feet.rend",
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_legs.rend",
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_hair.rend",
-				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_backpack.rend"
+				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_backpack.rend",
+			
+				"$CONTENT_DATA/Characters/Char_Male/Anims/char_male_custom.rend"
 			],
 			"ragdoll": "$SURVIVAL_DATA/Character/Char_Male/char_male_ragdoll.json",
 			"tumble":

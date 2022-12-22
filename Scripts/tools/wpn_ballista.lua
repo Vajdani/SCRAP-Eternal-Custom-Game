@@ -100,8 +100,9 @@ function Ballista:sv_shootDart( args )
 end
 
 function Ballista:sv_knockback()
+	---@type Character
 	local char = self.sv.owner.character
-	sm.physics.applyImpulse( char, -char.direction * 300 )
+	sm.physics.applyImpulse( char, char.direction * -5 * char.mass )
 end
 
 

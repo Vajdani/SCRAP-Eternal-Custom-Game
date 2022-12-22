@@ -762,11 +762,12 @@ end
 
 function Player:sv_grenadeParry( int )
 	local data = sm.interactable.getPublicData( int )
+	print(data)
 	self.player:sendCharacterEvent( "parry" )
 	self:sv_playSound("Sledgehammer - Swing")
 
-	if data.mult < 2 then
-		data.mult = data.mult + 0.25
+	if data.multiplier < 2 then
+		data.multiplier = data.multiplier + 0.25
 		self:sv_playSound("Retrobass")
 	else
 		self:sv_playSound("RaftShark")
@@ -820,15 +821,18 @@ function Player:sv_onInteract( args )
 
 	--Glory Kill
 	local hit, result = se.player.getRaycast( self.player, self.sv.gk.range )
-	if hit and result:getCharacter() ~= nil and se.unitData[result:getCharacter():getId()].data.stats.gkState then
-		self.sv.gk.target = result:getCharacter()
-		self.sv.public.data.playerData.gkState = true
-		sm.localPlayer.setLockedControls( true )
-		self.sv.public.data.playerData.isInvincible = true
+	if hit and result:getCharacter() ~= nil then
+		local data = se.unitData[result:getCharacter():getId()]
+		if data and data.data.stats.gkState then
+			self.sv.gk.target = result:getCharacter()
+			self.sv.public.data.playerData.gkState = true
+			sm.localPlayer.setLockedControls( true )
+			self.sv.public.data.playerData.isInvincible = true
 
-		sm.event.sendToUnit(self.sv.gk.target:getUnit(), "sv_extendGK", 100000)
-		self:sv_gkSnap( "normal" )
-		return
+			sm.event.sendToUnit(self.sv.gk.target:getUnit(), "sv_extendGK", 100000)
+			self:sv_gkSnap( "normal" )
+			return
+		end
 	end
 
 
