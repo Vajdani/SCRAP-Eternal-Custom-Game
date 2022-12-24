@@ -1,6 +1,18 @@
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 
+---@class Arb_cl
+---@field pos Vec3
+---@field dir Vec3
+---@field effect Effect
+---@field attachedTarget Character|Body
+---@field localAttachedPos Vec3
+---@field attachDir Vec3
+---@field attached boolean
+---@field speed number
+
+---@class Arb : ScriptableObjectClass
+---@field cl Arb_cl
 Arb = class()
 Arb.damage = 100
 Arb.speed = 1

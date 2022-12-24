@@ -725,10 +725,56 @@ function TotebotGreenUnit.server_onProjectile( self, hitPos, hitTime, hitVelocit
 				end
 			end
 		end
+
+
+		if type( attacker ) == "Player"  then
+			local data = attacker.publicData.data.weaponData.hcannon
+			local wpnData = attacker.publicData.data.currentWpnData
+			local mod =  data.mod1
+			local explode = mod.mastery.owned
+
+			if self:nearHead( hitPos ) then
+				if projectileUuid == proj_pb then
+					if explode then
+						sm.physics.explode( hitPos, self.char:getMass()/100 , 5, 5, 10, "PropaneTank - ExplosionSmall" )
+					else
+						if mod.up1.owned and mod.up2.owned then
+							mod.mastery.progress = mod.mastery.progress + 1
+						end
+
+						if mod.mastery.progress == mod.mastery.max then
+							mod.mastery.owned = true
+							sm.event.sendToPlayer( attacker, "sv_displayMsg", "#ff9d00"..mod.mastery.name.." #ffffffunlocked!" )
+						end
+						sm.event.sendToPlayer( attacker, "sv_save" )
+					end
+					sm.event.sendToPlayer( attacker, "sv_playSound", "Horn" )
+				elseif projectileUuid == projectile_potato then
+					damage = damage * 2
+					sm.event.sendToPlayer( attacker, "sv_playSound", "Horn" )
+				end
+			end
+
+			print(wpnData.mod, wpnData.using)
+			if wpnData.mod == "Energy Shield" and wpnData.using then
+				print("added damage")
+				sm.event.sendToPlayer( attacker, "sv_addDamage", damage )
+			end
+		end
+
+
 		local impact = hitVelocity:normalize() * 6
 		self:sv_takeDamage( damage, impact, hitPos )
 	end
 end
+
+
+
+function TotebotGreenUnit.nearHead( self, hitPos )
+	return (self.unit.character:getTpBonePos( "head_jnt" ) - hitPos):length() > 0.9
+end
+
+
 
 function TotebotGreenUnit.server_onMelee( self, hitPos, attacker, damage, power, hitDirection )
 	if not sm.exists( self.unit ) or not sm.exists( attacker ) then

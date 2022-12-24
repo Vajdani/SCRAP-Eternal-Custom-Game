@@ -1,3 +1,10 @@
+---@class Shield_cl
+---@field pos Vec3
+---@field dir Vec3
+---@field effect Effect
+
+---@class Shield : ScriptableObjectClass
+---@field cl Shield_cl
 Shield = class()
 Shield.damage = 150
 Shield.speed = 0.6

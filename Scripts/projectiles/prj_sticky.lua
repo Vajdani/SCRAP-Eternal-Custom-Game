@@ -1,6 +1,18 @@
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
 dofile "$SURVIVAL_DATA/Scripts/util.lua"
 
+---@class Sticky_cl
+---@field pos Vec3
+---@field dir Vec3
+---@field effect Effect
+---@field attachedTarget Character|Body
+---@field localAttachedPos Vec3
+---@field attachDir Vec3
+---@field attached boolean
+---@field speed number
+
+---@class Sticky : ScriptableObjectClass
+---@field cl Sticky_cl
 Sticky = class()
 Sticky.speed = 0.75
 Sticky.damage = 10
@@ -27,7 +39,7 @@ function Sticky:server_onFixedUpdate(dt)
         local hit, result = sm.physics.raycast( self.cl.pos, self.cl.pos + self.cl.dir )
         if not hit then return end
 
-		local hitThing = se_raycast_getHitObj(result)
+		local hitThing = result:getCharacter() or result:getBody()
         if isAnyOf(hitThing, {"terrainSurface", "terrainAsset"}) then
             self.network:setClientData(
                 {
@@ -90,20 +102,18 @@ end
 function Sticky:client_onUpdate( dt )
     if self.cl == nil or not sm.exists(self.scriptableObject) then return end
 
-    if self.cl.attached then
-        if self.cl.attachedTarget and sm.exists(self.cl.attachedTarget) then
-            local newPos
-            if type(self.cl.attachedTarget) == "Shape" then
-                newPos = self.cl.attachedTarget.body:transformPoint( self.cl.localAttachedPos )
-                self.cl.effect:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 1, 0 ), self.cl.attachedTarget.worldRotation * self.cl.attachDir ) )
-            elseif type(self.cl.attachedTarget) == "Character" then
-                newPos = self.cl.attachedTarget:getWorldPosition()
-                self.cl.effect:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 1, 0 ), self.cl.attachedTarget:getDirection() * self.cl.attachDir ) )
-            end
-
-            self.cl.pos = newPos
-            self.cl.effect:setPosition( self.cl.pos )
+    if self.cl.attached and self.cl.attachedTarget and sm.exists(self.cl.attachedTarget) then
+        local newPos
+        if type(self.cl.attachedTarget) == "Body" then
+            newPos = self.cl.attachedTarget:transformPoint( self.cl.localAttachedPos )
+            self.cl.effect:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 1, 0 ), self.cl.attachedTarget.worldRotation * self.cl.attachDir ) )
+        elseif type(self.cl.attachedTarget) == "Character" then
+            newPos = self.cl.attachedTarget:getWorldPosition()
+            self.cl.effect:setRotation( sm.vec3.getRotation( sm.vec3.new( 0, 1, 0 ), self.cl.attachedTarget:getDirection() * self.cl.attachDir ) )
         end
+
+        self.cl.pos = newPos
+        self.cl.effect:setPosition( self.cl.pos )
     else
         local minus = sm.util.lerp( 0.1, 0.4, (sm.game.getCurrentTick() - self.params.spawnTick) / self.dropLifeTime  )
         self.cl.dir.z = sm.util.clamp( self.cl.dir.z - minus * dt, -1, 1 )

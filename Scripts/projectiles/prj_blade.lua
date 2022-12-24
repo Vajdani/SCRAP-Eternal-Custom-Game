@@ -1,5 +1,21 @@
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
 
+---@class Blade_cl
+---@field pos Vec3
+---@field dir Vec3
+---@field effect Effect
+
+---@class Blade_params
+---@field pos Vec3
+---@field dir Vec3
+---@field rot Quat
+---@field level number
+---@field owner Player
+---@field spawnTick number
+
+---@class Blade : ScriptableObjectClass
+---@field params Blade_params
+---@field cl Blade_cl
 Blade = class()
 Blade.damage = 100
 Blade.speed = 1
@@ -54,6 +70,8 @@ function Blade:server_onFixedUpdate(dt)
 
     self.sv.trigger:setWorldPosition(self.cl.pos)
 end
+
+
 
 function Blade:client_onCreate()
     self.cl = {}

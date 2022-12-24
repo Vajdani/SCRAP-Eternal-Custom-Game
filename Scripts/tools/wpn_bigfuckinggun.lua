@@ -188,7 +188,7 @@ function BFG:client_onToggle()
 end
 
 function BFG:sv_onToggle( pos )
-	sm.unit.createUnit(unit_farmbot, pos)
+	sm.unit.createUnit(unit_totebot_green, pos)
 end
 
 function BFG:sv_startShootEffect()

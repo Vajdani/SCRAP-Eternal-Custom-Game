@@ -6,6 +6,16 @@
 
 dofile "$CONTENT_DATA/Scripts/se_util.lua"
 
+---@class Rocket_cl
+---@field pos Vec3
+---@field dir Vec3
+---@field effect Effect
+---@field thrust Effect
+---@field flare Effect
+---@field trigger AreaTrigger
+
+---@class Rocket : ScriptableObjectClass
+---@field cl Rocket_cl
 Rocket = class()
 Rocket.speed = 0.75
 Rocket.maxLifeTime = 15 * 40
@@ -78,7 +88,6 @@ function Rocket:client_onUpdate( dt )
         if sm.exists(self.params.target) then
             local targetPos = self.params.target:getWorldPosition()
             local targetDir = targetPos + (self.params.target:getVelocity() / 2) - self.cl.pos
-
             self.cl.dir = ((self.cl.dir*0.7 + targetDir:normalize()*(0.125 + self.cl.dir:length()*0.3) )*0.995):normalize()
         end
     end
