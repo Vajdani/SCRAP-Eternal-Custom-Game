@@ -1,0 +1,33 @@
+{
+	"lodList": [
+		{
+			"mesh": "$GAME_DATA/Character/Char_Male/Animations/Animationrefs/aniref_char_male_tpose.dae",
+			"includes": [
+				"POSITION",
+				"UV0",
+				"NORMAL",
+				"TANGENTS",
+				"BLEND_INDICES",
+				"BLEND_WEIGHTS"
+			],
+			"animationList": [
+				{
+					"name": "punch_fp",
+					"file": "$CONTENT_DATA/Characters/Char_Male/Anims/bloodpunch/bloodpunchFP.dae",
+					"looping": false
+				},
+				{
+					"name": "parry_fp",
+					"file": "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parryFP.dae",
+					"looping": false
+				},
+				{
+					"name": "normalPunch_fp",
+					"file": "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parryFP.dae",
+					"looping": false
+				}
+			],
+			"maxViewDistance": 1000.0
+		}
+	]
+}

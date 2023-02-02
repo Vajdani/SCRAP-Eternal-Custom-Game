@@ -6,9 +6,14 @@ local BaguetteSteps = 10
 
 local multiknifeRenderableTp = "$GAME_DATA/Character/Char_Tools/Char_multiknife/char_multiknife_tp.rend"
 local multiknifeRenderableFp = "$GAME_DATA/Character/Char_Tools/Char_multiknife/char_multiknife_fp.rend"
-
 local baguetteRenderableTp = "$SURVIVAL_DATA/Character/Char_Tools/Char_longsandwich/char_male_headsandwich.rend"
 sm.character.preloadRenderables( { multiknifeRenderableTp, baguetteRenderableTp } )
+
+local customAnims = {
+	"$CONTENT_DATA/Characters/Char_Male/Anims/custom_tp.rend",
+	"$CONTENT_DATA/Characters/Char_Male/Anims/custom_fp.rend"
+}
+sm.character.preloadRenderables( customAnims )
 
 function MechanicCharacter.server_onCreate( self )
 	BaseCharacter.server_onCreate( self )
@@ -52,7 +57,10 @@ function MechanicCharacter.client_onGraphicsLoaded( self )
 	self.chewEffect = sm.effect.createEffect( "Mechanic - EatBaguette", self.character, "jnt_head" )
 		
 	self.graphicsLoaded = true
-	
+
+	self.character:addRenderable(customAnims[1])
+	self.character:addRenderable(customAnims[2])
+
 	-- Third person animations
 	self.animations = {}
 	self.animations.refine = {
@@ -130,17 +138,17 @@ function MechanicCharacter.client_onGraphicsLoaded( self )
 		}
 
 		self.FPanimations.punch = {
-			info = sm.localPlayer.getFpAnimationInfo( "punch_fp" ),
+			info = self.character:getAnimationInfo( "punch" ),
 			time = 0,
 			weight = 0
 		}
 		self.FPanimations.parry = {
-			info = sm.localPlayer.getFpAnimationInfo( "parry_fp" ),
+			info = self.character:getAnimationInfo( "parry" ),
 			time = 0,
 			weight = 0
 		}
 		self.FPanimations.normalPunch = {
-			info = sm.localPlayer.getFpAnimationInfo( "normalPunch_fp" ),
+			info = self.character:getAnimationInfo( "normalPunch" ),
 			time = 0,
 			weight = 0
 		}
@@ -180,6 +188,7 @@ function MechanicCharacter.client_onGraphicsUnloaded( self )
 end
 
 function MechanicCharacter.client_onUpdate( self, deltaTime )
+	print(self.currentFPAnimation, self.currentAnimation)
 	BaseCharacter.client_onUpdate( self, deltaTime )
 	if not self.graphicsLoaded then
 		return

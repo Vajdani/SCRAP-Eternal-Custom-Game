@@ -12,9 +12,7 @@
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_feet.rend",
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_legs.rend",
 				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_hair.rend",
-				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_backpack.rend",
-			
-				"$CONTENT_DATA/Characters/Char_Male/Anims/char_male_custom.rend"
+				"$GAME_DATA/Character/Char_Classic/Char_classic_male/char_classic_male_backpack.rend"
 			],
 			"ragdoll": "$SURVIVAL_DATA/Character/Char_Male/char_male_ragdoll.json",
 			"tumble":

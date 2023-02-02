@@ -25,21 +25,6 @@
 					"name": "normalPunch",
 					"file": "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parry.dae",
 					"looping": false
-				},
-				{
-					"name": "punch_fp",
-					"file": "$CONTENT_DATA/Characters/Char_Male/Anims/bloodpunch/bloodpunchFP.dae",
-					"looping": false
-				},
-				{
-					"name": "parry_fp",
-					"file": "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parryFP.dae",
-					"looping": false
-				},
-				{
-					"name": "normalPunch_fp",
-					"file": "$CONTENT_DATA/Characters/Char_Male/Anims/parry/parryFP.dae",
-					"looping": false
 				}
 			],
 			"maxViewDistance": 1000.0
