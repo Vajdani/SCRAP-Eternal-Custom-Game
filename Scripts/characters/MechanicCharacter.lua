@@ -188,7 +188,7 @@ function MechanicCharacter.client_onGraphicsUnloaded( self )
 end
 
 function MechanicCharacter.client_onUpdate( self, deltaTime )
-	print(self.currentFPAnimation, self.currentAnimation)
+	--print(self.currentFPAnimation, self.currentAnimation)
 	BaseCharacter.client_onUpdate( self, deltaTime )
 	if not self.graphicsLoaded then
 		return

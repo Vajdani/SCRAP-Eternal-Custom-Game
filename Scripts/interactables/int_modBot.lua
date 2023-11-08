@@ -150,7 +150,7 @@ function ModBot:client_onInteract( char, lookAt )
 	if lookAt then
 		self.cl.data.player = sm.localPlayer.getPlayer()
 		self.cl.data.playerInv = self.cl.data.player:getInventory()
-		self.cl.data.weaponData = sm.playerInfo[self.cl.data.player:getId()].weaponData
+		self.cl.data.weaponData = self.cl.data.player.clientPublicData.data.weaponData
 
 		local modsOwned = 0
 		for v, k in pairs(self.cl.data.weaponData) do

@@ -5,6 +5,7 @@
             "cost" : 6,
             "uuid" : "bfcfac34-db0f-42d6-bd0c-74a7a5c95e82"
          },
+         "attachedEffect" : "",
          "audiomass" : 250.0,
          "destruction" : {
             "destructionLevels" : [
@@ -32,6 +33,7 @@
             "uuid" : "42cae6ca-b5fb-4869-8000-260d63eb1d2c"
          },
          "amount" : 4,
+         "attachedEffect" : "",
          "audiomass" : 250.0,
          "destruction" : {
             "destructionLevels" : [
@@ -59,6 +61,7 @@
             "uuid" : "42cae6ca-b5fb-4869-8000-260d63eb1d2c"
          },
          "amount" : 6,
+         "attachedEffect" : "",
          "audiomass" : 250.0,
          "destruction" : {
             "destructionLevels" : [
@@ -86,6 +89,7 @@
             "uuid" : "37051f7f-1661-4bd7-9f24-d61bd602616d"
          },
          "amount" : 1,
+         "attachedEffect" : "",
          "audiomass" : 250.0,
          "destruction" : {
             "destructionLevels" : [
@@ -112,6 +116,7 @@
             "cost" : 1,
             "uuid" : "37051f7f-1661-4bd7-9f24-d61bd602616d"
          },
+         "attachedEffect" : "",
          "audiomass" : 250.0,
          "destruction" : {
             "destructionLevels" : [
@@ -138,6 +143,7 @@
             "cost" : 1,
             "uuid" : "72db5fe7-cda0-45a6-a175-3a46ba0cd150"
          },
+         "attachedEffect" : "",
          "audiomass" : 250.0,
          "destruction" : {
             "destructionLevels" : [
